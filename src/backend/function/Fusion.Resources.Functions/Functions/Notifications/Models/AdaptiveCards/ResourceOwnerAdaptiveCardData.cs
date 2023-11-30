@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard;
+namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards;
 
 public class ResourceOwnerAdaptiveCardData
 {

@@ -8,14 +8,14 @@ using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Functions.Notifications.Models;
-using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard;
+using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
+using static Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards.AdaptiveCardBuilder;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -143,17 +143,17 @@ public class ScheduledReportContentBuilderFunction
 
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
-            {
-                NumberOfOlderRequests = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
-                NumberOfOpenRequests = totalNumberOfOpenRequests,
-                NumberOfNewRequestsWithNoNomination =
+        {
+            NumberOfOlderRequests = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
+            NumberOfOpenRequests = totalNumberOfOpenRequests,
+            NumberOfNewRequestsWithNoNomination =
                     numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-                NumberOfExtContractsEnding = 0, // TODO: Work in progress...
-                PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
-                PercentAllocationOfTotalCapacity = percentageOfTotalCapacity,
-                TotalNumberOfRequests = totalNumberOfRequests,
-                PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
-            },
+            NumberOfExtContractsEnding = 0, // TODO: Work in progress...
+            PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
+            PercentAllocationOfTotalCapacity = percentageOfTotalCapacity,
+            TotalNumberOfRequests = totalNumberOfRequests,
+            PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+        },
             fullDepartment);
 
         var sendNotification = await _notificationsClient.SendNotification(
@@ -235,192 +235,18 @@ public class ScheduledReportContentBuilderFunction
     private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData,
         string departmentIdentifier)
     {
-        var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 2));
 
-        card.Body.Add(new AdaptiveTextBlock
-        {
-            Text = $"**Weekly summary - {departmentIdentifier}**",
-            Size = AdaptiveTextSize.Large,
-            Weight = AdaptiveTextWeight.Bolder,
-            Wrap = true // Allow text to wrap
-        });
-
-        card = CreateAdaptiveCardTemp(card, cardData);
+        var card = new AdaptiveCardBuilder()
+        .AddHeading($"**Weekly summary - {departmentIdentifier}**")
+        .AddColumnSet(new AdaptiveCardColumn(cardData.PercentAllocationOfTotalCapacity.ToString(), "Capacity in use", "%"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfRequests.ToString(), "Total requests"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOpenRequests.ToString(), "Open requests"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfNewRequestsWithNoNomination.ToString(), "Requests with start date less than 3 months"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOlderRequests.ToString(), "Requests with start date more than 3 months"))
+        .AddListContainer("Positions ending soon with no future allocation:", cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
+        .AddListContainer("Personnel with more than 100% FTE:", cardData.PersonnelAllocatedMoreThan100Percent, "FullName", "TotalWorkload")
+        .Build();
 
         return card;
-    }
-
-
-    // FIXME: Temporary way to compose a adaptive card. Needs refactoring
-    private static AdaptiveCard CreateAdaptiveCardTemp(AdaptiveCard adaptiveCard,
-        ResourceOwnerAdaptiveCardData cardData)
-    {
-        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Capacity in use", "%",
-            cardData.PercentAllocationOfTotalCapacity.ToString());
-        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Total requests", "",
-            cardData.TotalNumberOfRequests.ToString());
-        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Open requests", "",
-            cardData.NumberOfOpenRequests.ToString());
-        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Requests with start date less than 3 months", "",
-            cardData.NumberOfNewRequestsWithNoNomination.ToString());
-        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Requests with start date more than 3 months", "",
-            cardData.NumberOfOlderRequests.ToString());
-        adaptiveCard = AddColumnsAndTextToAdaptiveCardForAllocationWithNoFutureAllocations(adaptiveCard,
-            "Positions ending soon with no future allocation", "End date: ", cardData);
-        adaptiveCard = AddColumnsAndTextToAdaptiveCardForPersonnelWithMoreThan100PercentFTE(adaptiveCard,
-            "Personnel with more than 100% FTE:", "% FTE", cardData);
-
-        return adaptiveCard;
-    }
-
-    private static AdaptiveCard AddColumnsAndTextToAdaptiveCard(AdaptiveCard adaptiveCard, string customtext1,
-        string? customtext2, string value)
-    {
-        var container = new AdaptiveContainer();
-        container.Separator = true;
-        var columnSet1 = new AdaptiveColumnSet();
-
-        var column1 = new AdaptiveColumn();
-        column1.Width = AdaptiveColumnWidth.Stretch;
-        column1.Separator = true;
-        column1.Spacing = AdaptiveSpacing.Medium;
-
-        var textBlock1 = new AdaptiveTextBlock();
-        textBlock1.Text = customtext1;
-        textBlock1.Wrap = true;
-        textBlock1.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
-
-        var textBlock2 = new AdaptiveTextBlock()
-        {
-            Wrap = true,
-            Text = value + customtext2,
-            Size = AdaptiveTextSize.ExtraLarge,
-            HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
-        };
-
-        column1.Add(textBlock2);
-        column1.Add(textBlock1);
-        columnSet1.Add(column1);
-        container.Add(columnSet1);
-        adaptiveCard.Body.Add(container);
-
-
-        return adaptiveCard;
-    }
-
-    private static AdaptiveCard AddColumnsAndTextToAdaptiveCardForAllocationWithNoFutureAllocations(
-        AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
-    {
-        var container = new AdaptiveContainer()
-            { Separator = true };
-
-        var columnSet1 = new AdaptiveColumnSet();
-
-        var column1 = new AdaptiveColumn();
-        var textBlock1 = new AdaptiveTextBlock()
-        {
-            Text = customtext1,
-            Wrap = true,
-            Size = AdaptiveTextSize.Default,
-            Weight = AdaptiveTextWeight.Bolder
-        };
-        column1.Add(textBlock1);
-
-        foreach (var p in carddata.PersonnelPositionsEndingWithNoFutureAllocation)
-        {
-            var columnset2 = new AdaptiveColumnSet();
-
-            var column2 = new AdaptiveColumn();
-            var textBlock2 = new AdaptiveTextBlock()
-            {
-                Text = p.FullName,
-                Wrap = true,
-                Size = AdaptiveTextSize.Default,
-                HorizontalAlignment = AdaptiveHorizontalAlignment.Left
-            };
-
-
-            column2.Add(textBlock2);
-            columnset2.Add(column2);
-
-            var column3 = new AdaptiveColumn();
-            var textBlock3 = new AdaptiveTextBlock()
-            {
-                Text = customtext2 + p.EndingPosition.AppliesTo.Value.Date.ToShortDateString(),
-                Wrap = true,
-                Size = AdaptiveTextSize.Default,
-                HorizontalAlignment = AdaptiveHorizontalAlignment.Right
-            };
-
-            column3.Add(textBlock3);
-            columnset2.Add(column3);
-            column1.Add(columnset2);
-        }
-
-
-        columnSet1.Add(column1);
-        container.Add(columnSet1);
-
-        adaptiveCard.Body.Add(container);
-
-        return adaptiveCard;
-    }
-
-    private static AdaptiveCard AddColumnsAndTextToAdaptiveCardForPersonnelWithMoreThan100PercentFTE(
-        AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
-    {
-        var container = new AdaptiveContainer()
-            { Separator = true };
-
-        var columnSet1 = new AdaptiveColumnSet();
-
-        var column1 = new AdaptiveColumn();
-        var textBlock1 = new AdaptiveTextBlock()
-        {
-            Text = customtext1,
-            Wrap = true,
-            Size = AdaptiveTextSize.Default,
-            Weight = AdaptiveTextWeight.Bolder
-        };
-        column1.Add(textBlock1);
-
-        foreach (var p in carddata.PersonnelAllocatedMoreThan100Percent)
-        {
-            var columnset2 = new AdaptiveColumnSet();
-
-            var column2 = new AdaptiveColumn();
-            var textBlock2 = new AdaptiveTextBlock()
-            {
-                Text = p.FullName,
-                Wrap = true,
-                Size = AdaptiveTextSize.Default,
-                HorizontalAlignment = AdaptiveHorizontalAlignment.Left
-            };
-
-
-            column2.Add(textBlock2);
-            columnset2.Add(column2);
-
-            var column3 = new AdaptiveColumn();
-            var textBlock3 = new AdaptiveTextBlock()
-            {
-                Text = p.TotalWorkload + customtext2,
-                Wrap = true,
-                Size = AdaptiveTextSize.Default,
-                HorizontalAlignment = AdaptiveHorizontalAlignment.Right
-            };
-
-            column3.Add(textBlock3);
-            columnset2.Add(column3);
-            column1.Add(columnset2);
-        }
-
-
-        columnSet1.Add(column1);
-        container.Add(columnSet1);
-
-        adaptiveCard.Body.Add(container);
-
-        return adaptiveCard;
-    }
+    }    
 }
