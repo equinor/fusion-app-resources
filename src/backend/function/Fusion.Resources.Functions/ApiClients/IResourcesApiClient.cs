@@ -30,10 +30,9 @@ namespace Fusion.Resources.Functions.ApiClients
             public ProposedPerson? ProposedPerson { get; set; }
             public bool HasProposedPerson => ProposedPerson?.Person.AzureUniquePersonId is not null;
             public string? State { get; set; }
-            public Workflow? workflow { get; set; }
+            public Workflow? Workflow { get; set; }
             public DateTimeOffset Created { get; set; }
             public InternalPersonnelPerson? CreatedBy { get; set; }
-
             public DateTimeOffset? Updated { get; set; }
             public InternalPersonnelPerson? UpdatedBy { get; set; }
             public DateTimeOffset? LastActivity { get; set; }
@@ -49,12 +48,9 @@ namespace Fusion.Resources.Functions.ApiClients
         {
             public string LogicAppName { get; set; }
             public string LogicAppVersion { get; set; }
-
             [JsonConverter(typeof(JsonStringEnumConverter))]
             public ApiWorkflowState State { get; set; }
-
             public IEnumerable<WorkflowStep> Steps { get; set; }
-
             public enum ApiWorkflowState { Running, Canceled, Error, Completed, Terminated, Unknown }
 
         }
@@ -63,25 +59,20 @@ namespace Fusion.Resources.Functions.ApiClients
         {
             public string Id { get; set; }
             public string Name { get; set; }
-
             public bool IsCompleted => Completed.HasValue;
-
             /// <summary>
             /// Pending, Approved, Rejected, Skipped
             /// </summary>
             [JsonConverter(typeof(JsonStringEnumConverter))]
             public ApiWorkflowStepState State { get; set; }
-
             public DateTimeOffset? Started { get; set; }
             public DateTimeOffset? Completed { get; set; }
             public DateTimeOffset? DueDate { get; set; }
             public InternalPersonnelPerson? CompletedBy { get; set; }
             public string Description { get; set; }
             public string? Reason { get; set; }
-
             public string? PreviousStep { get; set; }
             public string? NextStep { get; set; }
-
             public enum ApiWorkflowStepState { Pending, Approved, Rejected, Skipped, Unknown }
         }
 

@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
-using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Functions.Notifications.Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards;
@@ -14,8 +13,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using static Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards.AdaptiveCardBuilder;
+using Fusion.Resources.Functions.ApiClients;
+using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -24,14 +24,17 @@ public class ScheduledReportContentBuilderFunction
     private readonly ILogger<ScheduledReportContentBuilderFunction> _logger;
     private readonly INotificationApiClient _notificationsClient;
     private readonly IResourcesApiClient _resourceClient;
+    private readonly IOrgClient _orgClient;
 
     public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
         IResourcesApiClient resourcesApiClient,
-        INotificationApiClient notificationsClient)
+        INotificationApiClient notificationsClient,
+        IOrgClient orgClient)
     {
         _logger = logger;
         _resourceClient = resourcesApiClient;
         _notificationsClient = notificationsClient;
+        _orgClient = orgClient;
     }
 
     [FunctionName("scheduled-report-content-Builder-function")]
@@ -98,7 +101,6 @@ public class ScheduledReportContentBuilderFunction
         // Get all the personnel for the specific department
         var personnelForDepartment = await _resourceClient.GetAllPersonnelForDepartment(fullDepartment);
         personnelForDepartment = await GetPersonnelLeave(personnelForDepartment);
-        
 
 
         //1.Number of personnel: 
@@ -114,7 +116,6 @@ public class ScheduledReportContentBuilderFunction
         //a.e.g. 10 people in department: 800 % current workload / (1000 % -120 % leave) = 91 % capacity in use
         // OK - Inkluderer nå leave..
         var percentageOfTotalCapacity = FindTotalCapacityIncludingLeave(personnelForDepartment.ToList());
-
 
         // 3.New requests last week:
         // number of requests received last 7 days
@@ -147,20 +148,21 @@ public class ScheduledReportContentBuilderFunction
             .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
                 x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
 
-        // TODO:
+        // TODO: MÅ TESTES OG VERIFISERES
         //7.Average time to handle request: 
         //average number of days from request created/ sent to candidate is proposed - last 6 months
+        var averageTimeToHandleRequest = CalculateAverageTimeToHandleRequests(departmentRequests);
 
-        // TODO:
+        // TODO: GJENSTÅR
         //8.Allocation changes awaiting task owner action:
         //number of allocation changes made by resource owner awaiting task owner action
         //Må hente ut alle posisjoner som har ressurser for en gitt avdeling og sjekke på om det er gjort endringer her den siste tiden
 
-        // TODO: 
-        //9.Project changes affecting next 3 months: 
+        //9.Project changes affecting next 3 months: MÅ TESTES OG VERIFISERES
         //number of project changes(changes initiated by project / task) with a change affecting the next 3 months
+        var numberOfChangesAffectingNextThreeMonths = GetAllChangesForResourceDepartment(personnelForDepartment);
 
-        //10.Allocations ending soon with no future allocation:  -Skal være ok ?
+        //10.Allocations ending soon with no future allocation:
         //list of allocations ending within next 3 months where the person allocated does not continue in the position(i.e.no future splits with the same person allocated)
         var listOfPersonnelWithoutFutureAllocations = FilterPersonnelWithoutFutureAllocations(personnelForDepartment);
 
@@ -183,8 +185,8 @@ public class ScheduledReportContentBuilderFunction
             NumberOfOpenRequests = totalNumberOfOpenRequests,
             NumberOfRequestsStartingInMoreThanThreeMonths = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
             NumberOfRequestsStartingInLessThanThreeMonths = numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-            AverageTimeToHandleRequests = 0,
-            AllocationChangesAwaitingTaskOwnerAction = 0,
+            AverageTimeToHandleRequests = averageTimeToHandleRequest,
+            AllocationChangesAwaitingTaskOwnerAction = numberOfChangesAffectingNextThreeMonths,
             ProjectChangesAffectingNextThreeMonths = 0,
             PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
             PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent
@@ -224,7 +226,7 @@ public class ScheduledReportContentBuilderFunction
     private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
         List<InternalPersonnelPerson> newList = listOfInternalPersonnel.ToList();
-        for (int i =0; i < newList.Count(); i++)
+        for (int i = 0; i < newList.Count(); i++)
         {
             var absence = await _resourceClient.GetLeaveForPersonnel(newList[i].AzureUniquePersonId.ToString());
             newList[i].ApiPersonAbsences = absence.ToList();
@@ -238,6 +240,7 @@ public class ScheduledReportContentBuilderFunction
     {
         //Calculated by total current workload for all personnel / (100 % workload x number of personnel - (total % leave)), 
         //a.e.g. 10 people in department: 800 % current workload / (1000 % -120 % leave) = 91 % capacity in use
+        // We need to take into account the other types of allocations from absence-endpoint.
 
         var totalWorkLoad = 0.0;
         double? totalLeave = 0.0;
@@ -245,12 +248,92 @@ public class ScheduledReportContentBuilderFunction
         foreach (var personnel in listOfInternalPersonnel)
         {
             totalLeave += personnel.ApiPersonAbsences.Where(ab => ab.Type == ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
+            totalWorkLoad += (double)personnel.ApiPersonAbsences.Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
             totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
         }
 
         var totalPercentageInludeLeave = totalWorkLoad / ((listOfInternalPersonnel.Count * 100) - totalLeave) * 100;
 
         return Convert.ToInt32(totalPercentageInludeLeave);
+    }
+
+    private int GetAllChangesForResourceDepartment(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
+    {
+        // Find all active instances (we get projectId, positionId and instanceId from this)
+        // Then check if the changes are changes in split (duration, workload, location) - TODO: Check if there are other changes that should be accounted for
+
+        var threeMonths = DateTime.UtcNow.AddMonths(3);
+        var today = DateTime.UtcNow;
+
+        var listOfInternalPersonnelwithOnlyActiveProjects = listOfInternalPersonnel.SelectMany(per => per.PositionInstances.Where(pis => pis.IsActive || (pis.AppliesFrom < threeMonths && pis.AppliesFrom > today)));
+
+        int totalChangesForDepartment = 0;
+
+        foreach (var instance in listOfInternalPersonnelwithOnlyActiveProjects)
+        {
+
+            var changeLogForPersonnel = _orgClient.GetChangeLog(instance.Project.Id.ToString(), instance.PositionId.ToString(), instance.InstanceId.ToString());
+            var totalChanges = changeLogForPersonnel.Result.Events
+                .Where(ev => ev.ChangeType != ChangeType.PositionInstanceCreated.ToString()
+                && ev.ChangeType != ChangeType.PersonAssignedToPosition.ToString()
+                && ev.ChangeType != ChangeType.PositionInstanceAllocationStateChanged.ToString()
+                && ev.ChangeType != ChangeType.PositionInstanceParentPositionIdChanged.ToString()
+                && (ev.ChangeType.Equals(ChangeType.PositionInstanceAppliesToChanged) && ev.Instance.AppliesTo < threeMonths));
+
+
+            totalChangesForDepartment += totalChanges.Count();
+        }
+        return totalChangesForDepartment;
+    }
+
+
+
+
+
+    private double CalculateAverageTimeToHandleRequests(IEnumerable<ResourceAllocationRequest> listOfRequests)
+    {
+        // How to calculate:
+        // for each request:
+        // Find the workflow "created" and then find the date
+        // This should mean that task owner have created and sent the request to resource owner
+        // Find the workflow "proposal" and then find the date
+        // This should mean that the resource owner have done their bit
+        // TODO: Maybe we need to consider other states
+        // FIXME: We may need to filter out requests that are sent from resource-side (aka ResourceOwnerChange)
+
+
+        double days = 0;
+        int requestsHandledByResourceOwner = 0;
+        double totalNumberOfDays = 0.0;
+
+        var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
+
+        var requestsLastThreemonths = listOfRequests
+            .Where(req => req.Created > threeMonthsAgo)
+            .Where(r => r.Workflow is not null)
+            .Where(r => r.Workflow.Steps is not null);
+
+        foreach (var request in requestsLastThreemonths)
+        {
+            if (request.State.Equals(RequestState.created.ToString()))
+                continue;
+
+            var dateForCreation = request.Workflow.Steps.FirstOrDefault(step => step.IsCompleted && step.Name.Equals("Created"))?.Completed.Value.DateTime;
+            var dateForApproval = request.Workflow.Steps.FirstOrDefault(step => step.IsCompleted && step.Name.Equals("Proposed"))?.Completed.Value.DateTime;
+            if (dateForCreation != null && dateForApproval != null)
+            {
+                requestsHandledByResourceOwner++;
+                var timespanDifference = dateForApproval - dateForCreation;
+                var differenceInDays = timespanDifference.Value.TotalDays;
+                totalNumberOfDays += differenceInDays;
+            }
+        }
+
+        if (totalNumberOfDays > 0)
+        {
+            days = totalNumberOfDays / requestsHandledByResourceOwner;
+        }
+        return days;
     }
 
     private PersonnelContent CreatePersonnelContent(InternalPersonnelPerson person)
@@ -290,8 +373,10 @@ public class ScheduledReportContentBuilderFunction
     {
         // Plasser denne en annen plass
         var baseUri = "https://fusion-s-portal-ci.azurewebsites.net/apps/personnel-allocation/";
-        var avdelingsId = "52586050";
+        var avdelingsId = "52586050"; // Må finne ut av hvor man får denne ID'en til avdelingen. Mulig man må hente det fra context?
 
+
+        var formatDoubleToHaveOneDecimal = "F1";
 
         var card = new AdaptiveCardBuilder()
         .AddHeading($"**Weekly summary - {departmentIdentifier}**")
@@ -301,17 +386,12 @@ public class ScheduledReportContentBuilderFunction
         .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOpenRequests.ToString(), "Open requests"))
         .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInLessThanThreeMonths.ToString(), "Requests with start date < 3 months"))
         .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInMoreThanThreeMonths.ToString(), "Requests with start date > 3 months"))
-
-        // Not finished
-        .AddColumnSet(new AdaptiveCardColumn(/*(cardData.AverageTimeToHandleRequests.ToString()*/ "NA", "Average time to handle request")) // WIP
+        .AddColumnSet(new AdaptiveCardColumn(cardData.AverageTimeToHandleRequests.ToString(formatDoubleToHaveOneDecimal), "Average time to handle request", "days"))
         .AddColumnSet(new AdaptiveCardColumn(/*cardData.AllocationChangesAwaitingTaskOwnerAction.ToString()*/ "NA", "Allocation changes awaiting task owner action")) // WIP
-        .AddColumnSet(new AdaptiveCardColumn(/*cardData.ProjectChangesAffectingNextThreeMonths.ToString()*/ "NA", "Project changes affecting next 3 months")) // WIP
-
-        .AddListContainer("Positions ending soon with no future allocation:", cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
+        .AddColumnSet(new AdaptiveCardColumn(cardData.ProjectChangesAffectingNextThreeMonths.ToString(), "Project changes affecting next 3 months"))
+        .AddListContainer("Allocations ending soon with no future allocation:", cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
         .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent, "FullName", "TotalWorkload")
-
         .AddActionButton("Go to Personnel allocation app", $"{baseUri}{avdelingsId}")
-
         .Build();
 
         return card;
