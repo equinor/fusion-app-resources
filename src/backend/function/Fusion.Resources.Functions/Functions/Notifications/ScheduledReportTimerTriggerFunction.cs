@@ -66,7 +66,8 @@ public class ScheduledReportTimerTriggerFunction
                 throw new Exception("No departments found.");
 
             // TODO: These resource-owners are handpicked to limit the scope of the project.
-            var selectedDepartments = departments.Where(d => d.Contains("PRD")).Distinct().ToList();
+            var selectedDepartments = departments
+                .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
             var resourceOwners = await GetLineOrgPersonsFromDepartmetnsChunked(selectedDepartments);
 
             if (resourceOwners == null || !resourceOwners.Any())
@@ -102,7 +103,7 @@ public class ScheduledReportTimerTriggerFunction
         }
     }
 
-    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmetnsChunked(List<string> selectedDepartments)
+    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmetnsChunked(List<LineOrgApiClient.OrgUnits> selectedDepartments)
     {
         var resourceOwners = new List<LineOrgPerson>();
         const int chuckSize = 10;

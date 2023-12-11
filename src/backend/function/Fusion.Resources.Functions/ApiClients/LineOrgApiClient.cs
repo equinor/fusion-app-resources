@@ -19,33 +19,36 @@ public class LineOrgApiClient : ILineOrgApiClient
         lineOrgClient.Timeout = TimeSpan.FromMinutes(5);
     }
 
-    public async Task<IEnumerable<string>> GetOrgUnitDepartmentsAsync()
+    public async Task<IEnumerable<OrgUnits>> GetOrgUnitDepartmentsAsync()
     {
         var data =
-            await lineOrgClient.GetAsJsonAsync<InternalCollection<DepartmentRef>>($"/org-units?$top={int.MaxValue}");
+            await lineOrgClient.GetAsJsonAsync<InternalCollection<OrgUnits>>($"/org-units?$top={int.MaxValue}");
 
         return data.Value
             .Where(x => !string.IsNullOrEmpty(x.FullDepartment))
-            .Select(x => x.FullDepartment!).ToList();
+            .ToList();
     }
 
-    public async Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(List<string> fullDepartments)
+    public async Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(List<OrgUnits> fullDepartments)
     {
         var list = fullDepartments
-            .Select(l => $"'{l.Replace("&", "%26")}'")
+            .Select(l => $"'{l.FullDepartment?.Replace("&", "%26")}'")
             .ToList()
             .Aggregate((a, b) => $"{a}, {b}");
         var queryString = $"/lineorg/persons?$filter=fullDepartment in " +
                           $"({list}) " +
                           $"and isResourceOwner eq 'true'";
         var resourceOwners = await lineOrgClient.GetAsJsonAsync<LineOrgPersonsResponse>(queryString);
+        foreach (var r in resourceOwners.Value)
+            r.DepartmentSapId = fullDepartments.FirstOrDefault(x => x.FullDepartment == r.FullDepartment)?.SapId;
 
         return resourceOwners.Value;
     }
 
-    internal class DepartmentRef
+    public class OrgUnits
     {
         public string? FullDepartment { get; set; }
+        public string? SapId { get; set; }
     }
 
     internal class InternalCollection<T>
