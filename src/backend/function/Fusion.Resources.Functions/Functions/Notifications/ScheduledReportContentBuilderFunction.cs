@@ -136,17 +136,21 @@ public class ScheduledReportContentBuilderFunction
         //number of requests with start date within less than 3 months
         // Filter to only inlclude the ones that have start-date in less than 3 months and start-date after today and is not complete and has no proposedPerson assigned to them
         var numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests
-            .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
-                (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
-                 x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
+             .Count(x => x.OrgPositionInstance != null &&
+                         x.State != null &&
+                         !x.State.Contains(RequestState.completed.ToString()) &&
+                         (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
+                          x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
 
 
         //6.Requests with start-date > 3 months:
         //number of requests with start date later than next 3 months
         // Filter to only include the ones that have start-date in more than 3 months AND state not completed
         var numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests
-            .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
-                x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
+                 .Count(x => x.OrgPositionInstance != null &&
+                             x.State != null &&
+                             !x.State.Contains(RequestState.completed.ToString()) &&
+                             x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
 
         // TODO: MÅ TESTES OG VERIFISERES
         //7.Average time to handle request: 
@@ -157,6 +161,7 @@ public class ScheduledReportContentBuilderFunction
         //8.Allocation changes awaiting task owner action:
         //number of allocation changes made by resource owner awaiting task owner action
         //Må hente ut alle posisjoner som har ressurser for en gitt avdeling og sjekke på om det er gjort endringer her den siste tiden
+        var numberOfAllocationchangesAwaitingTaskOwnerAction = GetchangesAwaitingTaskOwnerAction(departmentRequests);
 
         //9.Project changes affecting next 3 months: MÅ TESTES OG VERIFISERES
         //number of project changes(changes initiated by project / task) with a change affecting the next 3 months
@@ -186,8 +191,8 @@ public class ScheduledReportContentBuilderFunction
             NumberOfRequestsStartingInMoreThanThreeMonths = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
             NumberOfRequestsStartingInLessThanThreeMonths = numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
             AverageTimeToHandleRequests = averageTimeToHandleRequest,
-            AllocationChangesAwaitingTaskOwnerAction = numberOfChangesAffectingNextThreeMonths,
-            ProjectChangesAffectingNextThreeMonths = 0,
+            AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationchangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
             PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
             PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent
         },
@@ -286,8 +291,8 @@ public class ScheduledReportContentBuilderFunction
         return totalChangesForDepartment;
     }
 
-
-
+    public int GetchangesAwaitingTaskOwnerAction(IEnumerable<ResourceAllocationRequest> listOfRequests)
+   => listOfRequests.Where((req => req.Type.Equals("ResourceOwnerChange"))).Where(req => req.Workflow.Steps.Any(step => !step.IsCompleted && step.Name.Equals("Accept"))).ToList().Count();
 
 
     private double CalculateAverageTimeToHandleRequests(IEnumerable<ResourceAllocationRequest> listOfRequests)
@@ -387,7 +392,7 @@ public class ScheduledReportContentBuilderFunction
         .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInLessThanThreeMonths.ToString(), "Requests with start date < 3 months"))
         .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInMoreThanThreeMonths.ToString(), "Requests with start date > 3 months"))
         .AddColumnSet(new AdaptiveCardColumn(cardData.AverageTimeToHandleRequests.ToString(formatDoubleToHaveOneDecimal), "Average time to handle request", "days"))
-        .AddColumnSet(new AdaptiveCardColumn(/*cardData.AllocationChangesAwaitingTaskOwnerAction.ToString()*/ "NA", "Allocation changes awaiting task owner action")) // WIP
+        .AddColumnSet(new AdaptiveCardColumn(cardData.AllocationChangesAwaitingTaskOwnerAction.ToString(), "Allocation changes awaiting task owner action")) // WIP
         .AddColumnSet(new AdaptiveCardColumn(cardData.ProjectChangesAffectingNextThreeMonths.ToString(), "Project changes affecting next 3 months"))
         .AddListContainer("Allocations ending soon with no future allocation:", cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
         .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent, "FullName", "TotalWorkload")
