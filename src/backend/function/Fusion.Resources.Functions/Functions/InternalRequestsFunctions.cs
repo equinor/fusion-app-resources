@@ -31,7 +31,7 @@ public class InternalRequestsFunctions
         log.LogTrace($"Next occurrences: {timer.FormatNextOccurrences(3)}");
 
         var activeProjects = await resourcesClient.GetProjectsAsync();
-        var activeDepartments = (await lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
+        var activeDepartments = (await lineOrgClient.GetOrgUnitDepartmentsAsync()).Select(o => o.FullDepartment).ToList();
 
         foreach (var project in activeProjects)
         {
