@@ -58,16 +58,16 @@ public class ApiChangeLogEvent
     }
 }
 
-public enum ChangeType
+public class ChangeType
 {
-    PositionInstanceCreated,
-    PersonAssignedToPosition,
-    PositionInstanceAllocationStateChanged,
-    PositionInstanceAppliesToChanged,
-    PositionInstanceAppliesFromChanged,
-    PositionInstanceParentPositionIdChanged,
-    PositionInstancePercentChanged,
-    PositionInstanceLocationChanged
+    public static string PositionInstanceCreated = "PositionInstanceCreated";
+    public static string PersonAssignedToPosition = "PersonAssignedToPosition";
+    public static string PositionInstanceAllocationStateChanged = "PositionInstanceAllocationStateChanged";
+    public static string PositionInstanceAppliesToChanged = "PositionInstanceAppliesToChanged";
+    public static string PositionInstanceAppliesFromChanged = "PositionInstanceAppliesFromChanged";
+    public static string PositionInstanceParentPositionIdChanged = "PositionInstanceParentPositionIdChanged";
+    public static string PositionInstancePercentChanged = "PositionInstancePercentChanged";
+    public static string PositionInstanceLocationChanged = "PositionInstanceLocationChanged";
 }
 
 #endregion

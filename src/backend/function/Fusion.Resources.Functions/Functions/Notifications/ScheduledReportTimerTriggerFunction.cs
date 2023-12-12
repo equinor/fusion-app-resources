@@ -84,7 +84,8 @@ public class ScheduledReportTimerTriggerFunction
                     {
                         AzureUniqueId = resourceOwner.AzureUniqueId,
                         FullDepartment = resourceOwner.FullDepartment,
-                        Role = NotificationRoleType.ResourceOwner
+                        Role = NotificationRoleType.ResourceOwner,
+                        DepartmentSapId = resourceOwner.DepartmentSapId
                     });
                 }
                 catch (Exception e)
