@@ -25,7 +25,7 @@ public class ScheduledReportContentBuilderFunction
     private readonly INotificationApiClient _notificationsClient;
     private readonly IResourcesApiClient _resourceClient;
     private readonly IOrgClient _orgClient;
-    private static readonly string formatDoubleToHaveOneDecimal = "F1";
+    private const string FormatDoubleToHaveOneDecimal = "F1";
 
     public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
         IResourcesApiClient resourcesApiClient,
@@ -111,34 +111,38 @@ public class ScheduledReportContentBuilderFunction
         var percentageOfTotalCapacity = FindTotalCapacityIncludingLeave(personnelForDepartment.ToList());
 
         // 3.New requests last week (7 days)
-        var numberOfRequestsLastWeek = departmentRequests.Count(req => !req.Type.Equals("ResourceOwnerChange") && req.Created > sevenDaysAgo && !req.IsDraft);
+        var numberOfRequestsLastWeek = departmentRequests.Count(req =>
+            req.Type != null && !req.Type.Equals("ResourceOwnerChange") && req.Created > sevenDaysAgo && !req.IsDraft);
 
         //4.Open request (no proposedPerson)
-        var totalNumberOfOpenRequests = departmentRequests.Count(req => !req.Type.Equals("ResourceOwnerChange") && !req.HasProposedPerson && !req.State.Equals("completed", StringComparison.OrdinalIgnoreCase));
+        var totalNumberOfOpenRequests = departmentRequests.Count(req =>
+            req.State != null && req.Type != null && !req.Type.Equals("ResourceOwnerChange") &&
+            !req.HasProposedPerson &&
+            !req.State.Equals("completed", StringComparison.OrdinalIgnoreCase));
 
 
         //5.Requests with start-date < 3 months
         var numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests
-             .Count(x => x.OrgPositionInstance != null &&
-                         x.State != null &&
-                         !x.State.Equals("completed") &&
-                         (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
-                          x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
+            .Count(x => x.OrgPositionInstance != null &&
+                        x.State != null &&
+                        !x.State.Equals("completed") &&
+                        (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
+                         x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
 
 
         //6.Requests with start-date > 3 months:
         var numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests
-                 .Count(x => x.OrgPositionInstance != null &&
-                             x.State != null &&
-                             !x.State.Contains("completed") &&
-                             x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
+            .Count(x => x.OrgPositionInstance != null &&
+                        x.State != null &&
+                        !x.State.Contains("completed") &&
+                        x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
 
         //7.Average time to handle request (last 3 months): 
         var averageTimeToHandleRequest = CalculateAverageTimeToHandleRequests(departmentRequests);
 
         //8.Allocation changes awaiting task owner action:
         //number of allocation changes made by resource owner awaiting task owner action
-        //Må hente ut alle posisjoner som har ressurser for en gitt avdeling og sjekke på om det er gjort endringer her den siste tiden
+        //Mï¿½ hente ut alle posisjoner som har ressurser for en gitt avdeling og sjekke pï¿½ om det er gjort endringer her den siste tiden
         var numberOfAllocationchangesAwaitingTaskOwnerAction = GetchangesAwaitingTaskOwnerAction(departmentRequests);
 
         //9.Project changes affecting next 3 months
@@ -155,22 +159,22 @@ public class ScheduledReportContentBuilderFunction
             listOfPersonnelsWithMoreThan100Percent.Select(p => CreatePersonnelWithTBEContent(p));
 
 
-
-
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
-        {
-            TotalNumberOfPersonnel = numberOfPersonnel,
-            TotalCapacityInUsePercentage = percentageOfTotalCapacity,
-            NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
-            NumberOfOpenRequests = totalNumberOfOpenRequests,
-            NumberOfRequestsStartingInMoreThanThreeMonths = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
-            NumberOfRequestsStartingInLessThanThreeMonths = numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-            AverageTimeToHandleRequests = averageTimeToHandleRequest,
-            AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationchangesAwaitingTaskOwnerAction,
-            ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
-            PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
-            PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent
-        },
+            {
+                TotalNumberOfPersonnel = numberOfPersonnel,
+                TotalCapacityInUsePercentage = percentageOfTotalCapacity,
+                NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
+                NumberOfOpenRequests = totalNumberOfOpenRequests,
+                NumberOfRequestsStartingInMoreThanThreeMonths =
+                    numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
+                NumberOfRequestsStartingInLessThanThreeMonths =
+                    numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
+                AverageTimeToHandleRequests = averageTimeToHandleRequest,
+                AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationchangesAwaitingTaskOwnerAction,
+                ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
+                PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+                PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent
+            },
             fullDepartment, departmentSapId);
 
         var sendNotification = await _notificationsClient.SendNotification(
@@ -203,7 +207,8 @@ public class ScheduledReportContentBuilderFunction
         return personnelWithoutFutureAllocations.Select(p => CreatePersonnelContent(p));
     }
 
-    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
+    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelLeave(
+        IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
         List<InternalPersonnelPerson> newList = listOfInternalPersonnel.ToList();
         for (int i = 0; i < newList.Count(); i++)
@@ -227,8 +232,10 @@ public class ScheduledReportContentBuilderFunction
 
         foreach (var personnel in listOfInternalPersonnel)
         {
-            totalLeave += personnel.ApiPersonAbsences.Where(ab => ab.Type == ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
-            totalWorkLoad += (double)personnel.ApiPersonAbsences.Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
+            totalLeave += personnel.ApiPersonAbsences.Where(ab => ab.Type == ApiAbsenceType.Absence && ab.IsActive)
+                .Select(ab => ab.AbsencePercentage).Sum();
+            totalWorkLoad += (double)personnel.ApiPersonAbsences
+                .Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
             totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
         }
 
@@ -245,41 +252,51 @@ public class ScheduledReportContentBuilderFunction
         var threeMonths = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
 
-        var listOfInternalPersonnelwithOnlyActiveProjects = listOfInternalPersonnel.SelectMany(per => per.PositionInstances.Where(pis => pis.IsActive || (pis.AppliesFrom < threeMonths && pis.AppliesFrom > today)));
+        var listOfInternalPersonnelwithOnlyActiveProjects = listOfInternalPersonnel.SelectMany(per =>
+            per.PositionInstances.Where(pis =>
+                pis.IsActive || (pis.AppliesFrom < threeMonths && pis.AppliesFrom > today)));
 
         int totalChangesForDepartment = 0;
 
         foreach (var instance in listOfInternalPersonnelwithOnlyActiveProjects)
         {
+            if (instance.Project == null)
+                continue;
 
-            var changeLogForPersonnel = _orgClient.GetChangeLog(instance.Project.Id.ToString(), instance.PositionId.ToString(), instance.InstanceId.ToString());
+            var changeLogForPersonnel = _orgClient.GetChangeLog(instance.Project.Id.ToString(),
+                instance.PositionId.ToString(), instance.InstanceId.ToString());
             var totalChanges = changeLogForPersonnel.Result.Events
-                .Where(ev => ev.ChangeType != ChangeType.PositionInstanceCreated
-                && ev.ChangeType != ChangeType.PersonAssignedToPosition
-                && ev.ChangeType != ChangeType.PositionInstanceAllocationStateChanged
-                && ev.ChangeType != ChangeType.PositionInstanceParentPositionIdChanged
-                && (ev.ChangeType.Equals(ChangeType.PositionInstanceAppliesToChanged) && ev.Instance.AppliesTo < threeMonths));
+                .Where(ev => ev.Instance != null
+                             && ev.ChangeType != ChangeType.PositionInstanceCreated
+                             && ev.ChangeType != ChangeType.PersonAssignedToPosition
+                             && ev.ChangeType != ChangeType.PositionInstanceAllocationStateChanged
+                             && ev.ChangeType != ChangeType.PositionInstanceParentPositionIdChanged
+                             && (ev.ChangeType.Equals(ChangeType.PositionInstanceAppliesToChanged) &&
+                                 ev.Instance.AppliesTo < threeMonths));
 
 
             totalChangesForDepartment += totalChanges.Count();
         }
+
         return totalChangesForDepartment;
     }
 
-    public int GetchangesAwaitingTaskOwnerAction(IEnumerable<ResourceAllocationRequest> listOfRequests)
-   => listOfRequests.Where((req => req.Type.Equals("ResourceOwnerChange"))).Where(req => req.Workflow.Steps.Any(step => step.Name.Equals("Accept") && !step.IsCompleted)).ToList().Count();
+    private int GetchangesAwaitingTaskOwnerAction(IEnumerable<ResourceAllocationRequest> listOfRequests)
+        => listOfRequests.Where((req => req.Type is "ResourceOwnerChange")).Where(req =>
+                req.Workflow != null && req.Workflow.Steps.Any(step => step.Name.Equals("Accept") && !step.IsCompleted))
+            .ToList().Count();
 
 
     private double CalculateAverageTimeToHandleRequests(IEnumerable<ResourceAllocationRequest> listOfRequests)
     {
         /* How to calculate:
-         * 
+         *
          * Find the workflow "created" and then find the date
          * This should mean that task owner have created and sent the request to resource owner
          * Find the workflow "proposal" and then find the date
          * This should mean that the resource owner have done their bit
-         * TODO: Maybe we need to consider other states 
-        */
+         * TODO: Maybe we need to consider other states
+         */
 
         double days = 0.0;
         int requestsHandledByResourceOwner = 0;
@@ -290,15 +307,17 @@ public class ScheduledReportContentBuilderFunction
         var requestsLastThreeMonthsWithoutResourceOwnerChangeRequest = listOfRequests
             .Where(req => req.Created > threeMonthsAgo)
             .Where(r => r.Workflow is not null)
-            .Where(r => r.Workflow.Steps is not null).Where((req => !req.Type.Equals("ResourceOwnerChange")));
+            .Where(r => true).Where((req => req.Type != null && !req.Type.Equals("ResourceOwnerChange")));
 
         foreach (var request in requestsLastThreeMonthsWithoutResourceOwnerChangeRequest)
         {
-            if (request.State.Equals("created"))
+            if (request.State is "created")
                 continue;
 
-            var dateForCreation = request.Workflow.Steps.FirstOrDefault(step => step.Name.Equals("Created") && step.IsCompleted)?.Completed.Value.DateTime;
-            var dateForApproval = request.Workflow.Steps.FirstOrDefault(step => step.Name.Equals("Proposed") && step.IsCompleted)?.Completed.Value.DateTime;
+            var dateForCreation = request.Workflow.Steps
+                .FirstOrDefault(step => step.Name.Equals("Created") && step.IsCompleted)?.Completed.Value.DateTime;
+            var dateForApproval = request.Workflow.Steps
+                .FirstOrDefault(step => step.Name.Equals("Proposed") && step.IsCompleted)?.Completed.Value.DateTime;
             if (dateForCreation != null && dateForApproval != null)
             {
                 requestsHandledByResourceOwner++;
@@ -312,6 +331,7 @@ public class ScheduledReportContentBuilderFunction
         {
             days = totalNumberOfDays / requestsHandledByResourceOwner;
         }
+
         return days;
     }
 
@@ -354,22 +374,31 @@ public class ScheduledReportContentBuilderFunction
         var baseUri = "https://fusion-s-portal-ci.azurewebsites.net/apps/personnel-allocation/";
 
         var card = new AdaptiveCardBuilder()
-        .AddHeading($"**Weekly summary - {departmentIdentifier}**")
-        .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.TotalCapacityInUsePercentage.ToString(), "Capacity in use", "%"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsLastWeek.ToString(), "New requests last week"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOpenRequests.ToString(), "Open requests"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInLessThanThreeMonths.ToString(), "Requests with start date < 3 months"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInMoreThanThreeMonths.ToString(), "Requests with start date > 3 months"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.AverageTimeToHandleRequests.ToString(formatDoubleToHaveOneDecimal), "Average time to handle request", "days"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.AllocationChangesAwaitingTaskOwnerAction.ToString(), "Allocation changes awaiting task owner action"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.ProjectChangesAffectingNextThreeMonths.ToString(), "Project changes affecting next 3 months"))
-        .AddListContainer("Allocations ending soon with no future allocation:", cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
-        .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent, "FullName", "TotalWorkload")
-        .AddActionButton("Go to Personnel allocation app", $"{baseUri}/{departmentSapId}")
-        .Build();
+            .AddHeading($"**Weekly summary - {departmentIdentifier}**")
+            .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
+            .AddColumnSet(new AdaptiveCardColumn(cardData.TotalCapacityInUsePercentage.ToString(), "Capacity in use",
+                "%"))
+            .AddColumnSet(
+                new AdaptiveCardColumn(cardData.NumberOfRequestsLastWeek.ToString(), "New requests last week"))
+            .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOpenRequests.ToString(), "Open requests"))
+            .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInLessThanThreeMonths.ToString(),
+                "Requests with start date < 3 months"))
+            .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInMoreThanThreeMonths.ToString(),
+                "Requests with start date > 3 months"))
+            .AddColumnSet(new AdaptiveCardColumn(
+                cardData.AverageTimeToHandleRequests.ToString(FormatDoubleToHaveOneDecimal),
+                "Average time to handle request", "days"))
+            .AddColumnSet(new AdaptiveCardColumn(cardData.AllocationChangesAwaitingTaskOwnerAction.ToString(),
+                "Allocation changes awaiting task owner action"))
+            .AddColumnSet(new AdaptiveCardColumn(cardData.ProjectChangesAffectingNextThreeMonths.ToString(),
+                "Project changes affecting next 3 months"))
+            .AddListContainer("Allocations ending soon with no future allocation:",
+                cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
+            .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent,
+                "FullName", "TotalWorkload")
+            .AddActionButton("Go to Personnel allocation app", $"{baseUri}/{departmentSapId}")
+            .Build();
 
         return card;
     }
-
 }
