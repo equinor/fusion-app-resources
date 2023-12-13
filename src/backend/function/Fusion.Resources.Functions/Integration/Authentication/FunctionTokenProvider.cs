@@ -1,58 +1,36 @@
 ﻿using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System.Threading.Tasks;
+using Microsoft.Identity.Client;
 
-namespace Fusion.Resources.Functions.Integration.Authentication
+namespace Fusion.Resources.Functions.Integration.Authentication;
+
+internal class FunctionTokenProvider : ITokenProvider
 {
+    private readonly IConfidentialClientApplication _app;
 
-    internal class FunctionTokenProvider : ITokenProvider
+    public FunctionTokenProvider(IOptions<AuthOptions> optionsAccessor)
     {
-        private readonly string clientid;
-        private readonly string authority;
-        private readonly string secret;
-        private readonly TokenCache appTokenCache;
+        var options = optionsAccessor.Value;
 
-        static FunctionTokenProvider()
-        {
-            LoggerCallbackHandler.UseDefaultLogging = false;
-        }
-
-        ClientCredential Credentials
-        {
-            get
-            {
-                return new ClientCredential(clientid, secret);
-            }
-        }
-
-        public FunctionTokenProvider(IOptions<AuthOptions> optionsAccessor)
-        {
-            var options = optionsAccessor.Value;
-
-            authority = $"https://login.microsoftonline.com/{options.TenantId}";
-            clientid = options.ClientId;
-            secret = options.Secret;
-
-            appTokenCache = new TokenCache();
-        }
-
-        public async Task<string> GetAppAccessToken()
-        {
-            var authContext = new AuthenticationContext(authority, appTokenCache);
-            var authenticationResult = await authContext.AcquireTokenAsync(clientid, Credentials);
-
-            return authenticationResult.AccessToken;
-        }
-
-        public async Task<string> GetAppAccessToken(string resource)
-        {
-            var authContext = new AuthenticationContext(authority, appTokenCache);
-            var authenticationResult = await authContext.AcquireTokenAsync(resource, Credentials);
-
-            return authenticationResult.AccessToken;
-        }
-
-
+        _app = ConfidentialClientApplicationBuilder.Create(options.ClientId)
+            .WithClientSecret(options.Secret)
+            .WithAuthority(AzureCloudInstance.AzurePublic, options.TenantId)
+            .Build();
     }
 
+    public async Task<string> GetAppAccessToken()
+    {
+        var scopes = new string[] { $"{_app.AppConfig.ClientId}/.default" };
+        var clientToken = await _app.AcquireTokenForClient(scopes).ExecuteAsync();
+        
+        return clientToken.AccessToken;
+    }
+
+    public async Task<string> GetAppAccessToken(string resource)
+    {
+        var scopes = new string[] { $"{resource}/.default" };
+        var clientToken =  await _app.AcquireTokenForClient(scopes).ExecuteAsync();
+
+        return clientToken.AccessToken;
+    }
 }
