@@ -16,6 +16,9 @@ using Newtonsoft.Json;
 using static Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards.AdaptiveCardBuilder;
 using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
+using Fusion.Integration;
+using Fusion.Integration.Configuration;
+using Fusion.Integration.ServiceDiscovery;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -25,17 +28,19 @@ public class ScheduledReportContentBuilderFunction
     private readonly INotificationApiClient _notificationsClient;
     private readonly IResourcesApiClient _resourceClient;
     private readonly IOrgClient _orgClient;
+    private readonly IFusionEndpointResolver _endpointResolver;
     private const string FormatDoubleToHaveOneDecimal = "F1";
 
     public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
         IResourcesApiClient resourcesApiClient,
         INotificationApiClient notificationsClient,
-        IOrgClient orgClient)
+        IOrgClient orgClient, IFusionEndpointResolver endpointResolver)
     {
         _logger = logger;
         _resourceClient = resourcesApiClient;
         _notificationsClient = notificationsClient;
         _orgClient = orgClient;
+        _endpointResolver = endpointResolver;
     }
 
     [FunctionName("scheduled-report-content-Builder-function")]
@@ -367,12 +372,11 @@ public class ScheduledReportContentBuilderFunction
         return personnelContent;
     }
 
-    private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData,
+    private async Task<AdaptiveCard> ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData,
         string departmentIdentifier, string departmentSapId)
     {
-        // FIXME:Plasser denne en annen plass
-        var baseUri = "https://fusion-s-portal-ci.azurewebsites.net/apps/personnel-allocation/";
-
+        var portalUri = await _endpointResolver.ResolveEndpointAsync(FusionEndpoint.Portal);
+        var personnelAllocationUri = $"{portalUri}/apps/personnel-allocation/{departmentSapId}";
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
             .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
@@ -396,7 +400,7 @@ public class ScheduledReportContentBuilderFunction
                 cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
             .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent,
                 "FullName", "TotalWorkload")
-            .AddActionButton("Go to Personnel allocation app", $"{baseUri}/{departmentSapId}")
+            .AddActionButton("Go to Personnel allocation app", personnelAllocationUri)
             .Build();
 
         return card;
