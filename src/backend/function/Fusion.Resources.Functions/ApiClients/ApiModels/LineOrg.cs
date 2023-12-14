@@ -30,6 +30,7 @@ public class Manager
 }
 public class LineOrgPerson
 {
+    public string? DepartmentSapId { get; set; }
     [JsonProperty("azureUniqueId")] public string AzureUniqueId { get; set; }
 
     [JsonProperty("managerId")] public string ManagerId { get; set; }

@@ -4,6 +4,7 @@ public class ScheduledNotificationQueueDto
 {
     public string AzureUniqueId { get; set; }
     public string FullDepartment { get; set; }
+    public string DepartmentSapId { get; set; }
     public NotificationRoleType Role  { get; set; }
 }
 public enum NotificationRoleType
