@@ -19,6 +19,7 @@ using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using Fusion.Integration;
 using Fusion.Integration.Configuration;
 using Fusion.Integration.ServiceDiscovery;
+using Microsoft.Extensions.Configuration;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -28,19 +29,19 @@ public class ScheduledReportContentBuilderFunction
     private readonly INotificationApiClient _notificationsClient;
     private readonly IResourcesApiClient _resourceClient;
     private readonly IOrgClient _orgClient;
-    private readonly IFusionEndpointResolver _endpointResolver;
     private const string FormatDoubleToHaveOneDecimal = "F1";
+    private readonly IConfiguration _configuration;
 
     public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
         IResourcesApiClient resourcesApiClient,
         INotificationApiClient notificationsClient,
-        IOrgClient orgClient, IFusionEndpointResolver endpointResolver)
+        IOrgClient orgClient, IConfiguration configuration)
     {
         _logger = logger;
         _resourceClient = resourcesApiClient;
         _notificationsClient = notificationsClient;
         _orgClient = orgClient;
-        _endpointResolver = endpointResolver;
+        _configuration = configuration;
     }
 
     [FunctionName("scheduled-report-content-Builder-function")]
@@ -303,16 +304,16 @@ public class ScheduledReportContentBuilderFunction
          * TODO: Maybe we need to consider other states
          */
 
-        double days = 0.0;
-        int requestsHandledByResourceOwner = 0;
-        double totalNumberOfDays = 0.0;
+        var requestsHandledByResourceOwner = 0;
+        var totalNumberOfDays = 0.0;
 
         var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
         var requestsLastThreeMonthsWithoutResourceOwnerChangeRequest = listOfRequests
             .Where(req => req.Created > threeMonthsAgo)
             .Where(r => r.Workflow is not null)
-            .Where(r => true).Where((req => req.Type != null && !req.Type.Equals("ResourceOwnerChange")));
+            .Where(_ => true)
+            .Where((req => req.Type != null && !req.Type.Equals("ResourceOwnerChange")));
 
         foreach (var request in requestsLastThreeMonthsWithoutResourceOwnerChangeRequest)
         {
@@ -332,12 +333,10 @@ public class ScheduledReportContentBuilderFunction
             }
         }
 
-        if (totalNumberOfDays > 0)
-        {
-            days = totalNumberOfDays / requestsHandledByResourceOwner;
-        }
+        if (!(totalNumberOfDays > 0))
+            return 0;
 
-        return days;
+        return totalNumberOfDays / requestsHandledByResourceOwner;
     }
 
     private PersonnelContent CreatePersonnelContent(InternalPersonnelPerson person)
@@ -375,8 +374,7 @@ public class ScheduledReportContentBuilderFunction
     private async Task<AdaptiveCard> ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData,
         string departmentIdentifier, string departmentSapId)
     {
-        var portalUri = await _endpointResolver.ResolveEndpointAsync(FusionEndpoint.Portal);
-        var personnelAllocationUri = $"{portalUri}/apps/personnel-allocation/{departmentSapId}";
+        var personnelAllocationUri = $"{PortalUri()}apps/personnel-allocation/{departmentSapId}";
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
             .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
@@ -404,5 +402,13 @@ public class ScheduledReportContentBuilderFunction
             .Build();
 
         return card;
+    }
+
+    private string PortalUri()
+    {
+        var portalUri = _configuration["Endpoints_portal"] ?? "https://fusion.equinor.com/";
+        if (!portalUri.EndsWith("/"))
+            portalUri += "/";
+        return portalUri;
     }
 }
