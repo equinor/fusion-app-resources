@@ -158,7 +158,7 @@ public class ScheduledReportContentBuilderFunction
 
         //11.Personnel with more than 100 % workload
         var listOfPersonnelWithTBEContent =
-            personnelForDepartment.Select(p => CreatePersonnelWithTBEContent(p));
+            personnelForDepartment.Select(p => CreatePersonnelContentWithTotalWorkload(p));
         var listOfPersonnelWithTBEContentOnlyMoreThan100PercentWorkload = listOfPersonnelWithTBEContent.Where(p => p.TotalWorkload > 100);
 
 
@@ -206,7 +206,7 @@ public class ScheduledReportContentBuilderFunction
                     x.PositionInstances.Where(pos => pos.IsActive && pos.AppliesTo <= threeMonthsFuture).Any());
         var personnelWithoutFutureAllocations = personnelWithPositionsEndingInThreeMonths.Where(person =>
             person.PositionInstances.All(pos => pos.AppliesTo < threeMonthsFuture));
-        return personnelWithoutFutureAllocations.Select(p => CreatePersonnelContent(p));
+        return personnelWithoutFutureAllocations.Select(p => CreatePersonnelContentWithPositionInformation(p));
     }
 
     private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelLeave(
@@ -341,7 +341,7 @@ public class ScheduledReportContentBuilderFunction
         return averageTimeUsedToHandleRequest;
     }
 
-    private PersonnelContent CreatePersonnelContent(InternalPersonnelPerson person)
+    private PersonnelContent CreatePersonnelContentWithPositionInformation(InternalPersonnelPerson person)
     {
         if (person == null)
             throw new ArgumentNullException();
@@ -359,7 +359,7 @@ public class ScheduledReportContentBuilderFunction
         return personnelContent;
     }
 
-    private PersonnelContent CreatePersonnelWithTBEContent(InternalPersonnelPerson person)
+    private PersonnelContent CreatePersonnelContentWithTotalWorkload(InternalPersonnelPerson person)
     {
         var totalWorkLoad = person.ApiPersonAbsences?
             .Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
