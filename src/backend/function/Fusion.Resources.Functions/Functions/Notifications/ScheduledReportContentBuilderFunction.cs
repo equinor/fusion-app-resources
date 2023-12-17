@@ -188,7 +188,7 @@ public class ScheduledReportContentBuilderFunction
             {
                 Title = $"Weekly summary - {fullDepartment}",
                 EmailPriority = 1,
-                Card = card,
+                Card = card.Result,
                 Description = $"Weekly report for department - {fullDepartment}"
             },
             azureUniqueId);
