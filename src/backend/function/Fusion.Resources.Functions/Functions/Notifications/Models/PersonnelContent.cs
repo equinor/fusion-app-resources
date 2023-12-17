@@ -10,7 +10,6 @@ public class PersonnelContent
     public string? ProjectName { get; set; }
     public string? PositionName { get; set; }
     public double? TotalWorkload { get; set; }
-    public int? NumberOfPositionInstances { get; set; }
     public PersonnelPosition? EndingPosition { get; set; }
 
     public PersonnelContent() { }

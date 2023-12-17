@@ -78,14 +78,25 @@ namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard
 
         public AdaptiveCardBuilder AddActionButton(string title, string url)
         {
-            var actionButton = new AdaptiveOpenUrlAction
+            var listContainer = new AdaptiveContainer
             {
-                                                                                                                                                        
-                Title = title,
-                Url = new Uri(url)
+                Separator = true,
+                Items = new List<AdaptiveElement>
+                { new AdaptiveActionSet() {
+                    Actions = new List<AdaptiveAction>
+                    {
+                        new AdaptiveOpenUrlAction()
+                        {
+                            Title = title,
+                            Url = new Uri(url)
+                        }
+                    }
+                }
+                }
             };
 
-            _adaptiveCard.Actions.Add(actionButton);
+            _adaptiveCard.Body.Add(listContainer);
+
             return this;
         }
         public AdaptiveCard Build()

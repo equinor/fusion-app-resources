@@ -10,7 +10,7 @@ public class ResourceOwnerAdaptiveCardData
     public int NumberOfOpenRequests { get; set; }
     public int NumberOfRequestsStartingInMoreThanThreeMonths { get; set; }
     public int NumberOfRequestsStartingInLessThanThreeMonths { get; set; }
-    public double AverageTimeToHandleRequests { get; set; }
+    public string AverageTimeToHandleRequests { get; set; }
     public int AllocationChangesAwaitingTaskOwnerAction { get; set; }
     public int ProjectChangesAffectingNextThreeMonths { get; set; }    
     internal IEnumerable<PersonnelContent> PersonnelPositionsEndingWithNoFutureAllocation { get; set; }
