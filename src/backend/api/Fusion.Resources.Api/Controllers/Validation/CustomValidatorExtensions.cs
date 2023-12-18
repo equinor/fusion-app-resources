@@ -11,24 +11,6 @@ namespace Fusion.Resources.Api.Controllers
     public static class CustomValidatorExtensions
     {
 
-        public static IRuleBuilderOptionsConditions<T, PersonReference> BeValidPerson<T>(this IRuleBuilder<T, PersonReference> ruleBuilder)
-        {
-            return ruleBuilder.Custom((person, context) =>
-            {
-                if (person != null)
-                {
-                    if (person.AzureUniquePersonId.HasValue && person.AzureUniquePersonId == Guid.Empty)
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.azureUniqueId", "Person unique object id cannot be empty-guid when provided."));
-
-                    if (!string.IsNullOrEmpty(person.Mail) && !ValidationHelper.IsValidEmail(person.Mail))
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.mail", "Invalid mail address", person.Mail));
-
-                    if (person.AzureUniquePersonId is null && string.IsNullOrEmpty(person.Mail))
-                        context.AddFailure(new ValidationFailure(context.JsPropertyName(), "Either azureUniqueId or mail must be specified"));
-                }
-            });
-        }
-
         public static IRuleBuilderOptions<T, BasePositionReference> BeValidBasePosition<T>(this IRuleBuilder<T, BasePositionReference> ruleBuilder, IProjectOrgResolver projectOrgResolver)
         {
             var result = ruleBuilder.CustomAsync(async (bpref, context, ct) =>
@@ -68,29 +50,6 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}",
                             $"Position with id '{positionId}' exists, but have multiple instances, {position.Instances.Count}, which is not supported."));
-                    }
-                }
-            });
-
-            return (IRuleBuilderOptions<T, Guid?>)result;
-        }
-
-        public static IRuleBuilderOptions<T, Guid?> BeExistingCompanyPositionId<T>(this IRuleBuilder<T, Guid?> ruleBuilder, IProjectOrgResolver projectOrgResolver)
-        {
-            var result = ruleBuilder.CustomAsync(async (positionId, context, ct) =>
-            {
-                if (positionId.HasValue)
-                {
-                    var position = await projectOrgResolver.ResolvePositionAsync(positionId.Value);
-
-                    if (position == null)
-                    {
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' does not exist in org service."));
-                    }
-
-                    if (position != null && position.ContractId != null)
-                    {
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' exisits, but belongs to contract {position.Contract?.ContractNumber}."));
                     }
                 }
             });
@@ -156,15 +115,5 @@ namespace Fusion.Resources.Api.Controllers
 
         public static string JsPropertyName<T>(this ValidationContext<T> context) => context.PropertyName.ToLowerFirstChar();
 
-
-        /// <summary>
-        /// The preferred contact mail should try to weed out main private mail domains.
-        /// </summary>
-        public static IRuleBuilderOptions<T, string?> NotHaveInvalidMailDomain<T>(this IRuleBuilder<T, string?> ruleBuilder)
-        {
-            
-            return ruleBuilder.SetValidator(new EmailDomainValidator<T>())
-                .WithMessage("Mail domain should not be private. Most major private mail domains are rejected (gmail, hotmail, icloud etc.)");
-        }
     }
 }
