@@ -30,7 +30,6 @@ public class ScheduledReportContentBuilderFunction
     private readonly INotificationApiClient _notificationsClient;
     private readonly IResourcesApiClient _resourceClient;
     private readonly IOrgClient _orgClient;
-    private const string FormatDoubleToHaveOneDecimal = "F1";
     private readonly IConfiguration _configuration;
 
     public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
@@ -110,7 +109,6 @@ public class ScheduledReportContentBuilderFunction
         // Adding leave
         personnelForDepartment = await GetPersonnelLeave(personnelForDepartment);
 
-
         //1.Number of personnel
         var numberOfPersonnel = personnelForDepartment.Count();
 
@@ -132,7 +130,7 @@ public class ScheduledReportContentBuilderFunction
         var numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests
             .Count(x => x.OrgPositionInstance != null &&
                         x.State != null &&
-                        !x.State.Equals("completed") &&
+                        !x.State.Equals("completed") && !x.Type.Equals("ResourceOwnerChange") &&
                         (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
                          x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
 
@@ -141,7 +139,7 @@ public class ScheduledReportContentBuilderFunction
         var numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests
             .Count(x => x.OrgPositionInstance != null &&
                         x.State != null &&
-                        !x.State.Contains("completed") &&
+                        !x.State.Contains("completed") && !x.Type.Equals("ResourceOwnerChange") &&
                         x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
 
         //7.Average time to handle request (last 3 months): 
@@ -201,12 +199,27 @@ public class ScheduledReportContentBuilderFunction
     private IEnumerable<PersonnelContent> FilterPersonnelWithoutFutureAllocations(
         IEnumerable<InternalPersonnelPerson> personnelForDepartment)
     {
-        var threeMonthsFuture = DateTime.UtcNow.AddMonths(3);
-        var personnelWithPositionsEndingInThreeMonths = personnelForDepartment.Where(x =>
-                    x.PositionInstances.Where(pos => pos.IsActive && pos.AppliesTo <= threeMonthsFuture).Any());
-        var personnelWithoutFutureAllocations = personnelWithPositionsEndingInThreeMonths.Where(person =>
-            person.PositionInstances.All(pos => pos.AppliesTo < threeMonthsFuture));
-        return personnelWithoutFutureAllocations.Select(p => CreatePersonnelContentWithPositionInformation(p));
+
+        var pdList = new List<InternalPersonnelPerson>();
+        foreach (var pd in personnelForDepartment)
+        {
+            var gotLongLastingPosition = pd.PositionInstances.Any(pdi => pdi.AppliesTo >= DateTime.UtcNow.AddMonths(3));
+            if (gotLongLastingPosition)
+                continue;
+
+            var gotFutureAllocation = pd.PositionInstances.Any(pdi => pdi.AppliesFrom > DateTime.UtcNow);
+            if (gotFutureAllocation)
+                continue;
+            var gotActiveAllocation = pd.PositionInstances.Any(pdi => pdi.IsActive);
+            if (!gotActiveAllocation)
+                continue;
+
+            pdList.Add(pd);
+        }
+
+        return pdList.Select(CreatePersonnelContentWithPositionInformation);
+
+
     }
 
     private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelLeave(
@@ -275,7 +288,6 @@ public class ScheduledReportContentBuilderFunction
                              && ev.ChangeType != ChangeType.PositionInstanceParentPositionIdChanged
                              && (ev.ChangeType.Equals(ChangeType.PositionInstanceAppliesToChanged) &&
                                  ev.Instance.AppliesTo < threeMonths));
-
 
             totalChangesForDepartment += totalChanges.Count();
         }
