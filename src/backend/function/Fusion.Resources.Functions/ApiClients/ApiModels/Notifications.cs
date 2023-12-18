@@ -1,4 +1,5 @@
 using System;
+using AdaptiveCards;
 using Newtonsoft.Json;
 
 namespace Fusion.Resources.Functions.ApiClients.ApiModels;
@@ -11,5 +12,5 @@ public class SendNotificationsRequest
 
     [JsonProperty("description")] public string Description { get; set; }
 
-    [JsonProperty("card")] public object Card { get; set; }
+    [JsonProperty("card")] public AdaptiveCard Card { get; set; }
 }

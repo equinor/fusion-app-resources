@@ -53,6 +53,9 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddNotificationsClient();
             services.AddScoped<INotificationApiClient, NotificationApiClient>();
 
+            builder.AddOrgClient();
+            services.AddScoped<IOrgClient, OrgClient>();
+
             return services;
         }
     }

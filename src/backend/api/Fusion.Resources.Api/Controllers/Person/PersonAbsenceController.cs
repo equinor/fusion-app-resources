@@ -54,7 +54,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen()
                     .CurrentUserIs(profile.Identifier)
                     .FullControl()
-                    .FullControlInternal();
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
 
                 r.AnyOf(or =>
                 {
