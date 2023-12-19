@@ -240,20 +240,23 @@ public class ScheduledReportContentBuilderFunction
         // We need to take into account the other types of allocations from absence-endpoint.
 
         var totalWorkLoad = 0.0;
-        double? totalLeave = 0.0;
-
+        var totalLeave = 0.0;
         foreach (var personnel in listOfInternalPersonnel)
         {
-            totalLeave += personnel.ApiPersonAbsences.Where(ab => ab.Type == ApiAbsenceType.Absence && ab.IsActive)
-                .Select(ab => ab.AbsencePercentage).Sum();
-            totalWorkLoad += (double)personnel.ApiPersonAbsences
-                .Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
             totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
+            totalWorkLoad += personnel.ApiPersonAbsences
+                .Where(ab => ab.Type == ApiAbsenceType.OtherTasks && ab.IsActive)
+                .Select(ab => ab.AbsencePercentage)
+                .Sum() ?? 0;
+            totalLeave += personnel.ApiPersonAbsences
+                .Where(ab => (ab.Type == ApiAbsenceType.Absence || ab.Type == ApiAbsenceType.Vacation) && ab.IsActive)
+                .Select(ab => ab.AbsencePercentage)
+                .Sum() ?? 0;
         }
 
         var totalPercentageInludeLeave = totalWorkLoad / ((listOfInternalPersonnel.Count * 100) - totalLeave) * 100;
 
-        return Convert.ToInt32(totalPercentageInludeLeave);
+        return (int)Math.Round(totalPercentageInludeLeave);
     }
 
     private int GetAllChangesForResourceDepartment(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
