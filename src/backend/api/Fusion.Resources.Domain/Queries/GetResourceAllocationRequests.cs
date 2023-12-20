@@ -225,6 +225,12 @@ namespace Fusion.Resources.Domain.Queries
                         // These fields are provided by the api, so must match the api model fields unfortunately. This is a known limitation, however
                         // it is done instead of having to handle complexities in query expression logic..
                         m.MapField("assignedDepartment", i => i.AssignedDepartment);
+                        m.MapField("type", i => i.Type);
+                        m.MapField("subType", i => i.SubType);
+                        m.MapField("id", i => i.Id);
+                        // Casting long to int as long is not suported in filter field. This should work for a while until long is supported
+                        // TECHDEPT: Update odata filter package to support long as type
+                        m.MapField("number", i => (int)i.RequestNumber); 
                         m.MapField("discipline", i => i.Discipline);
                         m.MapField("isDraft", i => i.IsDraft);
                         m.MapField("project.id", i => i.Project.OrgProjectId);
@@ -234,6 +240,7 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                         m.MapField("proposedPerson.azureUniqueId", x => x.ProposedPerson.AzureUniqueId);
                         m.MapField("orgPositionId", i => i.OrgPositionId);
+                        m.MapField("orgPositionInstanceId", i => i.OrgPositionInstance);
                         m.MapField("correlationId", i => i.CorrelationId);
                     });
                 }
