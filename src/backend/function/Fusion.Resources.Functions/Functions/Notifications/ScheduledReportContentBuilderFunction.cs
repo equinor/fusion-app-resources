@@ -16,9 +16,6 @@ using Newtonsoft.Json;
 using static Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards.AdaptiveCardBuilder;
 using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
-using Fusion.Integration;
-using Fusion.Integration.Configuration;
-using Fusion.Integration.ServiceDiscovery;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 
@@ -243,20 +240,23 @@ public class ScheduledReportContentBuilderFunction
         // We need to take into account the other types of allocations from absence-endpoint.
 
         var totalWorkLoad = 0.0;
-        double? totalLeave = 0.0;
-
+        var totalLeave = 0.0;
         foreach (var personnel in listOfInternalPersonnel)
         {
-            totalLeave += personnel.ApiPersonAbsences.Where(ab => ab.Type == ApiAbsenceType.Absence && ab.IsActive)
-                .Select(ab => ab.AbsencePercentage).Sum();
-            totalWorkLoad += (double)personnel.ApiPersonAbsences
-                .Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
             totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
+            totalWorkLoad += personnel.ApiPersonAbsences
+                .Where(ab => ab.Type == ApiAbsenceType.OtherTasks && ab.IsActive)
+                .Select(ab => ab.AbsencePercentage)
+                .Sum() ?? 0;
+            totalLeave += personnel.ApiPersonAbsences
+                .Where(ab => (ab.Type == ApiAbsenceType.Absence || ab.Type == ApiAbsenceType.Vacation) && ab.IsActive)
+                .Select(ab => ab.AbsencePercentage)
+                .Sum() ?? 0;
         }
 
         var totalPercentageInludeLeave = totalWorkLoad / ((listOfInternalPersonnel.Count * 100) - totalLeave) * 100;
 
-        return Convert.ToInt32(totalPercentageInludeLeave);
+        return (int)Math.Round(totalPercentageInludeLeave);
     }
 
     private int GetAllChangesForResourceDepartment(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
@@ -269,7 +269,7 @@ public class ScheduledReportContentBuilderFunction
 
         var listOfInternalPersonnelwithOnlyActiveProjects = listOfInternalPersonnel.SelectMany(per =>
             per.PositionInstances.Where(pis =>
-                pis.IsActive || (pis.AppliesFrom < threeMonths && pis.AppliesFrom > today)));
+                (pis.AppliesFrom < threeMonths && pis.AppliesFrom > today) || pis.AppliesTo > today));
 
         int totalChangesForDepartment = 0;
 
@@ -280,14 +280,15 @@ public class ScheduledReportContentBuilderFunction
 
             var changeLogForPersonnel = _orgClient.GetChangeLog(instance.Project.Id.ToString(),
                 instance.PositionId.ToString(), instance.InstanceId.ToString());
-            var totalChanges = changeLogForPersonnel.Result.Events
-                .Where(ev => ev.Instance != null
-                             && ev.ChangeType != ChangeType.PositionInstanceCreated
-                             && ev.ChangeType != ChangeType.PersonAssignedToPosition
-                             && ev.ChangeType != ChangeType.PositionInstanceAllocationStateChanged
-                             && ev.ChangeType != ChangeType.PositionInstanceParentPositionIdChanged
-                             && (ev.ChangeType.Equals(ChangeType.PositionInstanceAppliesToChanged) &&
-                                 ev.Instance.AppliesTo < threeMonths));
+
+            var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Result.Events.Where(e => e.TimeStamp > today.AddDays(-7).Date).ToList();
+
+            var totalChanges = changeLogForPersonnelFilteredByLastSevenDays
+                .Where(ev => ev.Instance != null)
+                .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
+                || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
+                || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
+                || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)).ToList();
 
             totalChangesForDepartment += totalChanges.Count();
         }
@@ -314,7 +315,7 @@ public class ScheduledReportContentBuilderFunction
 
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
-        var averageTimeUsedToHandleRequest = "NA";
+        var averageTimeUsedToHandleRequest = "0";
 
         var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
@@ -408,11 +409,12 @@ public class ScheduledReportContentBuilderFunction
             .AddColumnSet(new AdaptiveCardColumn(cardData.AllocationChangesAwaitingTaskOwnerAction.ToString(),
                 "Allocation changes awaiting task owner action"))
             .AddColumnSet(new AdaptiveCardColumn(cardData.ProjectChangesAffectingNextThreeMonths.ToString(),
-                "Project changes affecting next 3 months"))
+                "Project changes last week affecting next 3 months"))
             .AddListContainer("Allocations ending soon with no future allocation:",
                 cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
             .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent,
                 "FullName", "TotalWorkload")
+            .AddNewLine()
             .AddActionButton("Go to Personnel allocation app", personnelAllocationUri)
             .Build();
 
