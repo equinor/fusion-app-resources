@@ -11,6 +11,4 @@ public class PersonnelContent
     public string? PositionName { get; set; }
     public double? TotalWorkload { get; set; }
     public PersonnelPosition? EndingPosition { get; set; }
-
-    public PersonnelContent() { }
 }
