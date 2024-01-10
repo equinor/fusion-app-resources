@@ -103,7 +103,7 @@ public class ScheduledReportContentBuilderFunction
         // Personnel for the department
         var personnelForDepartment = await GetPersonnelWithLeave(fullDepartment);
         // Capacity in use
-        var percentageOfTotalCapacity = FindTotalCapacityIncludingLeave(personnelForDepartment);
+        var capacityInUse = CapacityInUse(personnelForDepartment);
 
         // New requests last week (7 days)
         var numberOfRequestsLastWeek = departmentRequests
@@ -155,7 +155,7 @@ public class ScheduledReportContentBuilderFunction
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
             {
                 TotalNumberOfPersonnel = personnelForDepartment.Count(),
-                TotalCapacityInUsePercentage = percentageOfTotalCapacity,
+                CapacityInUse = capacityInUse,
                 NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
                 NumberOfOpenRequests = totalNumberOfOpenRequests,
                 NumberOfRequestsStartingInMoreThanThreeMonths =
@@ -230,26 +230,27 @@ public class ScheduledReportContentBuilderFunction
         return results;
     }
 
-    private static int FindTotalCapacityIncludingLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
+    private static int CapacityInUse(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
-        var totalWorkLoad = 0.0;
-        var totalLeave = 0.0;
+        var actualWorkLoad = 0.0;
+        var actualLeave = 0.0;
         foreach (var personnel in listOfInternalPersonnel)
         {
-            totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
-            totalWorkLoad += personnel.ApiPersonAbsences
+            actualWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
+            actualWorkLoad += personnel.ApiPersonAbsences
                 .Where(ab => ab.Type == ApiAbsenceType.OtherTasks && ab.IsActive)
                 .Select(ab => ab.AbsencePercentage)
                 .Sum() ?? 0;
-            totalLeave += personnel.ApiPersonAbsences
+            actualLeave += personnel.ApiPersonAbsences
                 .Where(ab => (ab.Type == ApiAbsenceType.Absence || ab.Type == ApiAbsenceType.Vacation) && ab.IsActive)
                 .Select(ab => ab.AbsencePercentage)
                 .Sum() ?? 0;
         }
 
-        var totalPercentageIncludeLeave = totalWorkLoad / ((listOfInternalPersonnel.Count() * 100) - totalLeave) * 100;
+        var maximumPotentialWorkLoad = listOfInternalPersonnel.Count() * 100;
+        var capacityInUse = actualWorkLoad / (maximumPotentialWorkLoad - actualLeave) * 100;
 
-        return (int)Math.Round(totalPercentageIncludeLeave);
+        return (int)Math.Round(capacityInUse);
     }
 
     private async Task<int> GetAllChangesForResourceDepartment(
@@ -424,7 +425,7 @@ public class ScheduledReportContentBuilderFunction
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
             .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.TotalCapacityInUsePercentage.ToString(), "Capacity in use",
+            .AddColumnSet(new AdaptiveCardColumn(cardData.CapacityInUse.ToString(), "Capacity in use",
                 "%"))
             .AddColumnSet(
                 new AdaptiveCardColumn(cardData.NumberOfRequestsLastWeek.ToString(), "New requests last week"))
