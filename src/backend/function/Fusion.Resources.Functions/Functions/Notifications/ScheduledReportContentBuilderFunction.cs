@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,6 +19,7 @@ using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using System.Threading;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -215,13 +217,19 @@ public class ScheduledReportContentBuilderFunction
     private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelWithLeave(string fullDepartment)
     {
         var personnel = await _resourceClient.GetAllPersonnelForDepartment(fullDepartment);
-        foreach (var person in personnel)
+        if (!personnel.Any())
+            return new List<InternalPersonnelPerson>();
+
+        var tasks = personnel.Select(async person =>
         {
             var absence = await _resourceClient.GetLeaveForPersonnel(person.AzureUniquePersonId.ToString());
             person.ApiPersonAbsences = absence.ToList();
-        }
+            return person;
+        });
 
-        return personnel;
+        var results = await Task.WhenAll(tasks);
+
+        return results;
     }
 
     private static int FindTotalCapacityIncludingLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
@@ -261,27 +269,29 @@ public class ScheduledReportContentBuilderFunction
 
         var totalChangesForDepartment = 0;
 
-        foreach (var instance in listOfInternalPersonnelwithOnlyActiveProjects)
-        {
-            if (instance.Project == null)
-                continue;
+        var tasks = listOfInternalPersonnelwithOnlyActiveProjects
+            .Where(pl => pl.Project is not null)
+            .Select(async instance =>
+            {
+                var changeLogForPersonnel = await _orgClient.GetChangeLog(instance.Project.Id.ToString(),
+                    instance.PositionId.ToString(), instance.InstanceId.ToString());
 
-            var changeLogForPersonnel = await _orgClient.GetChangeLog(instance.Project.Id.ToString(),
-                instance.PositionId.ToString(), instance.InstanceId.ToString());
+                var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Events
+                    .Where(e => e.TimeStamp > today.AddDays(-7).Date).ToList();
 
-            var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Events
-                .Where(e => e.TimeStamp > today.AddDays(-7).Date).ToList();
+                var totalChanges = changeLogForPersonnelFilteredByLastSevenDays
+                    .Where(ev => ev.Instance != null)
+                    .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
+                                 || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
+                                 || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
+                                 || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged))
+                    .ToList()
+                    .Count;
 
-            var totalChanges = changeLogForPersonnelFilteredByLastSevenDays
-                .Where(ev => ev.Instance != null)
-                .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
-                             || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
-                             || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
-                             || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)).ToList();
+                Interlocked.Add(ref totalChangesForDepartment, totalChanges);
+            });
 
-            totalChangesForDepartment += totalChanges.Count;
-        }
-
+        await Task.WhenAll(tasks);
         return totalChangesForDepartment;
     }
 
