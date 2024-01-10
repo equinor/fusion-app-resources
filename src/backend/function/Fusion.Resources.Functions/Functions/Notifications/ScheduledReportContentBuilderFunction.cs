@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +13,10 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using static Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards.AdaptiveCardBuilder;
+using static Fusion.Resources.Functions.Functions.Notifications.AdaptiveCardBuilder;
 using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using Microsoft.Extensions.Configuration;
-using System.Data;
 using System.Threading;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;

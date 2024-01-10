@@ -1,9 +1,9 @@
-﻿using AdaptiveCards;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdaptiveCards;
 
-namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCards;
+namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class AdaptiveCardBuilder
 {
@@ -139,28 +139,28 @@ public class AdaptiveCardBuilder
             var listItems = new List<AdaptiveElement>();
             foreach (var objects in objectLists)
             {
+                var columns = new List<AdaptiveColumn>();
                 foreach (var o in objects)
                 {
-                    var columnSet = new AdaptiveColumnSet
+                    var column = new AdaptiveColumn()
                     {
-                        Columns = new List<AdaptiveColumn>
+                        Width = AdaptiveColumnWidth.Stretch,
+                        Items = new List<AdaptiveElement>
                         {
-                            new()
+                            new AdaptiveTextBlock
                             {
-                                Width = AdaptiveColumnWidth.Stretch,
-                                Items = new List<AdaptiveElement>
-                                {
-                                    new AdaptiveTextBlock
-                                    {
-                                        Text = $"{o.Value} ", Wrap = true,
-                                        HorizontalAlignment = o.Alignment
-                                    },
-                                }
+                                Text = $"{o.Value} ", Wrap = true,
+                                HorizontalAlignment = o.Alignment
                             },
                         }
                     };
-                    listItems.Add(columnSet);
+                    columns.Add(column);
                 }
+
+                listItems.Add(new AdaptiveColumnSet()
+                {
+                    Columns = columns
+                });
             }
 
             List = new AdaptiveContainer
