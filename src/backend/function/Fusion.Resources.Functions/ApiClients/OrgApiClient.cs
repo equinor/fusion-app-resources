@@ -22,11 +22,9 @@ public class OrgClient : IOrgClient
     public async Task<ApiChangeLog> GetChangeLog(string projectId, string positionId, string instanceId)
     {
         var data =
-            await orgClient.GetAsJsonAsync<ApiChangeLog>($"/projects/{projectId}/positions/{positionId}/instances/{instanceId}/change-log?api-version=2.0");
+            await orgClient.GetAsJsonAsync<ApiChangeLog>(
+                $"/projects/{projectId}/positions/{positionId}/instances/{instanceId}/change-log?api-version=2.0");
 
         return data;
     }
-
-
-
 }

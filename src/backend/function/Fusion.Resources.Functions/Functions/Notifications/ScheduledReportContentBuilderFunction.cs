@@ -141,14 +141,14 @@ public class ScheduledReportContentBuilderFunction
         var numberOfAllocationChangesAwaitingTaskOwnerAction = GetChangesAwaitingTaskOwnerAction(departmentRequests);
 
         // Project changes affecting next 3 months
-        var numberOfChangesAffectingNextThreeMonths = GetAllChangesForResourceDepartment(personnelForDepartment);
+        var numberOfChangesAffectingNextThreeMonths = await GetAllChangesForResourceDepartment(personnelForDepartment);
 
         // Allocations ending soon with no future allocation
         var listOfPersonnelWithoutFutureAllocations = FilterPersonnelWithoutFutureAllocations(personnelForDepartment);
 
-        //11.Personnel with more than 100 % workload
+        // Personnel with more than 100 % workload
         var personnelEndingWithNoFutureAllocations = personnelForDepartment
-            .Select(p => CreatePersonnelContentWithTotalWorkload(p));
+            .Select(CreatePersonnelContentWithTotalWorkload);
         var personnelAllocatedMoreThan100Percent = personnelEndingWithNoFutureAllocations
             .Where(p => p.TotalWorkload > 100);
 
@@ -224,7 +224,7 @@ public class ScheduledReportContentBuilderFunction
         return personnel;
     }
 
-    private int FindTotalCapacityIncludingLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
+    private static int FindTotalCapacityIncludingLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
         var totalWorkLoad = 0.0;
         var totalLeave = 0.0;
@@ -246,7 +246,8 @@ public class ScheduledReportContentBuilderFunction
         return (int)Math.Round(totalPercentageIncludeLeave);
     }
 
-    private int GetAllChangesForResourceDepartment(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
+    private async Task<int> GetAllChangesForResourceDepartment(
+        IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
         // Find all active instances (we get projectId, positionId and instanceId from this)
         // Then check if the changes are changes in split (duration, workload, location) - TODO: Check if there are other changes that should be accounted for
@@ -265,10 +266,10 @@ public class ScheduledReportContentBuilderFunction
             if (instance.Project == null)
                 continue;
 
-            var changeLogForPersonnel = _orgClient.GetChangeLog(instance.Project.Id.ToString(),
+            var changeLogForPersonnel = await _orgClient.GetChangeLog(instance.Project.Id.ToString(),
                 instance.PositionId.ToString(), instance.InstanceId.ToString());
 
-            var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Result.Events
+            var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Events
                 .Where(e => e.TimeStamp > today.AddDays(-7).Date).ToList();
 
             var totalChanges = changeLogForPersonnelFilteredByLastSevenDays
@@ -278,19 +279,19 @@ public class ScheduledReportContentBuilderFunction
                              || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
                              || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)).ToList();
 
-            totalChangesForDepartment += totalChanges.Count();
+            totalChangesForDepartment += totalChanges.Count;
         }
 
         return totalChangesForDepartment;
     }
 
-    private int GetChangesAwaitingTaskOwnerAction(IEnumerable<ResourceAllocationRequest> listOfRequests)
+    private static int GetChangesAwaitingTaskOwnerAction(IEnumerable<ResourceAllocationRequest> listOfRequests)
         => listOfRequests
             .Where((req => req.Type is "ResourceOwnerChange"))
             .Where(req =>
                 req.Workflow != null && req.Workflow.Steps.Any(step => step.Name.Equals("Accept") && !step.IsCompleted))
             .ToList()
-            .Count();
+            .Count;
 
 
     private static string CalculateAverageTimeToHandleRequests(IEnumerable<ResourceAllocationRequest> listOfRequests)
@@ -362,7 +363,7 @@ public class ScheduledReportContentBuilderFunction
         return personnelContent;
     }
 
-    private PersonnelContent CreatePersonnelContentWithTotalWorkload(InternalPersonnelPerson person)
+    private static PersonnelContent CreatePersonnelContentWithTotalWorkload(InternalPersonnelPerson person)
     {
         var totalWorkLoad = person.ApiPersonAbsences?
             .Where(ab => ab.Type != ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
