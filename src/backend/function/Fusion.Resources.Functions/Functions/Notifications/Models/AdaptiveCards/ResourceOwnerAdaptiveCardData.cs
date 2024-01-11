@@ -5,7 +5,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard
 public class ResourceOwnerAdaptiveCardData
 {
     public int TotalNumberOfPersonnel { get; set; }
-    public int TotalCapacityInUsePercentage { get; set; }
+    public int CapacityInUse { get; set; }
     public int NumberOfRequestsLastWeek { get; set; }
     public int NumberOfOpenRequests { get; set; }
     public int NumberOfRequestsStartingInMoreThanThreeMonths { get; set; }
