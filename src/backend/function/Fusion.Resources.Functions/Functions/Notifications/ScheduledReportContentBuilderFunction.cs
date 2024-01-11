@@ -146,10 +146,9 @@ public class ScheduledReportContentBuilderFunction
         // Allocations ending soon with no future allocation
         var listOfPersonnelWithoutFutureAllocations = FilterPersonnelWithoutFutureAllocations(personnelForDepartment);
 
-        // Personnel with more than 100 % workload
-        var personnelEndingWithNoFutureAllocations = personnelForDepartment
+        var listOfPersonnelWithTbeContent = personnelForDepartment
             .Select(CreatePersonnelContentWithTotalWorkload);
-        var personnelAllocatedMoreThan100Percent = personnelEndingWithNoFutureAllocations
+        var personnelAllocatedMoreThan100Percent = listOfPersonnelWithTbeContent
             .Where(p => p.TotalWorkload > 100);
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
