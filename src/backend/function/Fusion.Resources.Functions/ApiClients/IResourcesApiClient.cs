@@ -2,6 +2,7 @@
 using Fusion.ApiClients.Org;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -13,8 +14,10 @@ namespace Fusion.Resources.Functions.ApiClients
         Task<IEnumerable<ResourceAllocationRequest>> GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(ProjectReference project);
         Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department);
         Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier);
+        Task<ResourceAllocationRequest> GetRequest(Guid projectIdentifier, Guid requestId);
         Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(string departmentIdentifier);
         Task<IEnumerable<ApiPersonAbsence>> GetLeaveForPersonnel(string personId);
+        Task<HttpResponseMessage?> ProvisionResourceAllocationRequest(Guid requestId);
 
         #region Models
 
@@ -85,6 +88,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public Guid? AzureUniquePersonId { get; set; }
             public string? FullDepartment { get; set; }
             public string? Mail { get; set; }
+            public string? SapId { get; set; }
         }
 
         public class ProjectReference

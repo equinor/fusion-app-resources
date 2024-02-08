@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using Fusion.Resources.Functions.Integration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Core;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 
 namespace Fusion.Resources.Functions.ApiClients
@@ -46,6 +48,14 @@ namespace Fusion.Resources.Functions.ApiClients
             return response.Value.ToList();
         }
 
+        public async Task<ResourceAllocationRequest> GetRequest(Guid projectIdentifier, Guid requestId)
+        {
+            var response = await resourcesClient.GetAsJsonAsync<ResourceAllocationRequest>(
+                $"/projects/{projectIdentifier}/requests/{requestId}");
+
+            return response;
+        }
+
         public async Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(
             string departmentIdentifier)
         {
@@ -61,6 +71,14 @@ namespace Fusion.Resources.Functions.ApiClients
                 $"persons/{personId}/absence");
 
             return response.Value.ToList();
+        }
+
+        public async Task<HttpResponseMessage?> ProvisionResourceAllocationRequest(Guid requestId)
+        {
+            var response =
+                await resourcesClient.PostAsync($"/resources/requests/internal/{requestId}/provision", null);
+
+            return response;
         }
 
         public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)
