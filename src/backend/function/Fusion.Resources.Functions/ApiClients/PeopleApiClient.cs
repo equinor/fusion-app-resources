@@ -22,4 +22,12 @@ public class PeopleApiClient : IPeopleApiClient
 
         return data.FullDepartment;
     }
+
+    public async Task<IResourcesApiClient.Person> GetPerson(Guid? personAzureUniqueId)
+    {
+        var data = await peopleClient.GetAsJsonAsync<IResourcesApiClient.Person>(
+            $"persons/{personAzureUniqueId}?api-version=3.0");
+
+        return data;
+    }
 }

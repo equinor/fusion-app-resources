@@ -16,16 +16,18 @@ public class ProvisionRequestQueueTrigger
     private readonly IResourcesApiClient resourcesClient;
     private readonly IConfiguration configuration;
     private readonly INotificationApiClient notificationsClient;
+    private readonly IPeopleApiClient peopleClient;
 
 
     public ProvisionRequestQueueTrigger(
         IConfiguration configuration,
         IResourcesApiClient resourcesClient,
-        INotificationApiClient notificationsClient)
+        INotificationApiClient notificationsClient, IPeopleApiClient peopleClient)
     {
         this.configuration = configuration;
         this.resourcesClient = resourcesClient;
         this.notificationsClient = notificationsClient;
+        this.peopleClient = peopleClient;
     }
 
     [FunctionName("provision-position-request")]
@@ -38,7 +40,7 @@ public class ProvisionRequestQueueTrigger
         IAsyncCollector<ServiceBusMessage> sender)
     {
         var processor = new QueueMessageProcessor(log, messageReceiver, sender, configuration, resourcesClient,
-            notificationsClient);
+            notificationsClient, peopleClient);
         await processor.ProcessWithRetriesAsync(message, ProcessMessageAsync);
     }
 

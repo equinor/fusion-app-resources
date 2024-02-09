@@ -23,6 +23,7 @@ public class QueueMessageProcessor
     private readonly IConfiguration configuration;
     private readonly IResourcesApiClient resourceClient;
     private readonly INotificationApiClient notificationsClient;
+    private readonly IPeopleApiClient peopleClient;
 
     private const int MaxRetryCount = 5;
 
@@ -33,7 +34,7 @@ public class QueueMessageProcessor
         IAsyncCollector<ServiceBusMessage> sender,
         IConfiguration configuration,
         IResourcesApiClient resourceClient,
-        INotificationApiClient notificationsClient)
+        INotificationApiClient notificationsClient, IPeopleApiClient peopleClient)
     {
         this.log = log;
         this.receiver = receiver;
@@ -41,6 +42,7 @@ public class QueueMessageProcessor
         this.configuration = configuration;
         this.resourceClient = resourceClient;
         this.notificationsClient = notificationsClient;
+        this.peopleClient = peopleClient;
     }
 
 
@@ -56,6 +58,9 @@ public class QueueMessageProcessor
             await action(messageBody, log);
 
             await receiver.CompleteMessageAsync(message);
+
+            // Send notification
+            await ProvisioningNotification(message, "Request was successfully provisioned");
         }
         catch (Exception ex)
         {
@@ -97,38 +102,63 @@ public class QueueMessageProcessor
                 $"Exhausted all retries for message sequence # {message.ApplicationProperties["original-SequenceNumber"]}");
             await receiver.DeadLetterMessageAsync(message, "Exhausted all retries");
 
-            // Send notification to resource owner
-            await ProvisioningFailedNotification(message);
+            // Send notification
+            await ProvisioningNotification(message, "Request failed in provisioning");
             throw;
         }
     }
 
-    private async Task ProvisioningFailedNotification(ServiceBusReceivedMessage message)
+    private async Task ProvisioningNotification(ServiceBusReceivedMessage message, string title)
     {
         var body = Encoding.UTF8.GetString(message.Body);
         var provisionPosition = JsonConvert.DeserializeObject<ProvisionPositionMessageV1>(body);
         if (provisionPosition is null)
             return;
 
+        var portalUri = PortalUri();
         var request = await resourceClient
             .GetRequest(provisionPosition.ProjectOrgId, provisionPosition.RequestId);
-        var card = new AdaptiveCardBuilder()
-            .AddHeading($"**Request failed in provisioning**")
-            .AddColumnSet(new AdaptiveCardBuilder.AdaptiveCardColumn($"{request.Number}", "Request number"))
-            .AddColumnSet(new AdaptiveCardBuilder.AdaptiveCardColumn($"{request.Id}", "Request ID"))
-            .AddNewLine()
-            .AddActionButton("Go to Personnel allocation", $"{PortalUri()}apps/personnel-allocation/")
-            .Build();
 
+        // Task owner
         if (request.CreatedBy != null)
-            await SendNotification(card, request.CreatedBy.AzureUniquePersonId);
+        {
+            await SendNotification(
+                ProvisioningCard(title, request,
+                    "Go to Project organisation", $"{portalUri}apps/pro-org/{provisionPosition.ProjectOrgId}/chart"),
+                request.CreatedBy.AzureUniquePersonId, title);
+        }
+
+        // Resource owner
         if (request.UpdatedBy != null)
-            await SendNotification(card, request.UpdatedBy.AzureUniquePersonId);
+        {
+            var resourceOwner = await peopleClient.GetPerson(request.UpdatedBy.AzureUniquePersonId);
+            await SendNotification(
+                ProvisioningCard(title, request,
+                    "Go to Personnel allocation", $"{portalUri}apps/personnel-allocation/{resourceOwner.SapId}"),
+                request.UpdatedBy.AzureUniquePersonId, title);
+        }
+    }
+
+    private static AdaptiveCard ProvisioningCard(
+        string title,
+        IResourcesApiClient.ResourceAllocationRequest request,
+        string buttonName, string buttonUri)
+    {
+        var taskOwnerCard = new AdaptiveCardBuilder()
+            .AddHeading($"**{title}**")
+            .AddColumnSet(new AdaptiveCardBuilder.AdaptiveCardColumn($"{request.Number}", "Request number"))
+            .AddColumnSet(new AdaptiveCardBuilder.AdaptiveCardColumn($"{request.AssignedDepartment}", "Department"))
+            .AddColumnSet(new AdaptiveCardBuilder.AdaptiveCardColumn($"{request.Id}", "Request id"))
+            .AddNewLine()
+            .AddActionButton(buttonName, buttonUri)
+            .Build();
+        return taskOwnerCard;
     }
 
     private async Task SendNotification(
         AdaptiveCard card,
-        Guid? sendToAzureId)
+        Guid? sendToAzureId,
+        string title)
     {
         if (sendToAzureId is null)
             return;
@@ -136,10 +166,10 @@ public class QueueMessageProcessor
         await notificationsClient.SendNotification(
             new SendNotificationsRequest()
             {
-                Title = $"Request failed in provisioning",
+                Title = $"{title}",
                 EmailPriority = 1,
                 Card = card,
-                Description = $"Request failed in provisioning",
+                Description = $"{title}",
             },
             sendToAzureId.Value);
     }
