@@ -18,6 +18,7 @@ using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -152,21 +153,21 @@ public class ScheduledReportContentBuilderFunction
             .Where(p => p.TotalWorkload > 100);
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
-            {
-                TotalNumberOfPersonnel = personnelForDepartment.Count(),
-                CapacityInUse = capacityInUse,
-                NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
-                NumberOfOpenRequests = totalNumberOfOpenRequests,
-                NumberOfRequestsStartingInMoreThanThreeMonths =
+        {
+            TotalNumberOfPersonnel = personnelForDepartment.Count(),
+            CapacityInUse = capacityInUse,
+            NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
+            NumberOfOpenRequests = totalNumberOfOpenRequests,
+            NumberOfRequestsStartingInMoreThanThreeMonths =
                     numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
-                NumberOfRequestsStartingInLessThanThreeMonths =
+            NumberOfRequestsStartingInLessThanThreeMonths =
                     numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-                AverageTimeToHandleRequests = averageTimeToHandleRequest,
-                AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationChangesAwaitingTaskOwnerAction,
-                ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
-                PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
-                PersonnelAllocatedMoreThan100Percent = personnelAllocatedMoreThan100Percent
-            },
+            AverageTimeToHandleRequests = averageTimeToHandleRequest,
+            AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationChangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
+            PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+            PersonnelAllocatedMoreThan100Percent = personnelAllocatedMoreThan100Percent
+        },
             fullDepartment, departmentSapId);
 
         var sendNotification = await _notificationsClient.SendNotification(
@@ -270,31 +271,35 @@ public class ScheduledReportContentBuilderFunction
             per.PositionInstances.Where(pis =>
                 (pis.AppliesFrom < threeMonthsFromToday && pis.AppliesFrom > today) || pis.AppliesTo > today));
 
+        var distinctProjectId = listOfInternalPersonnelwithOnlyActiveProjects.Select(p => p.Project.Id).Distinct();
+
+        ParallelOptions parallelOptions = new()
+        {
+            MaxDegreeOfParallelism = 3
+        };
+
+        var data = new ConcurrentDictionary<string, ApiChangeLog>();
+        await Parallel.ForEachAsync(distinctProjectId, parallelOptions, async (project, token) =>
+        {
+            var changeLogForPersonnel = await _orgClient.GetChangeLog(project.ToString(), today.AddDays(-7));
+            data.TryAdd(project.ToString(), changeLogForPersonnel);
+        });
+
         var totalChangesForDepartment = 0;
+        var dataValuesAsList = data.Values.ToList();
 
-        var tasks = listOfInternalPersonnelwithOnlyActiveProjects
-            .Where(pl => pl.Project is not null)
-            .Select(async instance =>
-            {
-                var changeLogForPersonnel = await _orgClient.GetChangeLog(instance.Project.Id.ToString(),
-                    instance.PositionId.ToString(), instance.InstanceId.ToString());
+        foreach (var value in dataValuesAsList)
+        {
+            var events = value.Events.Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
+                                                  || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
+                                                  || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
+                                                  || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged))
+                .ToList().Count;
 
-                var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Events
-                    .Where(e => e.TimeStamp > today.AddDays(-7).Date).ToList();
+            totalChangesForDepartment += events;
 
-                var totalChanges = changeLogForPersonnelFilteredByLastSevenDays
-                    .Where(ev => ev.Instance != null)
-                    .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
-                                 || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
-                                 || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
-                                 || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged))
-                    .ToList()
-                    .Count;
+        }
 
-                Interlocked.Add(ref totalChangesForDepartment, totalChanges);
-            });
-
-        await Task.WhenAll(tasks);
         return totalChangesForDepartment;
     }
 
