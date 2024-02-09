@@ -32,7 +32,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 0 8 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 0 6 * * MON", RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -93,8 +93,6 @@ public class ScheduledReportTimerTriggerFunction
                         Role = NotificationRoleType.ResourceOwner,
                         DepartmentSapId = resourceOwner.DepartmentSapId
                     }, timeDelay);
-
-
                 }
                 catch (Exception e)
                 {
@@ -103,7 +101,6 @@ public class ScheduledReportTimerTriggerFunction
                         $"item failed with exception when sending message: {e.Message}");
                 }
                 resourceOwnerMessageSent++;
-
             }
         }
         catch (Exception e)
