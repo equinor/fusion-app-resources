@@ -69,16 +69,22 @@ public class ScheduledReportTimerTriggerFunction
             var selectedDepartments = departments
                 .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
             var resourceOwners = await GetLineOrgPersonsFromDepartmetnsChunked(selectedDepartments);
-
             if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
 
-            foreach (var resourceOwner in resourceOwners.DistinctBy(ro => ro.AzureUniqueId))
+            var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId);
+
+            var batchTime = Math.Ceiling(60.0 / resourceOwnersToSendNotifications.Count());
+            var resourceOwnerMessageSent = 0;
+
+            foreach (var resourceOwner in resourceOwnersToSendNotifications)
             {
                 try
                 {
                     if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
                         throw new Exception("Resource-owner azureUniqueId is empty.");
+
+                    var timeDelay = resourceOwnerMessageSent == 0 ? 0 : resourceOwnerMessageSent + batchTime;
 
                     await SendDtoToQueue(sender, new ScheduledNotificationQueueDto()
                     {
@@ -86,7 +92,9 @@ public class ScheduledReportTimerTriggerFunction
                         FullDepartment = resourceOwner.FullDepartment,
                         Role = NotificationRoleType.ResourceOwner,
                         DepartmentSapId = resourceOwner.DepartmentSapId
-                    });
+                    }, timeDelay);
+
+
                 }
                 catch (Exception e)
                 {
@@ -94,6 +102,8 @@ public class ScheduledReportTimerTriggerFunction
                         $"ServiceBus queue '{_queueName}' " +
                         $"item failed with exception when sending message: {e.Message}");
                 }
+                resourceOwnerMessageSent++;
+
             }
         }
         catch (Exception e)
@@ -119,9 +129,11 @@ public class ScheduledReportTimerTriggerFunction
         return resourceOwners;
     }
 
-    private async Task SendDtoToQueue(ServiceBusSender sender, ScheduledNotificationQueueDto dto)
+    private async Task SendDtoToQueue(ServiceBusSender sender, ScheduledNotificationQueueDto dto, double delayInMinutes)
     {
         var serializedDto = JsonConvert.SerializeObject(dto);
-        await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto)));
+        var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto));
+        message.ScheduledEnqueueTime = DateTime.UtcNow.AddMinutes(delayInMinutes);
+        await sender.SendMessageAsync(message);
     }
 }
