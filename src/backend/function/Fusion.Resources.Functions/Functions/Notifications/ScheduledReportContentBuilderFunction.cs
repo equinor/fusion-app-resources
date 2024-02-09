@@ -169,6 +169,7 @@ public class ScheduledReportContentBuilderFunction
             },
             fullDepartment, departmentSapId);
 
+        azureUniqueId = new Guid("945f666e-fd8a-444c-b7e3-9da61b21e4b5");
         var sendNotification = await _notificationsClient.SendNotification(
             new SendNotificationsRequest()
             {
@@ -247,7 +248,12 @@ public class ScheduledReportContentBuilderFunction
         }
 
         var maximumPotentialWorkLoad = listOfInternalPersonnel.Count() * 100;
-        var capacityInUse = actualWorkLoad / (maximumPotentialWorkLoad - actualLeave) * 100;
+        var potentialWorkLoad = maximumPotentialWorkLoad - actualLeave;
+        if (potentialWorkLoad <= 0)
+            return 0;
+        var capacityInUse = actualWorkLoad / potentialWorkLoad * 100;
+        if (capacityInUse < 0)
+            return 0;
 
         return (int)Math.Round(capacityInUse);
     }
