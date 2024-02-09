@@ -32,7 +32,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 0 8 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 0 5 * * MON", RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -74,17 +74,18 @@ public class ScheduledReportTimerTriggerFunction
 
             var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId);
 
-            var batchTime = Math.Ceiling(60.0 / resourceOwnersToSendNotifications.Count());
+            var batchTimeInMinutes = Math.Ceiling(120.0 / resourceOwnersToSendNotifications.Count());
+            if (batchTimeInMinutes < 1)
+                batchTimeInMinutes = 1;
             var resourceOwnerMessageSent = 0;
 
             foreach (var resourceOwner in resourceOwnersToSendNotifications)
             {
+                var timeDelayInMinutes = resourceOwnerMessageSent * batchTimeInMinutes;
                 try
                 {
                     if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
                         throw new Exception("Resource-owner azureUniqueId is empty.");
-
-                    var timeDelay = resourceOwnerMessageSent == 0 ? 0 : resourceOwnerMessageSent + batchTime;
 
                     await SendDtoToQueue(sender, new ScheduledNotificationQueueDto()
                     {
@@ -92,9 +93,9 @@ public class ScheduledReportTimerTriggerFunction
                         FullDepartment = resourceOwner.FullDepartment,
                         Role = NotificationRoleType.ResourceOwner,
                         DepartmentSapId = resourceOwner.DepartmentSapId
-                    }, timeDelay);
-
-
+                    }, timeDelayInMinutes);
+                    
+                    resourceOwnerMessageSent++;
                 }
                 catch (Exception e)
                 {
@@ -102,8 +103,6 @@ public class ScheduledReportTimerTriggerFunction
                         $"ServiceBus queue '{_queueName}' " +
                         $"item failed with exception when sending message: {e.Message}");
                 }
-                resourceOwnerMessageSent++;
-
             }
         }
         catch (Exception e)
@@ -114,7 +113,8 @@ public class ScheduledReportTimerTriggerFunction
         }
     }
 
-    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmetnsChunked(List<LineOrgApiClient.OrgUnits> selectedDepartments)
+    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmetnsChunked(
+        List<LineOrgApiClient.OrgUnits> selectedDepartments)
     {
         var resourceOwners = new List<LineOrgPerson>();
         const int chuckSize = 10;
