@@ -247,7 +247,12 @@ public class ScheduledReportContentBuilderFunction
         }
 
         var maximumPotentialWorkLoad = listOfInternalPersonnel.Count() * 100;
-        var capacityInUse = actualWorkLoad / (maximumPotentialWorkLoad - actualLeave) * 100;
+        var potentialWorkLoad = maximumPotentialWorkLoad - actualLeave;
+        if (potentialWorkLoad <= 0)
+            return 0;
+        var capacityInUse = actualWorkLoad / potentialWorkLoad * 100;
+        if (capacityInUse < 0)
+            return 0;
 
         return (int)Math.Round(capacityInUse);
     }
