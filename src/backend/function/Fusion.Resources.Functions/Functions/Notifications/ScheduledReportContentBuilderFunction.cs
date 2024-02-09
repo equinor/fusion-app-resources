@@ -169,7 +169,6 @@ public class ScheduledReportContentBuilderFunction
             },
             fullDepartment, departmentSapId);
 
-        azureUniqueId = new Guid("945f666e-fd8a-444c-b7e3-9da61b21e4b5");
         var sendNotification = await _notificationsClient.SendNotification(
             new SendNotificationsRequest()
             {

@@ -94,7 +94,7 @@ public class ScheduledReportTimerTriggerFunction
                         Role = NotificationRoleType.ResourceOwner,
                         DepartmentSapId = resourceOwner.DepartmentSapId
                     }, timeDelayInMinutes);
-                    
+
                     resourceOwnerMessageSent++;
                 }
                 catch (Exception e)
