@@ -272,6 +272,7 @@ public class ScheduledReportContentBuilderFunction
                 (pis.AppliesFrom < threeMonthsFromToday && pis.AppliesFrom > today) || pis.AppliesTo > today));
 
         var distinctProjectId = listOfInternalPersonnelwithOnlyActiveProjects.Select(p => p.Project.Id).Distinct();
+        var listAllRelevanteInstanceIds = listOfInternalPersonnelwithOnlyActiveProjects.Select(x => x.InstanceId);
 
         ParallelOptions parallelOptions = new()
         {
@@ -288,9 +289,19 @@ public class ScheduledReportContentBuilderFunction
         var totalChangesForDepartment = 0;
         var dataValuesAsList = data.Values.ToList();
 
+        var allRelevantEvents = new List<ApiChangeLogEvent>();
+
         foreach (var value in dataValuesAsList)
         {
-            var events = value.Events.Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
+            foreach (var item in value.Events)
+            {
+                if (listAllRelevanteInstanceIds.Contains(item.InstanceId))
+                {
+                    allRelevantEvents.Add(item);
+                }
+            }
+
+            var events = allRelevantEvents.Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
                                                   || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
                                                   || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
                                                   || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged))
