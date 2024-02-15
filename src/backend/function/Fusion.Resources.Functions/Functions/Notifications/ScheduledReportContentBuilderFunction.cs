@@ -152,21 +152,21 @@ public class ScheduledReportContentBuilderFunction
             .Where(p => p.TotalWorkload > 100);
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
-            {
-                TotalNumberOfPersonnel = personnelForDepartment.Count(),
-                CapacityInUse = capacityInUse,
-                NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
-                NumberOfOpenRequests = totalNumberOfOpenRequests,
-                NumberOfRequestsStartingInMoreThanThreeMonths =
+        {
+            TotalNumberOfPersonnel = personnelForDepartment.Count(),
+            CapacityInUse = capacityInUse,
+            NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
+            NumberOfOpenRequests = totalNumberOfOpenRequests,
+            NumberOfRequestsStartingInMoreThanThreeMonths =
                     numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
-                NumberOfRequestsStartingInLessThanThreeMonths =
+            NumberOfRequestsStartingInLessThanThreeMonths =
                     numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-                AverageTimeToHandleRequests = averageTimeToHandleRequest,
-                AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationChangesAwaitingTaskOwnerAction,
-                ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
-                PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
-                PersonnelAllocatedMoreThan100Percent = personnelAllocatedMoreThan100Percent
-            },
+            AverageTimeToHandleRequests = averageTimeToHandleRequest,
+            AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationChangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
+            PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+            PersonnelAllocatedMoreThan100Percent = personnelAllocatedMoreThan100Percent
+        },
             fullDepartment, departmentSapId);
 
         var sendNotification = await _notificationsClient.SendNotification(
@@ -299,12 +299,9 @@ public class ScheduledReportContentBuilderFunction
     }
 
     private static int GetChangesAwaitingTaskOwnerAction(IEnumerable<ResourceAllocationRequest> listOfRequests)
-        => listOfRequests
-            .Where((req => req.Type is "ResourceOwnerChange"))
-            .Where(req =>
-                req.Workflow != null && req.Workflow.Steps.Any(step => step.Name.Equals("Accept") && !step.IsCompleted))
-            .ToList()
-            .Count;
+    => listOfRequests
+        .Where((req => req.Type is "ResourceOwnerChange"))
+    .Where(req => req.State != null && req.State.Equals("created", StringComparison.OrdinalIgnoreCase)).ToList().Count();
 
 
     private static string CalculateAverageTimeToHandleRequests(IEnumerable<ResourceAllocationRequest> listOfRequests)
