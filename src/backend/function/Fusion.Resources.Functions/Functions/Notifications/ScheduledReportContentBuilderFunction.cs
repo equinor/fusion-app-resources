@@ -153,21 +153,21 @@ public class ScheduledReportContentBuilderFunction
             .Where(p => p.TotalWorkload > 100);
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
-        {
-            TotalNumberOfPersonnel = personnelForDepartment.Count(),
-            CapacityInUse = capacityInUse,
-            NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
-            NumberOfOpenRequests = totalNumberOfOpenRequests,
-            NumberOfRequestsStartingInMoreThanThreeMonths =
+            {
+                TotalNumberOfPersonnel = personnelForDepartment.Count(),
+                CapacityInUse = capacityInUse,
+                NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
+                NumberOfOpenRequests = totalNumberOfOpenRequests,
+                NumberOfRequestsStartingInMoreThanThreeMonths =
                     numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
-            NumberOfRequestsStartingInLessThanThreeMonths =
+                NumberOfRequestsStartingInLessThanThreeMonths =
                     numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-            AverageTimeToHandleRequests = averageTimeToHandleRequest,
-            AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationChangesAwaitingTaskOwnerAction,
-            ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
-            PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
-            PersonnelAllocatedMoreThan100Percent = personnelAllocatedMoreThan100Percent
-        },
+                AverageTimeToHandleRequests = averageTimeToHandleRequest,
+                AllocationChangesAwaitingTaskOwnerAction = numberOfAllocationChangesAwaitingTaskOwnerAction,
+                ProjectChangesAffectingNextThreeMonths = numberOfChangesAffectingNextThreeMonths,
+                PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+                PersonnelAllocatedMoreThan100Percent = personnelAllocatedMoreThan100Percent
+            },
             fullDepartment, departmentSapId);
 
         var sendNotification = await _notificationsClient.SendNotification(
@@ -301,14 +301,14 @@ public class ScheduledReportContentBuilderFunction
                 }
             }
 
-            var events = allRelevantEvents.Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
-                                                  || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
-                                                  || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
-                                                  || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged))
+            var events = allRelevantEvents
+                .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
+                             || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
+                             || ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged
+                             || ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)
                 .ToList().Count;
 
             totalChangesForDepartment += events;
-
         }
 
         return totalChangesForDepartment;
