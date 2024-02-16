@@ -9,7 +9,7 @@ namespace Fusion.Resources.Functions.ApiClients;
 
 public interface IOrgClient
 {
-    Task<ApiChangeLog> GetChangeLog(string projectId, string positionId, string instanceId);
+    Task<ApiChangeLog> GetChangeLog(string projectId, DateTime timestamp);
 }
 
 

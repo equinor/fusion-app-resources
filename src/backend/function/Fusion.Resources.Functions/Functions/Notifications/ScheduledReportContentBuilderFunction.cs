@@ -18,6 +18,7 @@ using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -270,31 +271,46 @@ public class ScheduledReportContentBuilderFunction
             per.PositionInstances.Where(pis =>
                 (pis.AppliesFrom < threeMonthsFromToday && pis.AppliesFrom > today) || pis.AppliesTo > today));
 
+        var distinctProjectId = listOfInternalPersonnelwithOnlyActiveProjects.Select(p => p.Project.Id).Distinct();
+        var listAllRelevanteInstanceIds = listOfInternalPersonnelwithOnlyActiveProjects.Select(x => x.InstanceId);
+
+        ParallelOptions parallelOptions = new()
+        {
+            MaxDegreeOfParallelism = 3
+        };
+
+        var data = new ConcurrentDictionary<string, ApiChangeLog>();
+        await Parallel.ForEachAsync(distinctProjectId, parallelOptions, async (project, token) =>
+        {
+            var changeLogForPersonnel = await _orgClient.GetChangeLog(project.ToString(), today.AddDays(-7));
+            data.TryAdd(project.ToString(), changeLogForPersonnel);
+        });
+
         var totalChangesForDepartment = 0;
+        var dataValuesAsList = data.Values.ToList();
 
-        var tasks = listOfInternalPersonnelwithOnlyActiveProjects
-            .Where(pl => pl.Project is not null)
-            .Select(async instance =>
+        var allRelevantEvents = new List<ApiChangeLogEvent>();
+
+        foreach (var value in dataValuesAsList)
+        {
+            foreach (var item in value.Events)
             {
-                var changeLogForPersonnel = await _orgClient.GetChangeLog(instance.Project.Id.ToString(),
-                    instance.PositionId.ToString(), instance.InstanceId.ToString());
+                if (listAllRelevanteInstanceIds.Contains(item.InstanceId))
+                {
+                    allRelevantEvents.Add(item);
+                }
+            }
 
-                var changeLogForPersonnelFilteredByLastSevenDays = changeLogForPersonnel.Events
-                    .Where(e => e.TimeStamp > today.AddDays(-7).Date).ToList();
+            var events = allRelevantEvents
+                .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
+                             || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
+                             || ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged
+                             || ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)
+                .ToList().Count;
 
-                var totalChanges = changeLogForPersonnelFilteredByLastSevenDays
-                    .Where(ev => ev.Instance != null)
-                    .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
-                                 || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
-                                 || (ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged)
-                                 || (ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged))
-                    .ToList()
-                    .Count;
+            totalChangesForDepartment += events;
+        }
 
-                Interlocked.Add(ref totalChangesForDepartment, totalChanges);
-            });
-
-        await Task.WhenAll(tasks);
         return totalChangesForDepartment;
     }
 
