@@ -7,16 +7,6 @@ namespace Fusion.Resources.Functions.Functions.Notifications.Models;
 
 public class ResourceOwnerReportData
 {
-    public int TotalNumberOfPersonnel { get; private set; }
-    public int CapacityInUse { get; private set; }
-    public int NumberOfRequestsLastWeek { get; private set; }
-    public int NumberOfOpenRequests { get; private set; }
-    public int NumberOfRequestsStartingInMoreThanThreeMonths { get; private set; }
-    public int NumberOfRequestsStartingInLessThanThreeMonths { get; private set; }
-    public string AverageTimeToHandleRequests { get; private set; }
-    public int AllocationChangesAwaitingTaskOwnerAction { get; private set; }
-    public int ProjectChangesAffectingNextThreeMonths { get; private set; }
-
     public IEnumerable<AllocatedPersonWithNoFutureAllocation> PersonnelPositionsEndingWithNoFutureAllocation
     {
         get;
@@ -25,14 +15,13 @@ public class ResourceOwnerReportData
 
     public IEnumerable<AllocatedPersonnelWithWorkLoad> PersonnelAllocatedMoreThan100Percent { get; private set; }
 
-    public ResourceOwnerReportData SetTotalNumberOfPersonnel(
+    public static int GetTotalNumberOfPersonnel(
         IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
-        TotalNumberOfPersonnel = listOfInternalPersonnel.Count();
-        return this;
+        return listOfInternalPersonnel.Count();
     }
 
-    public ResourceOwnerReportData SetCapacityInUse(
+    public static int GetCapacityInUse(
         IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
         var actualWorkLoad = 0.0;
@@ -55,71 +44,61 @@ public class ResourceOwnerReportData
         var maximumPotentialWorkLoad = listOfInternalPersonnel.Count() * 100;
         var potentialWorkLoad = maximumPotentialWorkLoad - actualLeave;
         if (potentialWorkLoad <= 0)
-            return this;
+            return 0;
         var capacityInUse = actualWorkLoad / potentialWorkLoad * 100;
         if (capacityInUse < 0)
-            return this;
+            return 0;
 
-        CapacityInUse = (int)Math.Round(capacityInUse);
-        return this;
+        return (int)Math.Round(capacityInUse);
     }
 
-    public ResourceOwnerReportData SetNumberOfRequestsLastWeek(
+    public static int GetNumberOfRequestsLastWeek(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
-        NumberOfRequestsLastWeek = requests
+        return requests
             .Count(req => req.Type != null && !req.Type.Equals("ResourceOwnerChange")
                                            && req.Created > DateTime.UtcNow.AddDays(-7) && !req.IsDraft);
-        return this;
     }
 
-    public ResourceOwnerReportData SetNumberOfOpenRequests(
+    public static int GetNumberOfOpenRequests(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
-    {
-        NumberOfOpenRequests =
-            requests.Count(req =>
-                req.State != null && req.Type != null && !req.Type.Equals("ResourceOwnerChange") &&
-                !req.HasProposedPerson &&
-                !req.State.Equals("completed", StringComparison.OrdinalIgnoreCase));
+        => requests.Count(req =>
+            req.State != null && req.Type != null && !req.Type.Equals("ResourceOwnerChange") &&
+            !req.HasProposedPerson &&
+            !req.State.Equals("completed", StringComparison.OrdinalIgnoreCase));
 
-        return this;
-    }
 
-    public ResourceOwnerReportData SetNumberOfRequestsStartingInMoreThanThreeMonths(
+    public static int GetNumberOfRequestsStartingInMoreThanThreeMonths(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
-        NumberOfRequestsStartingInMoreThanThreeMonths = requests
+        return requests
             .Count(x => x.Type != null &&
                         x.OrgPositionInstance != null &&
                         x.State != null &&
                         !x.State.Contains("completed") && !x.Type.Equals("ResourceOwnerChange") &&
                         x.OrgPositionInstance.AppliesFrom > threeMonthsFromToday);
-
-        return this;
     }
 
-    public ResourceOwnerReportData SetNumberOfRequestsStartingInLessThanThreeMonths(
+    public static int GetNumberOfRequestsStartingInLessThanThreeMonths(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
-        NumberOfRequestsStartingInLessThanThreeMonths = requests
+        return requests
             .Count(x => x.OrgPositionInstance != null &&
                         x.State != null &&
                         !x.State.Equals("completed") && !x.Type.Equals("ResourceOwnerChange") &&
                         (x.OrgPositionInstance.AppliesFrom < threeMonthsFromToday &&
                          x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
-
-        return this;
     }
 
-    public ResourceOwnerReportData SetAverageTimeToHandleRequests(
+    public static string GetAverageTimeToHandleRequests(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
-        AverageTimeToHandleRequests = "0";
+        var AverageTimeToHandleRequests = "0";
 
         var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
@@ -148,7 +127,7 @@ public class ResourceOwnerReportData
         }
 
         if (!(totalNumberOfDays > 0))
-            return this;
+            return AverageTimeToHandleRequests;
 
         var averageAmountOfTimeDouble = totalNumberOfDays / requestsHandledByResourceOwner;
         var averageAmountOfTimeInt = Convert.ToInt32(averageAmountOfTimeDouble);
@@ -157,51 +136,44 @@ public class ResourceOwnerReportData
             ? averageAmountOfTimeInt + " day(s)"
             : "Less than a day";
 
-        return this;
+        return AverageTimeToHandleRequests;
     }
 
-    public ResourceOwnerReportData SetAllocationChangesAwaitingTaskOwnerAction(
+    public static int GetAllocationChangesAwaitingTaskOwnerAction(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
-        AllocationChangesAwaitingTaskOwnerAction = requests
+        return requests
             .Where((req => req.Type is "ResourceOwnerChange"))
             .Where(req => req.State != null && req.State.Equals("created", StringComparison.OrdinalIgnoreCase))
             .ToList()
             .Count;
-        return this;
     }
 
-    public ResourceOwnerReportData SetProjectChangesAffectingNextThreeMonths(
+    public static int GetProjectChangesAffectingNextThreeMonths(
         IEnumerable<ApiChangeLogEvent> allRelevantEvents)
     {
-        ProjectChangesAffectingNextThreeMonths = allRelevantEvents
+        return allRelevantEvents
             .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
                          || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
                          || ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged
                          || ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)
             .ToList().Count;
-
-        return this;
     }
 
-    public ResourceOwnerReportData SetPersonnelPositionsEndingWithNoFutureAllocation(
+    public static IEnumerable<AllocatedPersonWithNoFutureAllocation> GetPersonnelPositionsEndingWithNoFutureAllocation(
         IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
-        PersonnelPositionsEndingWithNoFutureAllocation = listOfInternalPersonnel
+        return listOfInternalPersonnel
             .Where(AllocatedPersonWithNoFutureAllocation.GotFutureAllocation)
             .Select(AllocatedPersonWithNoFutureAllocation.Create);
-
-        return this;
     }
 
-    public ResourceOwnerReportData SetPersonnelAllocatedMoreThan100Percent(
+    public static IEnumerable<AllocatedPersonnelWithWorkLoad> GetPersonnelAllocatedMoreThan100Percent(
         IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
-        PersonnelAllocatedMoreThan100Percent = listOfInternalPersonnel
+        return listOfInternalPersonnel
             .Select(AllocatedPersonnelWithWorkLoad.Create)
             .Where(p => p.TotalWorkload > 100);
-
-        return this;
     }
 }
 

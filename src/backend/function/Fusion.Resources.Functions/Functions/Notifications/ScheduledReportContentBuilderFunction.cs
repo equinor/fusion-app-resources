@@ -99,28 +99,15 @@ public class ScheduledReportContentBuilderFunction
         // Personnel for the department
         var departmentPersonnel = (await GetPersonnelWithLeave(fullDepartment)).ToList();
         // Get relevant change log events
-        var relevantChangeLogEvents = await GetRelevantChangeLogEvents(departmentPersonnel);
-
-        // Create report data
-        var resourceReportData = new ResourceOwnerReportData()
-            .SetTotalNumberOfPersonnel(departmentPersonnel)
-            .SetCapacityInUse(departmentPersonnel)
-            .SetNumberOfOpenRequests(departmentRequests)
-            .SetNumberOfRequestsLastWeek(departmentRequests)
-            .SetNumberOfRequestsStartingInLessThanThreeMonths(departmentRequests)
-            .SetNumberOfRequestsStartingInMoreThanThreeMonths(departmentRequests)
-            .SetAverageTimeToHandleRequests(departmentRequests)
-            .SetAllocationChangesAwaitingTaskOwnerAction(departmentRequests)
-            .SetProjectChangesAffectingNextThreeMonths(relevantChangeLogEvents)
-            .SetPersonnelPositionsEndingWithNoFutureAllocation(departmentPersonnel)
-            .SetPersonnelAllocatedMoreThan100Percent(departmentPersonnel);
+        var departmentChangeLogEvents = await GetChangeLogEvents(departmentPersonnel);
 
         var sendNotification = await _notificationsClient.SendNotification(
             new SendNotificationsRequest
             {
                 Title = $"Weekly summary - {fullDepartment}",
                 EmailPriority = 1,
-                Card = ResourceOwnerAdaptiveCardBuilder(resourceReportData, fullDepartment, departmentSapId),
+                Card = CreateResourceOwnerAdaptiveCard(departmentPersonnel, departmentRequests,
+                    departmentChangeLogEvents, fullDepartment, departmentSapId),
                 Description = $"Weekly report for department - {fullDepartment}"
             },
             azureUniqueId);
@@ -152,7 +139,7 @@ public class ScheduledReportContentBuilderFunction
         return results;
     }
 
-    private async Task<List<ApiChangeLogEvent>> GetRelevantChangeLogEvents(
+    private async Task<List<ApiChangeLogEvent>> GetChangeLogEvents(
         IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
         var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
@@ -184,11 +171,15 @@ public class ScheduledReportContentBuilderFunction
             select item).ToList();
     }
 
-    private AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerReportData cardData,
+    private AdaptiveCard CreateResourceOwnerAdaptiveCard(
+        List<InternalPersonnelPerson> personnel,
+        List<ResourceAllocationRequest> requests,
+        List<ApiChangeLogEvent> events,
         string departmentIdentifier, string departmentSapId)
     {
         var personnelAllocationUri = $"{PortalUri()}apps/personnel-allocation/{departmentSapId}";
-        var endingPositionsObjectList = cardData.PersonnelPositionsEndingWithNoFutureAllocation
+        var endingPositionsObjectList = ResourceOwnerReportData
+            .GetPersonnelPositionsEndingWithNoFutureAllocation(personnel)
             .Select(ep => new List<ListObject>
             {
                 new()
@@ -203,7 +194,8 @@ public class ScheduledReportContentBuilderFunction
                 }
             })
             .ToList();
-        var personnelMoreThan100PercentObjectList = cardData.PersonnelAllocatedMoreThan100Percent
+        var personnelMoreThan100PercentObjectList = ResourceOwnerReportData
+            .GetPersonnelAllocatedMoreThan100Percent(personnel)
             .Select(ep => new List<ListObject>
             {
                 new()
@@ -221,22 +213,33 @@ public class ScheduledReportContentBuilderFunction
 
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
-            .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.CapacityInUse.ToString(), "Capacity in use",
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetTotalNumberOfPersonnel(personnel).ToString(), "Number of personnel"))
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetCapacityInUse(personnel).ToString(),
+                "Capacity in use",
                 "%"))
             .AddColumnSet(
-                new AdaptiveCardColumn(cardData.NumberOfRequestsLastWeek.ToString(), "New requests last week"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOpenRequests.ToString(), "Open requests"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInLessThanThreeMonths.ToString(),
+                new AdaptiveCardColumn(
+                    ResourceOwnerReportData.GetNumberOfRequestsLastWeek(requests).ToString(),
+                    "New requests last week"))
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetNumberOfOpenRequests(requests).ToString(),
+                "Open requests"))
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetNumberOfRequestsStartingInLessThanThreeMonths(requests).ToString(),
                 "Requests with start date < 3 months"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInMoreThanThreeMonths.ToString(),
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetNumberOfRequestsStartingInMoreThanThreeMonths(requests).ToString(),
                 "Requests with start date > 3 months"))
             .AddColumnSet(new AdaptiveCardColumn(
-                cardData.AverageTimeToHandleRequests,
+                ResourceOwnerReportData.GetAverageTimeToHandleRequests(requests),
                 "Average time to handle request"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.AllocationChangesAwaitingTaskOwnerAction.ToString(),
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
                 "Allocation changes awaiting task owner action"))
-            .AddColumnSet(new AdaptiveCardColumn(cardData.ProjectChangesAffectingNextThreeMonths.ToString(),
+            .AddColumnSet(new AdaptiveCardColumn(
+                ResourceOwnerReportData.GetProjectChangesAffectingNextThreeMonths(events).ToString(),
                 "Project changes last week affecting next 3 months"))
             .AddListContainer("Allocations ending soon with no future allocation:", endingPositionsObjectList)
             .AddListContainer("Personnel with more than 100% workload:", personnelMoreThan100PercentObjectList)
