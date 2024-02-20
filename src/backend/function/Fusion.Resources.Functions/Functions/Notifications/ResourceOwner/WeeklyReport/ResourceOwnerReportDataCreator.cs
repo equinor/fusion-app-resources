@@ -147,10 +147,10 @@ public abstract class ResourceOwnerReportDataCreator
         IEnumerable<ApiChangeLogEvent> allRelevantEvents)
     {
         return allRelevantEvents
-            .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged
-                         || ev.ChangeType == ChangeType.PositionInstanceLocationChanged
-                         || ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged
-                         || ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged)
+            .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged.ToString()
+                         || ev.ChangeType == ChangeType.PositionInstanceLocationChanged.ToString()
+                         || ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged.ToString()
+                         || ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged.ToString())
             .ToList().Count;
     }
 
@@ -245,4 +245,15 @@ public class AllocatedPersonWithNoFutureAllocation : AllocatedPersonnel
 
         return person.PositionInstances.Any(pdi => pdi.IsActive);
     }
+}
+public enum ChangeType
+{
+    PositionInstanceCreated,
+    PersonAssignedToPosition,
+    PositionInstanceAllocationStateChanged,
+    PositionInstanceAppliesToChanged,
+    PositionInstanceAppliesFromChanged,
+    PositionInstanceParentPositionIdChanged,
+    PositionInstancePercentChanged,
+    PositionInstanceLocationChanged,
 }
