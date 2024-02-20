@@ -73,7 +73,7 @@ public abstract class ResourceOwnerReportDataCreator
     }
 
     public static int GetNumberOfRequestsStartingInLessThanThreeMonths(
-        List<IResourcesApiClient.ResourceAllocationRequest> requests)
+        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
@@ -86,7 +86,7 @@ public abstract class ResourceOwnerReportDataCreator
     }
 
     public static string GetAverageTimeToHandleRequests(
-        List<IResourcesApiClient.ResourceAllocationRequest> requests)
+        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
@@ -137,7 +137,7 @@ public abstract class ResourceOwnerReportDataCreator
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         return requests
-            .Where((req => req.Type is "ResourceOwnerChange"))
+            .Where(req => req.Type is "ResourceOwnerChange")
             .Where(req => req.State != null && req.State.Equals("created", StringComparison.OrdinalIgnoreCase))
             .ToList()
             .Count;
@@ -246,6 +246,7 @@ public class AllocatedPersonWithNoFutureAllocation : AllocatedPersonnel
         return person.PositionInstances.Any(pdi => pdi.IsActive);
     }
 }
+
 public enum ChangeType
 {
     PositionInstanceCreated,

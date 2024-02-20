@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using FluentAssertions;
+using Fusion.ApiClients.Org;
+using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 using Fusion.Resources.Functions.Tests.Notifications.Mock;
 using Xunit;
@@ -18,5 +22,225 @@ public class ScheduledReportNotificationBuilderTests
 
         // Assert
         changes.Should().Be(4);
+    }
+
+    [Fact]
+    public void GetCapacityInUse_ShouldReturnCorrectCapacityInUse()
+    {
+        // Arrange
+        const int personnelCount = 4;
+        const int workload = 80;
+        const int otherTasks = 4;
+        const int vacationLeave = 2;
+        const int absenceLeave = 3;
+        var personnel = NotificationReportApiResponseMock.GetMockedInternalPersonnel(
+            personnelCount,
+            workload,
+            otherTasks,
+            vacationLeave,
+            absenceLeave);
+
+        // Act
+        var capacityInUse = ResourceOwnerReportDataCreator.GetCapacityInUse(personnel);
+        var capacityInUseCalculated = (int)Math.Round((double)(workload + otherTasks) /
+            (100 - (vacationLeave + absenceLeave)) * 100);
+
+        // Assert
+        capacityInUse.Should().Be(capacityInUseCalculated);
+    }
+
+    [Fact]
+    public void GetNumberOfRequestsLastWeek_ShouldReturnCorrectNumberOfRequests()
+    {
+        // Arrange
+        var requests = new List<IResourcesApiClient.ResourceAllocationRequest>
+        {
+            // Will pass
+            new()
+            {
+                Type = "SomethingElse",
+                IsDraft = false,
+                Created = DateTimeOffset.UtcNow.AddDays(-1)
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                IsDraft = false,
+                Created = DateTimeOffset.UtcNow.AddDays(-8)
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                IsDraft = true,
+                Created = DateTimeOffset.UtcNow.AddDays(-1)
+            },
+            new()
+            {
+                Type = "ResourceOwnerChange",
+                IsDraft = false,
+                Created = DateTimeOffset.UtcNow.AddDays(-1)
+            }
+        };
+
+        // Act
+        var numberOfRequests = ResourceOwnerReportDataCreator.GetNumberOfRequestsLastWeek(requests);
+
+        // Assert
+        numberOfRequests.Should().Be(1);
+    }
+
+    [Fact]
+    public void GetNumberOfOpenRequests_ShouldReturnCorrectNumberOfOpenRequests()
+    {
+        // Arrange
+        var requests = new List<IResourcesApiClient.ResourceAllocationRequest>
+        {
+            // Will pass
+            new()
+            {
+                Type = "SomethingElse",
+                State = "created",
+            },
+            new()
+            {
+                Type = "ResourceOwnerChange",
+                State = "created",
+                ProposedPerson = new IResourcesApiClient.ProposedPerson()
+                    { Person = new IResourcesApiClient.InternalPersonnelPerson() { AzureUniquePersonId = new Guid() } },
+            },
+            new()
+            {
+                Type = "ResourceOwnerChange",
+                State = "created",
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                State = "completed",
+            },
+        };
+
+
+        // Act
+        var numberOfOpenRequests = ResourceOwnerReportDataCreator.GetNumberOfOpenRequests(requests);
+
+        // Assert
+        numberOfOpenRequests.Should().Be(1);
+    }
+
+    [Fact]
+    public void GetNumberOfRequestsStartingInMoreThanThreeMonths_ShouldReturnCorrectNumberOfRequests()
+    {
+        // Arrange
+        var requests = new List<IResourcesApiClient.ResourceAllocationRequest>
+        {
+            // Will pass
+            new()
+            {
+                Type = "SomethingElse",
+                State = "created",
+                OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(4) },
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                State = "created",
+                OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(2) },
+            },
+            new()
+            {
+                Type = "ResourceOwnerChange",
+                State = "completed",
+                OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(4) },
+            },
+        };
+
+
+        // Act
+        var numberOfRequests =
+            ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInMoreThanThreeMonths(requests);
+
+        // Assert
+        numberOfRequests.Should().Be(1);
+    }
+
+    [Fact]
+    public void GetTotalNumberOfPersonnel_ShouldReturnCorrectNumberOfPersonnel()
+    {
+        // Arrange
+        var personnel = NotificationReportApiResponseMock.GetMockedInternalPersonnel(5, 100, 0, 0, 0);
+
+        // Act
+        var totalNumberOfPersonnel = ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel);
+
+        // Assert
+        totalNumberOfPersonnel.Should().Be(5);
+    }
+
+    [Fact]
+    public void GetNumberOfRequestsStartingInLessThanThreeMonths_ShouldReturnCorrectNumberOfRequests()
+    {
+        // Arrange
+        var requests = new List<IResourcesApiClient.ResourceAllocationRequest>
+        {
+            // Will pass
+            new()
+            {
+                Type = "SomethingElse",
+                State = "created",
+                OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(2) },
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                State = "created",
+                OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(4) },
+            },
+            new()
+            {
+                Type = "ResourceOwnerChange",
+                State = "completed",
+                OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(2) },
+            },
+        };
+
+        // Act
+        var numberOfRequests =
+            ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInLessThanThreeMonths(requests);
+
+        // Assert
+        numberOfRequests.Should().Be(1);
+    }
+
+    [Fact]
+    public void GetAllocationChangesAwaitingTaskOwnerAction_ShouldReturnCorrectNumberOfRequests()
+    {
+        // Arrange
+        var requests = new List<IResourcesApiClient.ResourceAllocationRequest>
+        {
+            // Will pass
+            new()
+            {
+                Type = "ResourceOwnerChange",
+                State = "created",
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                State = "completed",
+            },
+            new()
+            {
+                Type = "SomethingElse",
+                State = "created",
+            },
+        };
+
+        // Act
+        var numberOfRequests =
+            ResourceOwnerReportDataCreator.GetAllocationChangesAwaitingTaskOwnerAction(requests);
+
+        // Assert
+        numberOfRequests.Should().Be(1);
     }
 }
