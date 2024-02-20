@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -309,8 +308,11 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
-            [FromRoute] PathProjectIdentifier? projectIdentifier, Guid requestId, [FromBody] PatchInternalRequestRequest request)
+            [FromRoute] PathProjectIdentifier? projectIdentifier, [FromRoute] RequestIdentifier requestId, [FromBody] PatchInternalRequestRequest request)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (item == null)
@@ -389,9 +391,12 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
-            string? departmentString, Guid requestId, [FromBody] PatchInternalRequestRequest request)
+            string? departmentString, [FromRoute] RequestIdentifier requestId, [FromBody] PatchInternalRequestRequest request)
         {
-            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
+            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId.Id));
 
             if (item == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -431,7 +436,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var updateCommand = new UpdateInternalRequest(requestId);
+                var updateCommand = new UpdateInternalRequest(requestId.Id);
 
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
@@ -466,7 +471,7 @@ namespace Fusion.Resources.Api.Controllers
                 await scope.CommitAsync();
                 await eventTransaction.CommitAsync();
 
-                var query = new GetResourceAllocationRequestItem(requestId)
+                var query = new GetResourceAllocationRequestItem(requestId.Id)
                   .ExpandDepartmentDetails()
                   .ExpandResourceOwner()
                   .ExpandTaskOwner()
@@ -623,8 +628,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest([FromRoute] RequestIdentifier requestId, PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var getRequestQuery = new GetResourceAllocationRequestItem(requestId).WithQueryForTaskOwner(query);
 
             var requestItem = await DispatchAsync(getRequestQuery);
@@ -663,9 +671,12 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest([FromRoute]RequestIdentifier requestId, [FromQuery] ODataQueryParams query)
         {
-            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForBasicRead(query));
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId.Id).WithQueryForBasicRead(query));
 
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -692,7 +703,7 @@ namespace Fusion.Resources.Api.Controllers
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
-                r.LimitedAccessWhen(or => or.HaveBasicRead(requestId));
+                r.LimitedAccessWhen(or => or.HaveBasicRead(requestId.Id));
             });
 
             if (authResult.Unauthorized)
@@ -701,7 +712,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion Authorization
 
             if (!authResult.LimitedAuth)
-                requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForResourceOwner(query));
+                requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId.Id).WithQueryForResourceOwner(query));
 
             var apiModel = new ApiResourceAllocationRequest(requestItem!);
 
@@ -750,8 +761,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
@@ -801,8 +815,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/start")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> StartResourceOwnerRequestWorkflow([FromRoute] string departmentPath, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartResourceOwnerRequestWorkflow([FromRoute] string departmentPath, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null || result.AssignedDepartment != departmentPath)
@@ -851,8 +868,11 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}")]
-        public async Task<ActionResult> DeleteAllocationRequest(Guid requestId)
+        public async Task<ActionResult> DeleteAllocationRequest([FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result is null)
@@ -891,8 +911,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/provision")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId, [FromQuery] bool force = false)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest([FromRoute] RequestIdentifier requestId, [FromQuery] bool force = false)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
@@ -945,8 +968,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
@@ -978,8 +1004,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/departments/{departmentPath}/requests/{requestId}/approve")]
         [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
@@ -1017,8 +1046,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpDelete("/resources/requests/internal/{requestId}/workflow")]
         [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}/workflow")]
-        public async Task<ActionResult> ResetWorkflow(Guid requestId, string? departmentString)
+        public async Task<ActionResult> ResetWorkflow([FromRoute] RequestIdentifier requestId, string? departmentString)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (requestItem == null)
@@ -1056,8 +1088,11 @@ namespace Fusion.Resources.Api.Controllers
         #region Comments
 
         [HttpOptions("/resources/requests/internal/{requestId}/comments")]
-        public async Task<ActionResult> GetCommentOptions(Guid requestId)
+        public async Task<ActionResult> GetCommentOptions([FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (request == null)
@@ -1095,8 +1130,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/resources/requests/internal/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> GetCommentOptions(Guid requestId, Guid commentId)
+        public async Task<ActionResult> GetCommentOptions([FromRoute] RequestIdentifier requestId, Guid commentId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -1136,8 +1174,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/comments")]
-        public async Task<ActionResult<ApiRequestComment>> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
+        public async Task<ActionResult<ApiRequestComment>> AddRequestComment([FromRoute] RequestIdentifier requestId, [FromBody] RequestCommentRequest create)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (request == null)
@@ -1173,8 +1214,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/resources/requests/internal/{requestId}/comments")]
-        public async Task<ActionResult<IEnumerable<ApiRequestComment>>> GetRequestComment(Guid requestId)
+        public async Task<ActionResult<IEnumerable<ApiRequestComment>>> GetRequestComment([FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (request == null)
@@ -1210,8 +1254,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/resources/requests/internal/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult<ApiRequestComment>> GetRequestComment(Guid requestId, Guid commentId)
+        public async Task<ActionResult<ApiRequestComment>> GetRequestComment([FromRoute] RequestIdentifier requestId, Guid commentId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -1250,8 +1297,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/resources/requests/internal/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult<ApiRequestComment>> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+        public async Task<ActionResult<ApiRequestComment>> UpdateRequestComment([FromRoute] RequestIdentifier requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -1293,8 +1343,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/resources/requests/internal/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> DeleteRequestComment(Guid requestId, Guid commentId)
+        public async Task<ActionResult> DeleteRequestComment([FromRoute] RequestIdentifier requestId, Guid commentId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -1335,8 +1388,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
@@ -1361,8 +1417,11 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var allowedVerbs = new List<string>();
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -1485,8 +1544,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath, Guid requestId)
+        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var allowedVerbs = new List<string>();
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -1616,8 +1678,11 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, Guid requestId)
+        public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, [FromRoute] RequestIdentifier requestId)
         {
+            if (!requestId.Exists)
+                return requestId.NotFoundResult();
+
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result is null) return NotFound();

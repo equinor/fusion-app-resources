@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Integration;
+using Microsoft.OData.Edm;
 
 namespace Fusion.Resources.Functions.ApiClients;
 
@@ -19,14 +20,13 @@ public class OrgClient : IOrgClient
         orgClient.Timeout = TimeSpan.FromMinutes(5);
     }
 
-    public async Task<ApiChangeLog> GetChangeLog(string projectId, string positionId, string instanceId)
+    public async Task<ApiChangeLog> GetChangeLog(string projectId, DateTime timestamp)
     {
+        var url = $"/projects/{projectId}/change-log?$filter=timestamp gt '{timestamp.ToString("yyyy-MM-dd")}'&api-version=2.0";
         var data =
-            await orgClient.GetAsJsonAsync<ApiChangeLog>($"/projects/{projectId}/positions/{positionId}/instances/{instanceId}/change-log?api-version=2.0");
+            await orgClient.GetAsJsonAsync<ApiChangeLog>(
+                url);
 
         return data;
     }
-
-
-
 }
