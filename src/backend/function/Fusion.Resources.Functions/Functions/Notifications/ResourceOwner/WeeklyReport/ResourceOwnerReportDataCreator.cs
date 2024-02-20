@@ -3,18 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion.Resources.Functions.ApiClients;
 
-namespace Fusion.Resources.Functions.Functions.Notifications.Models;
+namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
-public class ResourceOwnerReportData
+public abstract class ResourceOwnerReportDataCreator
 {
-    public IEnumerable<AllocatedPersonWithNoFutureAllocation> PersonnelPositionsEndingWithNoFutureAllocation
-    {
-        get;
-        private set;
-    }
-
-    public IEnumerable<AllocatedPersonnelWithWorkLoad> PersonnelAllocatedMoreThan100Percent { get; private set; }
-
     public static int GetTotalNumberOfPersonnel(
         IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
@@ -22,7 +14,7 @@ public class ResourceOwnerReportData
     }
 
     public static int GetCapacityInUse(
-        IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
+        List<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
         var actualWorkLoad = 0.0;
         var actualLeave = 0.0;
@@ -35,13 +27,13 @@ public class ResourceOwnerReportData
                 .Sum() ?? 0;
             actualLeave += personnel.ApiPersonAbsences
                 .Where(ab =>
-                    (ab.Type == IResourcesApiClient.ApiAbsenceType.Absence ||
-                     ab.Type == IResourcesApiClient.ApiAbsenceType.Vacation) && ab.IsActive)
+                    ab.Type is IResourcesApiClient.ApiAbsenceType.Absence
+                        or IResourcesApiClient.ApiAbsenceType.Vacation && ab.IsActive)
                 .Select(ab => ab.AbsencePercentage)
                 .Sum() ?? 0;
         }
 
-        var maximumPotentialWorkLoad = listOfInternalPersonnel.Count() * 100;
+        var maximumPotentialWorkLoad = listOfInternalPersonnel.Count * 100;
         var potentialWorkLoad = maximumPotentialWorkLoad - actualLeave;
         if (potentialWorkLoad <= 0)
             return 0;
@@ -81,7 +73,7 @@ public class ResourceOwnerReportData
     }
 
     public static int GetNumberOfRequestsStartingInLessThanThreeMonths(
-        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
+        List<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
@@ -94,11 +86,11 @@ public class ResourceOwnerReportData
     }
 
     public static string GetAverageTimeToHandleRequests(
-        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
+        List<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
-        var AverageTimeToHandleRequests = "0";
+        var averageTimeToHandleRequests = "0";
 
         var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
@@ -111,6 +103,8 @@ public class ResourceOwnerReportData
         foreach (var request in requestsLastThreeMonthsWithoutResourceOwnerChangeRequest)
         {
             if (request.State is "created")
+                continue;
+            if (request.Workflow?.Steps is null)
                 continue;
 
             var dateForCreation = request.Workflow.Steps
@@ -127,16 +121,16 @@ public class ResourceOwnerReportData
         }
 
         if (!(totalNumberOfDays > 0))
-            return AverageTimeToHandleRequests;
+            return averageTimeToHandleRequests;
 
         var averageAmountOfTimeDouble = totalNumberOfDays / requestsHandledByResourceOwner;
         var averageAmountOfTimeInt = Convert.ToInt32(averageAmountOfTimeDouble);
 
-        AverageTimeToHandleRequests = averageAmountOfTimeInt >= 1
+        averageTimeToHandleRequests = averageAmountOfTimeInt >= 1
             ? averageAmountOfTimeInt + " day(s)"
             : "Less than a day";
 
-        return AverageTimeToHandleRequests;
+        return averageTimeToHandleRequests;
     }
 
     public static int GetAllocationChangesAwaitingTaskOwnerAction(

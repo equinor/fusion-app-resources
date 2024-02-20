@@ -1,24 +1,23 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
+using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
-using Fusion.Resources.Functions.Functions.Notifications.Models;
-using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
+using Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using static Fusion.Resources.Functions.Functions.Notifications.AdaptiveCardBuilder;
-using Fusion.Resources.Functions.ApiClients;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Concurrent;
 
-namespace Fusion.Resources.Functions.Functions.Notifications;
+namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
 public class ScheduledReportContentBuilderFunction
 {
@@ -58,17 +57,7 @@ public class ScheduledReportContentBuilderFunction
                 throw new Exception("FullDepartmentIdentifier not valid.");
 
 
-            switch (dto.Role)
-            {
-                case NotificationRoleType.ResourceOwner:
-                    await BuildContentForResourceOwner(azureUniqueId, dto.FullDepartment, dto.DepartmentSapId);
-                    break;
-                case NotificationRoleType.TaskOwner:
-                    await BuildContentForTaskOwner(azureUniqueId);
-                    break;
-                default:
-                    throw new Exception("Role not valid.");
-            }
+            await BuildContentForResourceOwner(azureUniqueId, dto.FullDepartment, dto.DepartmentSapId);
 
             _logger.LogInformation(
                 $"{nameof(ScheduledReportContentBuilderFunction)} " +
@@ -85,11 +74,6 @@ public class ScheduledReportContentBuilderFunction
             // Complete the message regardless of outcome.
             await messageReceiver.CompleteMessageAsync(message);
         }
-    }
-
-    private async Task BuildContentForTaskOwner(Guid azureUniqueId)
-    {
-        throw new NotImplementedException();
     }
 
     private async Task BuildContentForResourceOwner(Guid azureUniqueId, string fullDepartment, string departmentSapId)
@@ -123,9 +107,9 @@ public class ScheduledReportContentBuilderFunction
 
     private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelWithLeave(string fullDepartment)
     {
-        var personnel = await _resourceClient.GetAllPersonnelForDepartment(fullDepartment);
+        var personnel = (await _resourceClient.GetAllPersonnelForDepartment(fullDepartment)).ToList();
         if (!personnel.Any())
-            return new List<InternalPersonnelPerson>();
+            throw new Exception("No personnel found for department");
 
         var tasks = personnel.Select(async person =>
         {
@@ -159,7 +143,7 @@ public class ScheduledReportContentBuilderFunction
         };
 
         var data = new ConcurrentDictionary<string, ApiChangeLog>();
-        await Parallel.ForEachAsync(distinctProjectId, parallelOptions, async (project, token) =>
+        await Parallel.ForEachAsync(distinctProjectId, parallelOptions, async (project, _) =>
         {
             var changeLogForPersonnel = await _orgClient.GetChangeLog(project.ToString(), today.AddDays(-7));
             data.TryAdd(project.ToString(), changeLogForPersonnel);
@@ -178,7 +162,7 @@ public class ScheduledReportContentBuilderFunction
         string departmentIdentifier, string departmentSapId)
     {
         var personnelAllocationUri = $"{PortalUri()}apps/personnel-allocation/{departmentSapId}";
-        var endingPositionsObjectList = ResourceOwnerReportData
+        var endingPositionsObjectList = ResourceOwnerReportDataCreator
             .GetPersonnelPositionsEndingWithNoFutureAllocation(personnel)
             .Select(ep => new List<ListObject>
             {
@@ -194,7 +178,7 @@ public class ScheduledReportContentBuilderFunction
                 }
             })
             .ToList();
-        var personnelMoreThan100PercentObjectList = ResourceOwnerReportData
+        var personnelMoreThan100PercentObjectList = ResourceOwnerReportDataCreator
             .GetPersonnelAllocatedMoreThan100Percent(personnel)
             .Select(ep => new List<ListObject>
             {
@@ -214,32 +198,32 @@ public class ScheduledReportContentBuilderFunction
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetTotalNumberOfPersonnel(personnel).ToString(), "Number of personnel"))
+                ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(), "Number of personnel"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetCapacityInUse(personnel).ToString(),
+                ResourceOwnerReportDataCreator.GetCapacityInUse(personnel).ToString(),
                 "Capacity in use",
                 "%"))
             .AddColumnSet(
                 new AdaptiveCardColumn(
-                    ResourceOwnerReportData.GetNumberOfRequestsLastWeek(requests).ToString(),
+                    ResourceOwnerReportDataCreator.GetNumberOfRequestsLastWeek(requests).ToString(),
                     "New requests last week"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetNumberOfOpenRequests(requests).ToString(),
+                ResourceOwnerReportDataCreator.GetNumberOfOpenRequests(requests).ToString(),
                 "Open requests"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetNumberOfRequestsStartingInLessThanThreeMonths(requests).ToString(),
+                ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInLessThanThreeMonths(requests).ToString(),
                 "Requests with start date < 3 months"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetNumberOfRequestsStartingInMoreThanThreeMonths(requests).ToString(),
+                ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInMoreThanThreeMonths(requests).ToString(),
                 "Requests with start date > 3 months"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetAverageTimeToHandleRequests(requests),
+                ResourceOwnerReportDataCreator.GetAverageTimeToHandleRequests(requests),
                 "Average time to handle request"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
+                ResourceOwnerReportDataCreator.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
                 "Allocation changes awaiting task owner action"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportData.GetProjectChangesAffectingNextThreeMonths(events).ToString(),
+                ResourceOwnerReportDataCreator.GetProjectChangesAffectingNextThreeMonths(events).ToString(),
                 "Project changes last week affecting next 3 months"))
             .AddListContainer("Allocations ending soon with no future allocation:", endingPositionsObjectList)
             .AddListContainer("Personnel with more than 100% workload:", personnelMoreThan100PercentObjectList)
