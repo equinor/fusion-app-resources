@@ -21,30 +21,36 @@ This makes the app transferable to other teams.
 Test app: [GUID]
 Production app: [GUID]
 
-## Functions
+## Notifications
 
-### Scheduled report function
-
-This functions send a weekly report to task- and resource-owners.
-
-#### Flow
-
-- The time triggered function (`ScheduledReportTimerTriggerFunction.cs`)
-  run once every week (every sunday at 6 AM UTC). The time triggered unction call the LineOrg API to get all resourceOwners.
-- Individual recipients are sent to a queue on Azure Servicebus.
-- The content builder function (`ScheduledReportContentBuilderFunction.cs`) is triggered by the queue.
+### Scheduled report
+This functions send a weekly report to resource owners.
+- The time triggered function
+  [`ScheduledReportTimerTriggerFunction.cs`](src/backend/function/Fusion.Resources.Functions/Functions/Notifications/ResourceOwner/WeeklyReport/ScheduledReportTimerTriggerFunction.cs)
+  run once every week.
+- Individual resource owners are sent to a queue on Azure ServiceBus.
+- The content builder function
+  [`ScheduledReportContentBuilderFunction.cs`](src/backend/function/Fusion.Resources.Functions/Functions/Notifications/ResourceOwner/WeeklyReport/ScheduledReportContentBuilderFunction.cs) 
+  is triggered by the queue.
   The content builder function generate an adaptive card specific to each
-  recipient and their respective department. 
-- The email content is sent to the Core Notifications API which send the email to the recipient.
+  resource owner and their respective department. 
+- The content is sent to the Core Notifications API which send the notification to the resource owner.
 
+#### Scheduled function
 ```mermaid
 sequenceDiagram
-  Time triggered function ->>+ Resource API: Get Departments
-  Resource API ->>+ Time triggered function: Departments
-  Time triggered function ->>+ LineOrg API: Get recipients for department
-  LineOrg API ->>+ Time triggered function: Recipients
-  Time triggered function ->>+ Servicebus queue: Recipient
-  Servicebus queue ->>+ Content builder function: Recipient
-  Content builder function ->>+ Core Notifications API: Content for recipient
-  Core Notifications API ->>+ Content builder function: Result
+  Cron trigger ->>+ Time triggered function: Start function
+  LineOrg API ->>+ Time triggered function: Departments
+  LineOrg API ->>+ Time triggered function: Resource owners 
+  Time triggered function ->>+ ServiceBus queue: Single resource owners sent to queue
+```
+#### Builder function
+```mermaid
+sequenceDiagram
+  ServiceBus queue ->>+ Content builder function: Resource owner
+  Resource API ->>+ Content builder function: Requests for department
+  Resource API ->>+ Content builder function: Personnel for department
+  Resource API ->>+ Content builder function: Leave for personnel
+  Org API ->>+ Content builder function: Changelog for personnel
+  Content builder function ->>+ Notifications API: Content for resource owner
 ```
