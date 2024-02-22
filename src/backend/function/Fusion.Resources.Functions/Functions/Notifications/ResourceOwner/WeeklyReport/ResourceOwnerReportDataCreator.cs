@@ -48,16 +48,19 @@ public abstract class ResourceOwnerReportDataCreator
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         return requests
-            .Count(req => req.Type != null && !req.Type.Equals("ResourceOwnerChange")
-                                           && req.Created > DateTime.UtcNow.AddDays(-7) && !req.IsDraft);
+            .Count(req =>
+                req.Type != null && !req.Type.Equals(RequestType.ResourceOwnerChange.ToString(),
+                                     StringComparison.OrdinalIgnoreCase)
+                                 && req.Created > DateTime.UtcNow.AddDays(-7) && !req.IsDraft);
     }
 
     public static int GetNumberOfOpenRequests(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
         => requests.Count(req =>
-            req.State != null && req.Type != null && !req.Type.Equals("ResourceOwnerChange") &&
+            req.State != null && req.Type != null && !req.Type.Equals(RequestType.ResourceOwnerChange.ToString(),
+                StringComparison.OrdinalIgnoreCase) &&
             !req.HasProposedPerson &&
-            !req.State.Equals("completed", StringComparison.OrdinalIgnoreCase));
+            !req.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase));
 
 
     public static int GetNumberOfRequestsStartingInMoreThanThreeMonths(
@@ -68,7 +71,9 @@ public abstract class ResourceOwnerReportDataCreator
             .Count(x => x.Type != null &&
                         x.OrgPositionInstance != null &&
                         x.State != null &&
-                        !x.State.Contains("completed") && !x.Type.Equals("ResourceOwnerChange") &&
+                        !x.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                        !x.Type.Equals(RequestType.ResourceOwnerChange.ToString(),
+                            StringComparison.OrdinalIgnoreCase) &&
                         x.OrgPositionInstance.AppliesFrom > threeMonthsFromToday);
     }
 
@@ -78,11 +83,14 @@ public abstract class ResourceOwnerReportDataCreator
         var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
         return requests
-            .Count(x => x.OrgPositionInstance != null &&
+            .Count(x => x.Type != null &&
+                        x.OrgPositionInstance != null &&
                         x.State != null &&
-                        !x.State.Equals("completed") && !x.Type.Equals("ResourceOwnerChange") &&
-                        (x.OrgPositionInstance.AppliesFrom < threeMonthsFromToday &&
-                         x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
+                        !x.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                        !x.Type.Equals(RequestType.ResourceOwnerChange.ToString(),
+                            StringComparison.OrdinalIgnoreCase) &&
+                        x.OrgPositionInstance.AppliesFrom < threeMonthsFromToday &&
+                        x.OrgPositionInstance.AppliesFrom > today && !x.HasProposedPerson);
     }
 
     public static string GetAverageTimeToHandleRequests(
@@ -98,11 +106,13 @@ public abstract class ResourceOwnerReportDataCreator
             .Where(req => req.Created > threeMonthsAgo)
             .Where(r => r.Workflow is not null)
             .Where(_ => true)
-            .Where((req => req.Type != null && !req.Type.Equals("ResourceOwnerChange")));
+            .Where(req => req.Type != null && !req.Type.Equals(RequestType.ResourceOwnerChange.ToString(),
+                StringComparison.OrdinalIgnoreCase));
 
         foreach (var request in requestsLastThreeMonthsWithoutResourceOwnerChangeRequest)
         {
-            if (request.State is "created")
+            if (request.State != null &&
+                request.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase))
                 continue;
             if (request.Workflow?.Steps is null)
                 continue;
@@ -137,8 +147,11 @@ public abstract class ResourceOwnerReportDataCreator
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         return requests
-            .Where(req => req.Type is "ResourceOwnerChange")
-            .Where(req => req.State != null && req.State.Equals("created", StringComparison.OrdinalIgnoreCase))
+            .Where(req =>
+                req.Type.Equals(RequestType.ResourceOwnerChange.ToString(), StringComparison.OrdinalIgnoreCase))
+            .Where(req =>
+                req.State != null &&
+                req.State.Equals(RequestState.Created.ToString(), StringComparison.OrdinalIgnoreCase))
             .ToList()
             .Count;
     }
@@ -245,6 +258,21 @@ public class AllocatedPersonWithNoFutureAllocation : AllocatedPersonnel
 
         return person.PositionInstances.Any(pdi => pdi.IsActive);
     }
+}
+
+public enum RequestState
+{
+    Approval,
+    Proposal,
+    Provisioning,
+    Created,
+    Completed
+}
+
+public enum RequestType
+{
+    Allocation,
+    ResourceOwnerChange
 }
 
 public enum ChangeType

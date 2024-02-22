@@ -58,25 +58,25 @@ public class ScheduledReportNotificationBuilderTests
             // Will pass
             new()
             {
-                Type = "SomethingElse",
+                Type = RequestType.Allocation.ToString(),
                 IsDraft = false,
                 Created = DateTimeOffset.UtcNow.AddDays(-1)
             },
             new()
             {
-                Type = "SomethingElse",
+                Type = RequestType.Allocation.ToString(),
                 IsDraft = false,
                 Created = DateTimeOffset.UtcNow.AddDays(-8)
             },
             new()
             {
-                Type = "SomethingElse",
+                Type = RequestType.Allocation.ToString(),
                 IsDraft = true,
                 Created = DateTimeOffset.UtcNow.AddDays(-1)
             },
             new()
             {
-                Type = "ResourceOwnerChange",
+                Type = RequestType.ResourceOwnerChange.ToString(),
                 IsDraft = false,
                 Created = DateTimeOffset.UtcNow.AddDays(-1)
             }
@@ -98,25 +98,25 @@ public class ScheduledReportNotificationBuilderTests
             // Will pass
             new()
             {
-                Type = "SomethingElse",
-                State = "created",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Created.ToString(),
             },
             new()
             {
-                Type = "ResourceOwnerChange",
-                State = "created",
+                Type = RequestType.ResourceOwnerChange.ToString(),
+                State = RequestState.Created.ToString(),
                 ProposedPerson = new IResourcesApiClient.ProposedPerson()
                     { Person = new IResourcesApiClient.InternalPersonnelPerson() { AzureUniquePersonId = new Guid() } },
             },
             new()
             {
-                Type = "ResourceOwnerChange",
-                State = "created",
+                Type = RequestType.ResourceOwnerChange.ToString(),
+                State = RequestState.Created.ToString(),
             },
             new()
             {
-                Type = "SomethingElse",
-                State = "completed",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Completed.ToString(),
             },
         };
 
@@ -137,20 +137,20 @@ public class ScheduledReportNotificationBuilderTests
             // Will pass
             new()
             {
-                Type = "SomethingElse",
-                State = "created",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Created.ToString(),
                 OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(4) },
             },
             new()
             {
-                Type = "SomethingElse",
-                State = "created",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Created.ToString(),
                 OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(2) },
             },
             new()
             {
-                Type = "ResourceOwnerChange",
-                State = "completed",
+                Type = RequestType.ResourceOwnerChange.ToString(),
+                State = RequestState.Completed.ToString(),
                 OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(4) },
             },
         };
@@ -186,20 +186,20 @@ public class ScheduledReportNotificationBuilderTests
             // Will pass
             new()
             {
-                Type = "SomethingElse",
-                State = "created",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Created.ToString(),
                 OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(2) },
             },
             new()
             {
-                Type = "SomethingElse",
-                State = "created",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Created.ToString(),
                 OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(4) },
             },
             new()
             {
-                Type = "ResourceOwnerChange",
-                State = "completed",
+                Type = RequestType.ResourceOwnerChange.ToString(),
+                State = RequestState.Completed.ToString(),
                 OrgPositionInstance = new ApiPositionInstanceV2 { AppliesFrom = DateTime.UtcNow.AddMonths(2) },
             },
         };
@@ -221,18 +221,18 @@ public class ScheduledReportNotificationBuilderTests
             // Will pass
             new()
             {
-                Type = "ResourceOwnerChange",
-                State = "created",
+                Type = RequestType.ResourceOwnerChange.ToString(),
+                State = RequestState.Created.ToString(),
             },
             new()
             {
-                Type = "SomethingElse",
-                State = "completed",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Completed.ToString(),
             },
             new()
             {
-                Type = "SomethingElse",
-                State = "created",
+                Type = RequestType.Allocation.ToString(),
+                State = RequestState.Created.ToString(),
             },
         };
 
