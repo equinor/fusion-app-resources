@@ -22,7 +22,6 @@ namespace Fusion.Resources.Database
         }
 
         public DbSet<DbPerson> Persons { get; set; }
-        public DbSet<DbContract> Contracts { get; set; }
         public DbSet<DbProject> Projects { get; set; }
         public DbSet<DbRequestComment> RequestComments { get; set; }
         public DbSet<DbResourceAllocationRequest> ResourceAllocationRequests { get; set; }
@@ -38,16 +37,6 @@ namespace Fusion.Resources.Database
         public DbSet<DbDelegatedDepartmentResponsible> DelegatedDepartmentResponsibles { get; set; }
         public DbSet<DbDelegatedDepartmentResponsibleHistory> DelegatedDepartmentResponsiblesHistory { get; set; }
 
-
-        #region Moved to Contract Personnel. Only here for historical reasons
-        public DbSet<DbContractPersonnelReplacement> ContractPersonnelReplacementChanges { get; set; }
-        public DbSet<DbContractPersonnel> ContractPersonnel { get; set; }
-        public DbSet<DbContractorRequest> ContractorRequests { get; set; }
-        public DbSet<DbExternalPersonnelPerson> ExternalPersonnel { get; set; }
-        public DbSet<DbDelegatedRole> DelegatedRoles { get; set; }
-        #endregion
-
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbWorkflow.OnModelCreating(modelBuilder);
@@ -60,19 +49,12 @@ namespace Fusion.Resources.Database
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
             DbRequestAction.OnModelCreating(modelBuilder);
             DbConversationMessage.OnModelCreating(modelBuilder);
-            DbContractPersonnelReplacement.OnModelCreating(modelBuilder);
             DbSharedRequest.OnModelCreating(modelBuilder);
             DbSecondOpinionPrompt.OnModelCreating(modelBuilder);
             DbSecondOpinionResponse.OnModelCreating(modelBuilder);
 
-            #region Moved to Contract Personnel. Only here for historical reasons
-            DbContractPersonnel.OnModelCreating(modelBuilder);
-            DbContractorRequest.OnModelCreating(modelBuilder);
-            DbExternalPersonnelPerson.OnModelCreating(modelBuilder);
-            DbDelegatedRole.OnModelCreating(modelBuilder);
             DbDelegatedDepartmentResponsible.OnModelCreating(modelBuilder);
             DbDelegatedDepartmentResponsibleHistory.OnModelCreating(modelBuilder);
-            #endregion
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

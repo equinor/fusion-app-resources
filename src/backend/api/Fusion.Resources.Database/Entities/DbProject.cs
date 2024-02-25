@@ -9,8 +9,6 @@ namespace Fusion.Resources.Database.Entities
         public string Name { get; set; } = null!;
         public string? DomainId { get; set; }
         public Guid OrgProjectId { get; set; }
-
-        public ICollection<DbContract> Contracts { get; set; } = null!;
     }
 
 
