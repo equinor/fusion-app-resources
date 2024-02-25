@@ -67,7 +67,8 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
-            if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
+            if (resourceOwnerProfile is null)
+                return ApiErrors.NotFound($"No profile found for user {personId}.");
 
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
@@ -96,8 +97,11 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
-            if (relevantOrgUnits is null) return ApiErrors.NotFound($"No relevant OrgUnits found for user {personId}.");
+            var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
+
+            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query, resourceOwnerProfile));
+            if (relevantOrgUnits is null)
+                return ApiErrors.NotFound($"No relevant OrgUnits found for user {personId}.");
 
             var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
             return collection;
@@ -276,8 +280,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
             });
 
-            if (getResult.Success) allowedVerbs.Add("GET");
-            if (getResult.Success && !getResult.LimitedAuth) allowedVerbs.Add("POST", "PUT", "DELETE");
+            if (getResult.Success)
+                allowedVerbs.Add("GET");
+            if (getResult.Success && !getResult.LimitedAuth)
+                allowedVerbs.Add("POST", "PUT", "DELETE");
 
             Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
