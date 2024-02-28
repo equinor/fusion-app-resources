@@ -21,11 +21,13 @@ public abstract class ResourceOwnerReportDataCreator
         foreach (var personnel in listOfInternalPersonnel)
         {
             actualWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
-            actualWorkLoad += personnel.ApiPersonAbsences
+
+            actualWorkLoad += personnel.EmploymentStatuses
                 .Where(ab => ab.Type == IResourcesApiClient.ApiAbsenceType.OtherTasks && ab.IsActive)
                 .Select(ab => ab.AbsencePercentage)
                 .Sum() ?? 0;
-            actualLeave += personnel.ApiPersonAbsences
+
+            actualLeave += personnel.EmploymentStatuses
                 .Where(ab =>
                     ab.Type is IResourcesApiClient.ApiAbsenceType.Absence
                         or IResourcesApiClient.ApiAbsenceType.Vacation && ab.IsActive)
@@ -210,7 +212,7 @@ public class AllocatedPersonnelWithWorkLoad : AllocatedPersonnel
 
     private double CalculateTotalWorkload(IResourcesApiClient.InternalPersonnelPerson person)
     {
-        var totalWorkLoad = person.ApiPersonAbsences
+        var totalWorkLoad = person.EmploymentStatuses
             .Where(ab => ab.Type != IResourcesApiClient.ApiAbsenceType.Absence && ab.IsActive)
             .Select(ab => ab.AbsencePercentage).Sum();
         totalWorkLoad += person.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();

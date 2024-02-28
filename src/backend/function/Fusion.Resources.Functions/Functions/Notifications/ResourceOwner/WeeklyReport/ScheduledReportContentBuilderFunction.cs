@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using static Fusion.Resources.Functions.Functions.Notifications.AdaptiveCardBuilder;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
+using Fusion.Integration.Profile;
 
 namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
@@ -81,7 +82,7 @@ public class ScheduledReportContentBuilderFunction
         //  Requests for department
         var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(fullDepartment)).ToList();
         // Personnel for the department
-        var departmentPersonnel = (await GetPersonnelWithLeave(fullDepartment)).ToList();
+        var departmentPersonnel = (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
         // Get relevant change log events
         var departmentChangeLogEvents = await GetChangeLogEvents(departmentPersonnel);
 
@@ -105,22 +106,15 @@ public class ScheduledReportContentBuilderFunction
     }
 
 
-    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelWithLeave(string fullDepartment)
+    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelForDepartmentExludingConsultantAndExternal(string fullDepartment)
     {
         var personnel = (await _resourceClient.GetAllPersonnelForDepartment(fullDepartment)).ToList();
         if (!personnel.Any())
             throw new Exception("No personnel found for department");
 
-        var tasks = personnel.Select(async person =>
-        {
-            var absence = await _resourceClient.GetLeaveForPersonnel(person.AzureUniquePersonId.ToString());
-            person.ApiPersonAbsences = absence.ToList();
-            return person;
-        });
+        var personnelWithoutConsultant = personnel.Where(per => per.AccountType != FusionAccountType.Consultant.ToString() && per.AccountType != FusionAccountType.External.ToString()).ToList();
 
-        var results = await Task.WhenAll(tasks);
-
-        return results;
+        return personnelWithoutConsultant;
     }
 
     private async Task<List<ApiChangeLogEvent>> GetChangeLogEvents(
@@ -150,9 +144,9 @@ public class ScheduledReportContentBuilderFunction
         });
 
         return (from value in data.Values.ToList()
-            from item in value.Events
-            where listAllRelevantInstanceIds.Contains(item.InstanceId)
-            select item).ToList();
+                from item in value.Events
+                where listAllRelevantInstanceIds.Contains(item.InstanceId)
+                select item).ToList();
     }
 
     private AdaptiveCard CreateResourceOwnerAdaptiveCard(
@@ -198,7 +192,7 @@ public class ScheduledReportContentBuilderFunction
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(), "Number of personnel"))
+                ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(), "Number of personnel (employees and external hire)"))
             .AddColumnSet(new AdaptiveCardColumn(
                 ResourceOwnerReportDataCreator.GetCapacityInUse(personnel).ToString(),
                 "Capacity in use",

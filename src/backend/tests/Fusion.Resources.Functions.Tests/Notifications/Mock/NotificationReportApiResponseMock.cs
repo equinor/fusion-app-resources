@@ -35,8 +35,8 @@ public abstract class NotificationReportApiResponseMock
         for (var i = 0; i < personnelCount; i++)
         {
             personnel.Add(new IResourcesApiClient.InternalPersonnelPerson()
-                {
-                    ApiPersonAbsences = new List<IResourcesApiClient.ApiPersonAbsence>
+            {
+                EmploymentStatuses = new List<IResourcesApiClient.ApiPersonAbsence>
                     {
                         new()
                         {
@@ -60,7 +60,7 @@ public abstract class NotificationReportApiResponseMock
                             AbsencePercentage = absenceLeave
                         }
                     },
-                    PositionInstances = new List<IResourcesApiClient.PersonnelPosition>
+                PositionInstances = new List<IResourcesApiClient.PersonnelPosition>
                     {
                         new()
                         {
@@ -69,7 +69,7 @@ public abstract class NotificationReportApiResponseMock
                             Workload = workload,
                         }
                     }
-                }
+            }
             );
         }
 

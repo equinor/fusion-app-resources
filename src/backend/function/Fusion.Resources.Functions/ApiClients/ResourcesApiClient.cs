@@ -50,7 +50,7 @@ namespace Fusion.Resources.Functions.ApiClients
             string departmentIdentifier)
         {
             var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
-                $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
+       $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
 
             return response.Value.ToList();
         }
