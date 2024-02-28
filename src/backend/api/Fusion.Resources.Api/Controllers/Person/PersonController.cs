@@ -97,9 +97,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
 
-            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query, resourceOwnerProfile));
+            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
             if (relevantOrgUnits is null)
                 return ApiErrors.NotFound($"No relevant OrgUnits found for user {personId}.");
 
