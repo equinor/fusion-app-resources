@@ -126,7 +126,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public bool IsResourceOwner { get; set; }
             public string? AccountType { get; set; }
             public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
-            public List<ApiPersonAbsence> ApiPersonAbsences { get; set; } = new List<ApiPersonAbsence>();
+            public List<ApiPersonAbsence> EmploymentStatuses { get; set; } = new List<ApiPersonAbsence>();
         }
 
         public class PersonnelPosition
@@ -151,20 +151,14 @@ namespace Fusion.Resources.Functions.ApiClients
 
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public DateTimeOffset? Created { get; set; }
-
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public InternalPersonnelPerson? CreatedBy { get; set; }
-
             public bool IsPrivate { get; set; }
-
             public string? Comment { get; set; }
-
-            //public ApiTaskDetails? TaskDetails { get; set; } // Trengs denne?
             public DateTimeOffset? AppliesFrom { get; set; }
             public DateTimeOffset? AppliesTo { get; set; }
             public ApiAbsenceType? Type { get; set; }
             public double? AbsencePercentage { get; set; }
-
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public bool IsActive => AppliesFrom <= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
         }
