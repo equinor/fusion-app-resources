@@ -108,13 +108,10 @@ namespace Fusion.Resources.Domain.Queries
                             {
                                 data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment.Replace('*', ' ').TrimEnd());
                             }
-
-
                             else
                             {
                                 data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
                             }
-
                             if (data != null)
                             {
                                 data.Reasons.Add(org.Reason);
