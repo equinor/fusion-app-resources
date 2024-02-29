@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
-using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
+using Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Fusion.Resources.Functions.Functions.Notifications;
+namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
 public class ScheduledReportTimerTriggerFunction
 {
@@ -61,20 +61,20 @@ public class ScheduledReportTimerTriggerFunction
     {
         try
         {
-            var departments = await _lineOrgClient.GetOrgUnitDepartmentsAsync();
+            var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
             if (departments == null || !departments.Any())
                 throw new Exception("No departments found.");
 
             // TODO: These resource-owners are handpicked to limit the scope of the project.
             var selectedDepartments = departments
                 .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
-            var resourceOwners = await GetLineOrgPersonsFromDepartmetnsChunked(selectedDepartments);
+            var resourceOwners = await GetLineOrgPersonsFromDepartmentsChunked(selectedDepartments);
             if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
 
-            var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId);
+            var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId).ToList();
 
-            var batchTimeInMinutes = Math.Ceiling(120.0 / resourceOwnersToSendNotifications.Count());
+            var batchTimeInMinutes = Math.Ceiling(120.0 / resourceOwnersToSendNotifications.Count);
             if (batchTimeInMinutes < 1)
                 batchTimeInMinutes = 1;
             var resourceOwnerMessageSent = 0;
@@ -91,7 +91,6 @@ public class ScheduledReportTimerTriggerFunction
                     {
                         AzureUniqueId = resourceOwner.AzureUniqueId,
                         FullDepartment = resourceOwner.FullDepartment,
-                        Role = NotificationRoleType.ResourceOwner,
                         DepartmentSapId = resourceOwner.DepartmentSapId
                     }, timeDelayInMinutes);
 
@@ -113,7 +112,7 @@ public class ScheduledReportTimerTriggerFunction
         }
     }
 
-    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmetnsChunked(
+    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmentsChunked(
         List<LineOrgApiClient.OrgUnits> selectedDepartments)
     {
         var resourceOwners = new List<LineOrgPerson>();
@@ -132,8 +131,10 @@ public class ScheduledReportTimerTriggerFunction
     private async Task SendDtoToQueue(ServiceBusSender sender, ScheduledNotificationQueueDto dto, double delayInMinutes)
     {
         var serializedDto = JsonConvert.SerializeObject(dto);
-        var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto));
-        message.ScheduledEnqueueTime = DateTime.UtcNow.AddMinutes(delayInMinutes);
+        var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto))
+        {
+            ScheduledEnqueueTime = DateTime.UtcNow.AddMinutes(delayInMinutes)
+        };
         await sender.SendMessageAsync(message);
     }
 }

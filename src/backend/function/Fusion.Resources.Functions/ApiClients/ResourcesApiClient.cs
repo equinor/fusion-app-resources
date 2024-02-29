@@ -41,7 +41,7 @@ namespace Fusion.Resources.Functions.ApiClients
             string departmentIdentifier)
         {
             var response = await resourcesClient.GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>(
-                $"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions");
+                $"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions&$top=2000");
 
             return response.Value.ToList();
         }
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Functions.ApiClients
             string departmentIdentifier)
         {
             var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
-                $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
+       $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
 
             return response.Value.ToList();
         }
