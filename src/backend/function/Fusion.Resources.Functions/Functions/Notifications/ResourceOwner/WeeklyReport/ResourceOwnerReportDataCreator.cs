@@ -95,13 +95,11 @@ public abstract class ResourceOwnerReportDataCreator
                         x.OrgPositionInstance.AppliesFrom > today && !x.HasProposedPerson);
     }
 
-    public static string GetAverageTimeToHandleRequests(
+    public static int GetAverageTimeToHandleRequests(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
-        var averageTimeToHandleRequests = "0";
-
         var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
         var requestsLastThreeMonthsWithoutResourceOwnerChangeRequest = requests
@@ -132,17 +130,11 @@ public abstract class ResourceOwnerReportDataCreator
             totalNumberOfDays += differenceInDays;
         }
 
-        if (!(totalNumberOfDays > 0))
-            return averageTimeToHandleRequests;
+        if (requestsHandledByResourceOwner <= 0)
+            return 0;
 
         var averageAmountOfTimeDouble = totalNumberOfDays / requestsHandledByResourceOwner;
-        var averageAmountOfTimeInt = Convert.ToInt32(averageAmountOfTimeDouble);
-
-        averageTimeToHandleRequests = averageAmountOfTimeInt >= 1
-            ? averageAmountOfTimeInt + " day(s)"
-            : "Less than a day";
-
-        return averageTimeToHandleRequests;
+        return (int)Math.Round(averageAmountOfTimeDouble);
     }
 
     public static int GetAllocationChangesAwaitingTaskOwnerAction(
