@@ -110,7 +110,7 @@ namespace Fusion.Resources.Domain.Queries
                             }
                             else
                             {
-                                data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
+                                data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment || x.Department == org.FullDepartment);
                             }
                             if (data != null)
                             {
