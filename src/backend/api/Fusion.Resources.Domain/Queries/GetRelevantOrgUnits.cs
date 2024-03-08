@@ -186,14 +186,19 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     var parentDepartment = department.FullDepartment.Replace("*", "").TrimEnd();
 
-                    var delegatedChildren = orgUnits.Distinct().Where(x => x.FullDepartment.StartsWith(parentDepartment) && !x.FullDepartment.Equals(parentDepartment));
+                    var getDepartmentLevel = GetAcronymsForDepartment(parentDepartment);
+
+                    var childDepartments = orgUnits.Distinct().Where(x => x.FullDepartment.StartsWith(parentDepartment) && !x.FullDepartment.Equals(parentDepartment));
+
+                    // Only include one level below (direct children)
+                    var directChildren = childDepartments.Where(x => (GetAcronymsForDepartment(x.FullDepartment).Count() == getDepartmentLevel.Length + 1));
                     var reason = ReasonRoles.DelegatedParentManager;
                     if (user.IsResourceOwner && user.FullDepartment == parentDepartment)
                     {
                         reason = ReasonRoles.ParentManager;
                     }
 
-                    foreach (var child in delegatedChildren)
+                    foreach (var child in directChildren)
                     {
                         managerResposibility?.Add(new QueryOrgUnitReason
                         {
@@ -204,6 +209,11 @@ namespace Fusion.Resources.Domain.Queries
                 }
                 reasons?.AddRange(managerResposibility);
             }
+        }
+
+        static string[] GetAcronymsForDepartment(string word)
+        {
+            return word.Split();
         }
     }
 }
