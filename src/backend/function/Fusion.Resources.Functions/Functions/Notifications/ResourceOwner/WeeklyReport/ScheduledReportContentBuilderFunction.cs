@@ -82,7 +82,8 @@ public class ScheduledReportContentBuilderFunction
         //  Requests for department
         var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(fullDepartment)).ToList();
         // Personnel for the department
-        var departmentPersonnel = (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
+        var departmentPersonnel =
+            (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
         // Get relevant change log events
         var departmentChangeLogEvents = await GetChangeLogEvents(departmentPersonnel);
 
@@ -106,13 +107,16 @@ public class ScheduledReportContentBuilderFunction
     }
 
 
-    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelForDepartmentExludingConsultantAndExternal(string fullDepartment)
+    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelForDepartmentExludingConsultantAndExternal(
+        string fullDepartment)
     {
         var personnel = (await _resourceClient.GetAllPersonnelForDepartment(fullDepartment)).ToList();
         if (!personnel.Any())
             throw new Exception("No personnel found for department");
 
-        var personnelWithoutConsultant = personnel.Where(per => per.AccountType != FusionAccountType.Consultant.ToString() && per.AccountType != FusionAccountType.External.ToString()).ToList();
+        var personnelWithoutConsultant = personnel.Where(per =>
+            per.AccountType != FusionAccountType.Consultant.ToString() &&
+            per.AccountType != FusionAccountType.External.ToString()).ToList();
 
         return personnelWithoutConsultant;
     }
@@ -144,9 +148,9 @@ public class ScheduledReportContentBuilderFunction
         });
 
         return (from value in data.Values.ToList()
-                from item in value.Events
-                where listAllRelevantInstanceIds.Contains(item.InstanceId)
-                select item).ToList();
+            from item in value.Events
+            where listAllRelevantInstanceIds.Contains(item.InstanceId)
+            select item).ToList();
     }
 
     private AdaptiveCard CreateResourceOwnerAdaptiveCard(
@@ -188,11 +192,12 @@ public class ScheduledReportContentBuilderFunction
                 }
             })
             .ToList();
-
+        var averageTimeToHandleRequests = ResourceOwnerReportDataCreator.GetAverageTimeToHandleRequests(requests);
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(), "Number of personnel (employees and external hire)"))
+                ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(),
+                "Number of personnel (employees and external hire)"))
             .AddColumnSet(new AdaptiveCardColumn(
                 ResourceOwnerReportDataCreator.GetCapacityInUse(personnel).ToString(),
                 "Capacity in use",
@@ -211,7 +216,9 @@ public class ScheduledReportContentBuilderFunction
                 ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInMoreThanThreeMonths(requests).ToString(),
                 "Requests with start date > 3 months"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportDataCreator.GetAverageTimeToHandleRequests(requests),
+                averageTimeToHandleRequests > 0
+                    ? averageTimeToHandleRequests + " day(s)"
+                    : "Less than a day",
                 "Average time to handle request"))
             .AddColumnSet(new AdaptiveCardColumn(
                 ResourceOwnerReportDataCreator.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
