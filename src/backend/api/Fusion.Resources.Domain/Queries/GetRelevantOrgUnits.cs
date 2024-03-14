@@ -62,7 +62,7 @@ namespace Fusion.Resources.Domain.Queries
                 orgUnitAccessReason.ApplyManager(user);
 
                 // Filter out only active roles
-                var activeRoles = user.Roles.Where(x => x.IsActive).ToList();
+                var activeRoles = user.Roles.Where(x => x.IsActive);
 
                 var delegatedManagerClaims = activeRoles.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
                 orgUnitAccessReason.ApplyRole(delegatedManagerClaims, ReasonRoles.DelegatedManager);
