@@ -179,26 +179,29 @@ namespace Fusion.Resources.Domain.Queries
             var managerResposibility = new List<QueryOrgUnitReason>();
             var managerOrDelegatedManagerDepartmentsOrWildcard = reasons
                 .Where(x => x.Reason.Equals(ReasonRoles.Manager) || x.Reason.Equals(ReasonRoles.DelegatedManager) || x.IsWildCard).ToList();
-
             if (managerOrDelegatedManagerDepartmentsOrWildcard is not null)
             {
                 foreach (var department in managerOrDelegatedManagerDepartmentsOrWildcard)
                 {
                     var parentDepartment = department.FullDepartment.Replace("*", "").TrimEnd();
 
-                    var getDepartmentLevel = GetAcronymsForDepartment(parentDepartment);
-
                     var childDepartments = orgUnits.Distinct().Where(x => x.FullDepartment.StartsWith(parentDepartment) && !x.FullDepartment.Equals(parentDepartment));
 
-                    // Only include one level below (direct children)
-                    var directChildren = childDepartments.Where(x => (GetAcronymsForDepartment(x.FullDepartment).Count() == getDepartmentLevel.Length + 1));
+                    // if the department is not of type wildcard we only want to get direct children (one level below)
+                    if (!department.IsWildCard)
+                    {
+                        var getParentDepartmentLevel = GetAcronymsForDepartment(parentDepartment);
+
+                        childDepartments = childDepartments.Where(x => (GetAcronymsForDepartment(x.FullDepartment).Count() == getParentDepartmentLevel.Length + 1));
+
+                    }
                     var reason = ReasonRoles.DelegatedParentManager;
                     if (user.IsResourceOwner && user.FullDepartment == parentDepartment)
                     {
                         reason = ReasonRoles.ParentManager;
                     }
 
-                    foreach (var child in directChildren)
+                    foreach (var child in childDepartments)
                     {
                         managerResposibility?.Add(new QueryOrgUnitReason
                         {
