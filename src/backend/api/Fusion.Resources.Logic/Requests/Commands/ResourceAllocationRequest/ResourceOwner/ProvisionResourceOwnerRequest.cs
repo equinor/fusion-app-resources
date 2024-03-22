@@ -1,11 +1,20 @@
-﻿using Fusion.ApiClients.Org;
+﻿using Azure;
+using Azure.Core;
+using Fusion.ApiClients.Org;
+using Fusion.Integration;
+using Fusion.Integration.Configuration;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,15 +34,27 @@ namespace Fusion.Resources.Logic.Commands
 
                 public Guid RequestId { get; }
 
-
                 public class Handler : IRequestHandler<ProvisionResourceOwnerRequest>
                 {
                     private readonly IOrgApiClient client;
+                    private readonly IFusionTokenProvider tokenProvider;
+                    private readonly IFusionEndpointResolver endpointResolver;
+
                     private readonly ResourcesDbContext resourcesDb;
 
-                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
+                    public Handler(
+                        ResourcesDbContext resourcesDb,
+                        IOrgApiClientFactory orgApiClientFactory,
+                        IFusionTokenProvider tokenProvider,
+                        IFusionEndpointResolver fusionEndpointResolver
+                        )
                     {
                         this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+
+                        this.tokenProvider = tokenProvider;
+
+                        this.endpointResolver = fusionEndpointResolver;
+
                         this.resourcesDb = resourcesDb;
                     }
 
@@ -43,16 +64,17 @@ namespace Fusion.Resources.Logic.Commands
                             .Include(r => r.Project)
                             .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
-                        if (dbRequest != null) 
+                        if (dbRequest != null)
                             await ProvisionAsync(dbRequest);
                     }
 
                     private async Task ProvisionAsync(DbResourceAllocationRequest dbRequest)
                     {
                         // Need to get the raw position, in case model has changed.. When putting position, fields not in the model will be overwritten
-                        var rawPosition = await client.GetAsync<JObject>($"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0");
+                        var rawPositionResponse = await client.GetAsync<JObject>($"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0");
+                        var rawPosition = rawPositionResponse.Value;
 
-                        var position = rawPosition.Value.ToObject<ApiPositionV2>();
+                        var position = rawPosition.ToObject<ApiPositionV2>();
                         var positionInstance = position!.Instances.First(i => i.Id == dbRequest.OrgPositionInstance.Id);
                         var assignedPersonAzureId = positionInstance.AssignedPerson?.AzureUniqueId;
 
@@ -66,13 +88,13 @@ namespace Fusion.Resources.Logic.Commands
                         var isSameDates = effectiveChangeFrom == positionInstance.AppliesFrom && effectiveChangeTo == positionInstance.AppliesTo;
 
                         if (isFuture && isSameDates)
-                            await UpdateFutureSplitAsync(dbRequest, rawPosition.Value);
+                            await UpdateFutureSplitAsync(dbRequest, rawPosition);
                         else
                         {
                             var equalStart = effectiveChangeFrom.Date == positionInstance.AppliesFrom.Date;
                             var equalEnd = effectiveChangeTo.Date == positionInstance.AppliesTo.Date;
 
-                            var jsonPosition = rawPosition.Value;
+                            var jsonPosition = rawPosition;
 
                             if (equalStart)
                                 UpdateStart(dbRequest, jsonPosition, effectiveChangeTo);
@@ -92,7 +114,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var subType = new SubType(dbRequest.SubType);
 
-                        // Must specify a change date
+                        // Must specify a change date§F
                         if (dbRequest.ProposalParameters.ChangeFrom is null)
                             return;
 
@@ -121,13 +143,22 @@ namespace Fusion.Resources.Logic.Commands
 
                     private async Task SavePositionAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
+                        // Resolve url
+                        var baseUrl = await endpointResolver.ResolveEndpointAsync(FusionEndpoint.ProOrganisation);
+                        var url = $"{baseUrl}/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
 
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
+                        // Setup the client
+                        var token = await tokenProvider.GetApplicationTokenAsync();
 
-                        var resp = await client.PutAsync(url, rawPosition);
+                        var resp = await PutAsync(url, token, rawPosition);
 
                         if (!resp.IsSuccessStatusCode)
-                            throw new OrgApiError(resp.Response, resp.Content);
+                        {
+                            var content = await resp.Content.ReadAsStringAsync();
+
+                            throw new OrgApiError(resp, content);
+                        }
+                            
                     }
 
                     private void UpdateStart(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeTo)
@@ -161,7 +192,6 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         // Update existing 
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
-
 
                         var originalInstanceEndDate = changeFrom.Date.AddDays(-1);
                         var newInstanceStartDate = changeFrom.Date;
@@ -231,32 +261,43 @@ namespace Fusion.Resources.Logic.Commands
                     private void ApplyProposedChanges(DbResourceAllocationRequest dbRequest, JObject instance)
                     {
                         var subType = new SubType(dbRequest.SubType);
-                        
+
                         var proposedChanges = new JObject();
                         if (!string.IsNullOrEmpty(dbRequest.ProposedChanges) && dbRequest.ProposedChanges != "null")
                             proposedChanges = JObject.Parse(dbRequest.ProposedChanges);
 
-                        switch (subType.Value)
+                        try
                         {
-                            case SubType.Types.Adjustment:
-                                if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
-                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
+                            switch (subType.Value)
+                            {
+                                case SubType.Types.Adjustment:
+                                    if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
+                                        instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
 
-                                if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
-                                break;
+                                    if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
+                                    {
+                                        if (location?.Value<Guid>("Id") == null)
+                                            throw new Exception("Location Id is null/empty");
 
-                            case SubType.Types.ChangeResource:
-                                if (dbRequest.ProposedPerson.AzureUniqueId != null)
-                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
-                                break;
+                                        instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                                    }
+                                    break;
 
-                            case SubType.Types.RemoveResource:
-                                instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, null!);
-                                break;
+                                case SubType.Types.ChangeResource:
+                                    if (dbRequest.ProposedPerson.AzureUniqueId != null)
+                                        instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
+                                    break;
+
+                                case SubType.Types.RemoveResource:
+                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, null!);
+                                    break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException("Error applying proposed changes to instance object", ex);
                         }
                     }
-
 
                     private async Task UpdateFutureSplitAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
@@ -272,7 +313,7 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest.ProposedPerson.AzureUniqueId != null)
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
 
-                        
+
 
                         if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
@@ -295,12 +336,22 @@ namespace Fusion.Resources.Logic.Commands
                         if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
 
+                        // Resolve url
+                        var baseUrl = await endpointResolver.ResolveEndpointAsync(FusionEndpoint.ProOrganisation);
+                        var url = $"{baseUrl}/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
 
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
-                        var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+                        // Setup the client
+                        var token = await tokenProvider.GetApplicationTokenAsync();
+
+                        var updateResp
+                            = await PatchAsync(url, token, instancePatchRequest);
 
                         if (!updateResp.IsSuccessStatusCode)
-                            throw new OrgApiError(updateResp.Response, updateResp.Content);
+                        {
+                            var content = await updateResp.Content.ReadAsStringAsync();
+
+                            throw new OrgApiError(updateResp, content);
+                        }
 
                     }
 
@@ -317,6 +368,38 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             var instanceToUpdate = rawInstances.Cast<JObject>().First(i => i.GetPropertyValue<ApiPositionInstanceV2, Guid>(p => p.Id) == instance.Id);
                             instanceToUpdate.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, newAssignment!);
+                        }
+                    }
+
+                    private async Task<HttpResponseMessage> PutAsync(string url, string token, JObject data)
+                    {
+                        using (var httpClient = new HttpClient())
+                        {
+                            httpClient.BaseAddress = new Uri(url);
+                            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                            httpClient.Timeout = TimeSpan.FromSeconds(60 * 10); // Enable 10 min timeout for this request
+
+                            // Convert JObject to HttpContent
+                            HttpContent content = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
+
+                            // Make the request
+                            return await httpClient.PutAsync(url, content);
+                        }
+                    }
+
+                    private async Task<HttpResponseMessage> PatchAsync(string url, string token, JObject data)
+                    {
+                        using (var httpClient = new HttpClient())
+                        {
+                            httpClient.BaseAddress = new Uri(url);
+                            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                            httpClient.Timeout = TimeSpan.FromSeconds(60 * 10); // Enable 10 min timeout for this request
+
+                            // Convert JObject to HttpContent
+                            HttpContent content = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
+
+                            // Make the request
+                            return await httpClient.PatchAsync(url, content);
                         }
                     }
                 }

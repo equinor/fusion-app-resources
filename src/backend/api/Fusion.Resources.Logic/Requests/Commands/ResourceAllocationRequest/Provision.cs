@@ -86,10 +86,8 @@ namespace Fusion.Resources.Logic.Commands
                         .Include(r => r.Project)
                         .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
-
                     if (dbRequest is null)
                         throw new RequestNotFoundError(request.RequestId);
-
 
                     try
                     {
@@ -158,8 +156,21 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
                         throw new ProvisioningError($" {ex.Message}", ex);
                     }
+                    catch(InvalidOperationException ex)
+                    {
+                        dbRequest.ProvisioningStatus.ErrorMessage = $"Error with request input: '{ex?.Message}'";
+                        dbRequest.ProvisioningStatus.ErrorPayload = ex.InnerException.ToString();
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+                        throw new ProvisioningError($" {ex.Message}", ex);
+                    }
+                    catch(Exception ex)
+                    {
+                        dbRequest.ProvisioningStatus.ErrorMessage = $"Error when trying to provision request: '{ex?.Message}'";
+                        dbRequest.ProvisioningStatus.ErrorPayload = ex.InnerException.ToString();
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+                        throw new ProvisioningError($" {ex.Message}", ex);
+                    }
                 }
-
 
                 private async Task UpdateWorkflowStatusAsync(Provision request, DbResourceAllocationRequest dbRequest)
                 {

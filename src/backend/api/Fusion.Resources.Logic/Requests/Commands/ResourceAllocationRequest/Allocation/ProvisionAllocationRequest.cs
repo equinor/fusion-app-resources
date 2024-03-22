@@ -76,7 +76,6 @@ namespace Fusion.Resources.Logic.Commands
                             if (dbRequest.ProposedPerson.AzureUniqueId != null)
                                 instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
 
-
                             if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                                 instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
 
@@ -91,7 +90,7 @@ namespace Fusion.Resources.Logic.Commands
                         }
                         catch (Exception ex)
                         {
-                            throw new ProvisioningError("Invalid data from request", ex);
+                            throw new InvalidOperationException("Error applying proposed changes to instance object", ex);
                         }
 
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/drafts/{draft.Id}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
