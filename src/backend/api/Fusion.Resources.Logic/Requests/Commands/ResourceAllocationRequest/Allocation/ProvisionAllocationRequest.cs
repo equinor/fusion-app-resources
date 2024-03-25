@@ -1,6 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -27,13 +28,16 @@ namespace Fusion.Resources.Logic.Commands
 
                 public class Handler : IRequestHandler<ProvisionAllocationRequest>
                 {
+                    private readonly IOrgClient orgClient;
+
                     private IOrgApiClient client;
                     private ResourcesDbContext resourcesDb;
 
-                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
+                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory, IOrgClient orgClient)
                     {
                         this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
                         this.resourcesDb = resourcesDb;
+                        this.orgClient = orgClient;
                     }
 
                     public async Task Handle(ProvisionAllocationRequest request, CancellationToken cancellationToken)
@@ -93,11 +97,13 @@ namespace Fusion.Resources.Logic.Commands
                             throw new InvalidOperationException("Error applying proposed changes to instance object", ex);
                         }
 
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/drafts/{draft.Id}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
-                        var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+                        if (!dbRequest.OrgPositionId.HasValue)
+                            throw new InvalidOperationException("Error caused by empty org position value when allocating request instance");
+
+                        var updateResp = await orgClient.AllocateRequestInstance(dbRequest.Project.OrgProjectId, draft.Id, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, instancePatchRequest, 60 * 10);
 
                         if (!updateResp.IsSuccessStatusCode)
-                            throw new OrgApiError(updateResp.Response, updateResp.Content);
+                            throw new OrgApiError(updateResp, await updateResp.Content.ReadAsStringAsync());
                     }
                 }
             }

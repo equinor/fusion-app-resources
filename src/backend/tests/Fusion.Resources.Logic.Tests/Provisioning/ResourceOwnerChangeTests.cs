@@ -4,6 +4,7 @@ using Fusion.Integration.Configuration;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using Fusion.Resources.Logic.Commands;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
@@ -11,6 +12,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -197,6 +199,7 @@ namespace Fusion.Resources.Logic.Tests
         }
 
         #region Setups
+
         private (ApiPositionInstanceV2, DbResourceAllocationRequest) SetupDefaultRemoveTest(DateTime changeDate, ApiPersonProfileV3 testPerson)
         {
             ApiPositionInstanceV2 testInstance = null!;
@@ -300,26 +303,43 @@ namespace Fusion.Resources.Logic.Tests
 
         private ApiPersonProfileV3 GenerateTestPerson() => new FusionTestUserBuilder().SaveProfile();
 
-
         private async Task<(ApiPositionV2, string)> RunProvisioningAsync(DbResourceAllocationRequest request)
         {
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
-            var fusionTokenProviderMock = new Mock<IFusionTokenProvider>();
-            fusionTokenProviderMock.Setup(provider => provider.GetApplicationTokenAsync()).ReturnsAsync("token");
-            /*
+            var extendedOrgClientMock = new Mock<IOrgClient>();
+            extendedOrgClientMock.Setup(c => c.SavePosition(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<JObject>(),
+                It.IsAny<int>()
+            )).ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+            
+            extendedOrgClientMock.Setup(c => c.UpdateFutureSplit(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<JObject>(),
+                It.IsAny<int>()
+            )).ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+
             var cmd = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest(request.Id);
+
             var handler = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest.Handler(
                 dbContext,
                 factoryMock.Object,
-                fusionTokenProviderMock.Object)
+                extendedOrgClientMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest>;
+
             await handler.Handle(cmd, CancellationToken.None);
-            */
-            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
+
+            var i = orgClientMock.Invocations
+                .SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
                 .FirstOrDefault(m => m.Method == HttpMethod.Put);
+
             var postedPositionJson = await i.Content.ReadAsStringAsync();
+
             var postedPosition = JsonConvert.DeserializeObject<ApiPositionV2>(postedPositionJson);
 
             return (postedPosition, postedPositionJson);

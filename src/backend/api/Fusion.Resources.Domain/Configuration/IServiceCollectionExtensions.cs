@@ -23,6 +23,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<IOrgUnitCache, OrgUnitCache>();
 
+            services.AddScoped<IOrgClient, OrgClient>();
+
             return services;
         }
     }

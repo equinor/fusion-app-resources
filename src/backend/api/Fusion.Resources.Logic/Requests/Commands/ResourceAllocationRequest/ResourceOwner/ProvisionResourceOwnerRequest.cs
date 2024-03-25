@@ -5,6 +5,7 @@ using Fusion.Integration;
 using Fusion.Integration.Configuration;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -37,24 +38,18 @@ namespace Fusion.Resources.Logic.Commands
                 public class Handler : IRequestHandler<ProvisionResourceOwnerRequest>
                 {
                     private readonly IOrgApiClient client;
-                    private readonly IFusionTokenProvider tokenProvider;
-                    private readonly IFusionEndpointResolver endpointResolver;
+                    private readonly IOrgClient orgClient;
 
                     private readonly ResourcesDbContext resourcesDb;
 
                     public Handler(
                         ResourcesDbContext resourcesDb,
                         IOrgApiClientFactory orgApiClientFactory,
-                        IFusionTokenProvider tokenProvider,
-                        IFusionEndpointResolver fusionEndpointResolver
+                        IOrgClient orgClient
                         )
                     {
                         this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-
-                        this.tokenProvider = tokenProvider;
-
-                        this.endpointResolver = fusionEndpointResolver;
-
+                        this.orgClient = orgClient;
                         this.resourcesDb = resourcesDb;
                     }
 
@@ -143,14 +138,10 @@ namespace Fusion.Resources.Logic.Commands
 
                     private async Task SavePositionAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
-                        // Resolve url
-                        var baseUrl = await endpointResolver.ResolveEndpointAsync(FusionEndpoint.ProOrganisation);
-                        var url = $"{baseUrl}/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
+                        if(!dbRequest.OrgPositionId.HasValue)
+                            throw new InvalidOperationException("Error caused by empty org position value when saving position");
 
-                        // Setup the client
-                        var token = await tokenProvider.GetApplicationTokenAsync();
-
-                        var resp = await PutAsync(url, token, rawPosition);
+                        var resp = await orgClient.SavePosition(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, rawPosition, 60 * 10);
 
                         if (!resp.IsSuccessStatusCode)
                         {
@@ -158,7 +149,6 @@ namespace Fusion.Resources.Logic.Commands
 
                             throw new OrgApiError(resp, content);
                         }
-                            
                     }
 
                     private void UpdateStart(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeTo)
@@ -336,15 +326,10 @@ namespace Fusion.Resources.Logic.Commands
                         if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
 
-                        // Resolve url
-                        var baseUrl = await endpointResolver.ResolveEndpointAsync(FusionEndpoint.ProOrganisation);
-                        var url = $"{baseUrl}/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
+                        if( !dbRequest.OrgPositionId.HasValue)
+                            throw new InvalidOperationException("Error caused by empty org position value when updating future split");
 
-                        // Setup the client
-                        var token = await tokenProvider.GetApplicationTokenAsync();
-
-                        var updateResp
-                            = await PatchAsync(url, token, instancePatchRequest);
+                        var updateResp = await orgClient.UpdateFutureSplit(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, instancePatchRequest, 10 * 60);
 
                         if (!updateResp.IsSuccessStatusCode)
                         {
@@ -368,38 +353,6 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             var instanceToUpdate = rawInstances.Cast<JObject>().First(i => i.GetPropertyValue<ApiPositionInstanceV2, Guid>(p => p.Id) == instance.Id);
                             instanceToUpdate.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, newAssignment!);
-                        }
-                    }
-
-                    private async Task<HttpResponseMessage> PutAsync(string url, string token, JObject data)
-                    {
-                        using (var httpClient = new HttpClient())
-                        {
-                            httpClient.BaseAddress = new Uri(url);
-                            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                            httpClient.Timeout = TimeSpan.FromSeconds(60 * 10); // Enable 10 min timeout for this request
-
-                            // Convert JObject to HttpContent
-                            HttpContent content = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
-
-                            // Make the request
-                            return await httpClient.PutAsync(url, content);
-                        }
-                    }
-
-                    private async Task<HttpResponseMessage> PatchAsync(string url, string token, JObject data)
-                    {
-                        using (var httpClient = new HttpClient())
-                        {
-                            httpClient.BaseAddress = new Uri(url);
-                            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                            httpClient.Timeout = TimeSpan.FromSeconds(60 * 10); // Enable 10 min timeout for this request
-
-                            // Convert JObject to HttpContent
-                            HttpContent content = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
-
-                            // Make the request
-                            return await httpClient.PatchAsync(url, content);
                         }
                     }
                 }

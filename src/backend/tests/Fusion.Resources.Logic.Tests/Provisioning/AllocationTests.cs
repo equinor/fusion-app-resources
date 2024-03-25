@@ -3,6 +3,7 @@ using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using Fusion.Resources.Logic.Commands;
 using Fusion.Resources.Logic.Workflows;
 using Fusion.Testing.Mocks.OrgService;
@@ -432,8 +433,11 @@ namespace Fusion.Resources.Logic.Tests
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
+            var extendedOrgClientMock = new Mock<IOrgClient>();
+            extendedOrgClientMock.Setup(c => c.AllocateRequestInstance(Guid.Empty, Guid.Empty, Guid.Empty, Guid.Empty, null, 1)).ReturnsAsync( new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+
             var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);
-            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object)
+            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object, extendedOrgClientMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.Allocation.ProvisionAllocationRequest>;
             await handler.Handle(cmd, CancellationToken.None);
 
