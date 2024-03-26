@@ -334,11 +334,14 @@ namespace Fusion.Resources.Logic.Tests
 
             await handler.Handle(cmd, CancellationToken.None);
 
-            var i = orgClientMock.Invocations
-                .SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
-                .FirstOrDefault(m => m.Method == HttpMethod.Put);
+            // Select the first invocation arguments
+            var invocation = extendedOrgClientMock.Invocations.First().Arguments;
 
-            var postedPositionJson = await i.Content.ReadAsStringAsync();
+            // Grab the JObject, third argument of the SavePosition (invocation)
+            var requestData = invocation[2];
+
+            // Covert it to string for further serialization
+            var postedPositionJson = requestData.ToString();
 
             var postedPosition = JsonConvert.DeserializeObject<ApiPositionV2>(postedPositionJson);
 

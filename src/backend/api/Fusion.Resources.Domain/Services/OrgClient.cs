@@ -78,7 +78,7 @@ public class OrgClient : IOrgClient
     public async Task<HttpResponseMessage> AllocateRequestInstance(Guid projectId, Guid draftId, Guid positionId, Guid positionInstanceId, JObject obj, int timeoutInSeconds = 100)
     {
         var baseUrl = await _endpointResolver.ResolveEndpointAsync(FusionEndpoint.ProOrganisation);
-        var url = $"/projects/{projectId}/drafts/{draftId}/positions/{positionId}/instances/{positionInstanceId}?api-version=2.0";
+        var url = $"{baseUrl}/projects/{projectId}/drafts/{draftId}/positions/{positionId}/instances/{positionInstanceId}?api-version=2.0";
 
         var token = await _tokenProvider.GetApplicationTokenAsync();
 
