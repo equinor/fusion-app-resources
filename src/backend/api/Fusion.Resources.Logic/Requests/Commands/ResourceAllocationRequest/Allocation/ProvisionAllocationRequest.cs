@@ -1,11 +1,14 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,11 +31,13 @@ namespace Fusion.Resources.Logic.Commands
                 public class Handler : IRequestHandler<ProvisionAllocationRequest>
                 {
                     private IOrgApiClient client;
+                    private IOrgHttpClient httpClient;
                     private ResourcesDbContext resourcesDb;
 
-                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
+                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory, IOrgHttpClient httpClient)
                     {
                         this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                        this.httpClient = httpClient;
                         this.resourcesDb = resourcesDb;
                     }
 
@@ -95,7 +100,16 @@ namespace Fusion.Resources.Logic.Commands
                         }
 
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/drafts/{draft.Id}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
-                        var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+
+                        string json = instancePatchRequest.ToString(Formatting.None);
+                        HttpContent content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                        var request = new HttpRequestMessage(HttpMethod.Patch, url);
+                        request.Content = content;
+
+                        var updateResp
+                            = await httpClient.SendAsync<ApiPositionInstanceV2>(request);
+                            //= await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
 
                         if (!updateResp.IsSuccessStatusCode)
                             throw new OrgApiError(updateResp.Response, updateResp.Content);

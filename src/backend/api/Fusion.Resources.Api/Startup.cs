@@ -9,6 +9,7 @@ using Fusion.Resources.Api.HostedServices;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Services;
 using Fusion.Resources.Logic;
 using JSM.FluentValidation.AspNet.AsyncFilter;
 using MediatR;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using SixLabors.ImageSharp;
+using System;
 using System.Reflection;
 
 namespace Fusion.Resources.Api
@@ -106,8 +108,13 @@ namespace Fusion.Resources.Api
 
             services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
 
-            services.AddControllers()
-                .AddModelValidationAsyncActionFilter();
+            services.AddControllers().AddModelValidationAsyncActionFilter();
+
+            services.AddHttpClient<IOrgHttpClient, OrgHttpClient>(client =>
+            {
+                client.BaseAddress = new Uri("http://not-implemented-here-but-in-client.com");
+                client.Timeout = TimeSpan.FromSeconds(60 * 10);
+            });
 
             // Keeping for reference - The validator is not added to the .net core validation pipeline. This is due to limitations in running async 
             // validators. This is required to validate against external requirements, e.g. position exists.

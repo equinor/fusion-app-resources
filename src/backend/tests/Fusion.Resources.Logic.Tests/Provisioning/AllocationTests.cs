@@ -3,6 +3,7 @@ using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using Fusion.Resources.Logic.Commands;
 using Fusion.Resources.Logic.Workflows;
 using Fusion.Testing.Mocks.OrgService;
@@ -12,9 +13,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -426,19 +429,20 @@ namespace Fusion.Resources.Logic.Tests
 
         private ApiPersonProfileV3 GenerateTestPerson() => new FusionTestUserBuilder().SaveProfile();
 
-
         private async Task<IEnumerable<(Uri, string)>> RunProvisioningAsync(DbResourceAllocationRequest request)
         {
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
+            var httpClientMock = new Mock<IOrgHttpClient>();
+            httpClientMock.Setup(c => c.SendAsync<ApiPositionInstanceV2>(It.IsAny<HttpRequestMessage>())).Returns(RequestResponse<ApiPositionInstanceV2>.FromResponseAsync(new HttpResponseMessage(HttpStatusCode.OK)));
+
             var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);
-            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object)
+            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object, httpClientMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.Allocation.ProvisionAllocationRequest>;
             await handler.Handle(cmd, CancellationToken.None);
 
-
-            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.OfType<HttpRequestMessage>())
+            var i = httpClientMock.Invocations.SelectMany(i => i.Arguments.OfType<HttpRequestMessage>())
                 .Where(m => m.Method == HttpMethod.Patch);
 
             var patchRequests = new List<(Uri, string)>();

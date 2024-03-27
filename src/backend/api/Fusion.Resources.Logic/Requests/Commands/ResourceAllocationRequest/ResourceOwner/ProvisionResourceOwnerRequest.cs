@@ -1,11 +1,15 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Configuration;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,11 +33,13 @@ namespace Fusion.Resources.Logic.Commands
                 public class Handler : IRequestHandler<ProvisionResourceOwnerRequest>
                 {
                     private readonly IOrgApiClient client;
+                    private readonly IOrgHttpClient httpClient;
                     private readonly ResourcesDbContext resourcesDb;
 
-                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
+                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory, IOrgHttpClient httpClient)
                     {
                         this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                        this.httpClient = httpClient;
                         this.resourcesDb = resourcesDb;
                     }
 
@@ -121,10 +127,16 @@ namespace Fusion.Resources.Logic.Commands
 
                     private async Task SavePositionAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
+                        string url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
 
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
+                        string json = rawPosition.ToString(Formatting.None);
+                        HttpContent content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                        var resp = await client.PutAsync(url, rawPosition);
+                        var request = new HttpRequestMessage(HttpMethod.Put, url);
+                        request.Content = content;
+
+                        var resp
+                            = await httpClient.SendAsync<JObject>(request);
 
                         if (!resp.IsSuccessStatusCode)
                             throw new OrgApiError(resp.Response, resp.Content);
@@ -257,7 +269,6 @@ namespace Fusion.Resources.Logic.Commands
                         }
                     }
 
-
                     private async Task UpdateFutureSplitAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
                         // Update existing 
@@ -271,8 +282,6 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (dbRequest.ProposedPerson.AzureUniqueId != null)
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
-
-                        
 
                         if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
@@ -295,9 +304,16 @@ namespace Fusion.Resources.Logic.Commands
                         if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
 
-
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
-                        var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+
+                        string json = rawPosition.ToString(Formatting.None);
+                        HttpContent content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                        var request = new HttpRequestMessage(HttpMethod.Patch, url);
+                        request.Content = content;
+
+                        var updateResp
+                            = await httpClient.SendAsync<ApiPositionInstanceV2>(request);
 
                         if (!updateResp.IsSuccessStatusCode)
                             throw new OrgApiError(updateResp.Response, updateResp.Content);

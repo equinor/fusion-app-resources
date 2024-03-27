@@ -3,6 +3,7 @@ using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Services;
 using Fusion.Resources.Logic.Commands;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
@@ -10,8 +11,10 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -26,7 +29,7 @@ namespace Fusion.Resources.Logic.Tests
         ResourcesDbContext dbContext;
         Mock<IOrgApiClient> orgClientMock;
 
-        public ResourceOwnerProvisioningTests() 
+        public ResourceOwnerProvisioningTests()
         {
             var options = new DbContextOptionsBuilder<ResourcesDbContext>()
                 .UseInMemoryDatabase($"{Guid.NewGuid()}")
@@ -42,7 +45,7 @@ namespace Fusion.Resources.Logic.Tests
             });
         }
 
-  
+
 
         [Fact]
         public async Task ShouldRemoveIdsFromCopiedSplit_WhenChangingEnding()
@@ -70,7 +73,8 @@ namespace Fusion.Resources.Logic.Tests
             var changeDate = DateTime.Today.AddDays(10);
 
             var testPerson = GenerateTestPerson();
-            var testPosition = GeneratePosition(p => {
+            var testPosition = GeneratePosition(p =>
+            {
                 p.WithInstances(s =>
                 {
                     testInstance = s.AddInstance(DateTime.UtcNow.AddDays(-100), TimeSpan.FromDays(200))
@@ -108,7 +112,7 @@ namespace Fusion.Resources.Logic.Tests
             updatedPosition.Instances.Should().HaveCount(2);
 
             updatedPosition.Instances.Should().Contain(i => i.AppliesFrom.Date == changeDate && i.AppliesTo.Date == testInstance.AppliesTo.Date);
-            updatedPosition.Instances.Should().Contain(i => i.AppliesFrom.Date == testInstance.AppliesFrom.Date &&  i.AppliesTo.Date == changeDate.AddDays(-1));
+            updatedPosition.Instances.Should().Contain(i => i.AppliesFrom.Date == testInstance.AppliesFrom.Date && i.AppliesTo.Date == changeDate.AddDays(-1));
             updatedPosition.Instances.Should().ContainSingle(i => i.AssignedPerson == null);    // Should have removed person
             updatedPosition.Instances.Should().ContainSingle(i => i.AssignedPerson != null && i.AssignedPerson.AzureUniqueId == testPerson.AzureUniqueId);
         }
@@ -145,7 +149,8 @@ namespace Fusion.Resources.Logic.Tests
 
             var testPerson = GenerateTestPerson();
             var newTestPerson = GenerateTestPerson();
-            var testPosition = GeneratePosition(p => {
+            var testPosition = GeneratePosition(p =>
+            {
                 p.WithInstances(s =>
                 {
                     testInstance = s.AddInstance(DateTime.Today.AddDays(-100), TimeSpan.FromDays(200))
@@ -174,8 +179,9 @@ namespace Fusion.Resources.Logic.Tests
             var (testInstance, testPerson) = SetupDefaultTestPosition();
 
             var request = GenerateRequest(testInstance, r => r
-                .AsAdjustment(new { 
-                    workload = 50 
+                .AsAdjustment(new
+                {
+                    workload = 50
                 })
                 .WithChangeRange(changeDate, changeDateEnd));
             #endregion
@@ -199,7 +205,8 @@ namespace Fusion.Resources.Logic.Tests
         {
             ApiPositionInstanceV2 testInstance = null!;
 
-            var testPosition = GeneratePosition(p => {
+            var testPosition = GeneratePosition(p =>
+            {
                 p.WithInstances(s =>
                 {
                     testInstance = s.AddInstance(DateTime.Today.AddDays(-100), TimeSpan.FromDays(200))
@@ -219,7 +226,8 @@ namespace Fusion.Resources.Logic.Tests
             ApiPositionInstanceV2 testInstance = null!;
 
             var testPerson = GenerateTestPerson();
-            var testPosition = GeneratePosition(p => {
+            var testPosition = GeneratePosition(p =>
+            {
                 p.WithInstances(s =>
                 {
                     testInstance = s.AddInstance(DateTime.UtcNow.AddDays(-100), TimeSpan.FromDays(200))
@@ -240,7 +248,6 @@ namespace Fusion.Resources.Logic.Tests
         {
             dbContext.Dispose();
         }
-
 
         private DbResourceAllocationRequest GenerateRequest(ApiPositionInstanceV2 instance, Action<DbResourceAllocationRequest> setup = null)
         {
@@ -296,19 +303,23 @@ namespace Fusion.Resources.Logic.Tests
 
         private ApiPersonProfileV3 GenerateTestPerson() => new FusionTestUserBuilder().SaveProfile();
 
-
         private async Task<(ApiPositionV2, string)> RunProvisioningAsync(DbResourceAllocationRequest request)
         {
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
+            var httpClientMock = new Mock<IOrgHttpClient>();
+            httpClientMock.Setup(c => c.SendAsync<JObject>(It.IsAny<HttpRequestMessage>())).Returns(RequestResponse<JObject>.FromResponseAsync(new HttpResponseMessage(HttpStatusCode.OK)));    
+
             var cmd = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest(request.Id);
-            var handler = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest.Handler(dbContext, factoryMock.Object)
+            var handler = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest.Handler(dbContext, factoryMock.Object, httpClientMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest>;
             await handler.Handle(cmd, CancellationToken.None);
-
-            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
+            
+            var i = httpClientMock.Invocations
+                .SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
                 .FirstOrDefault(m => m.Method == HttpMethod.Put);
+            
             var postedPositionJson = await i.Content.ReadAsStringAsync();
             var postedPosition = JsonConvert.DeserializeObject<ApiPositionV2>(postedPositionJson);
 
