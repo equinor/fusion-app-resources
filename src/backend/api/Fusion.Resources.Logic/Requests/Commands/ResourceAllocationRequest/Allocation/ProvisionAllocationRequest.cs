@@ -109,7 +109,6 @@ namespace Fusion.Resources.Logic.Commands
 
                         var updateResp
                             = await httpClient.SendAsync<ApiPositionInstanceV2>(request);
-                            //= await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
 
                         if (!updateResp.IsSuccessStatusCode)
                             throw new OrgApiError(updateResp.Response, updateResp.Content);

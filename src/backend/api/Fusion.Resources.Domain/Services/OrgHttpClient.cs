@@ -13,8 +13,10 @@ public class OrgHttpClient : IOrgHttpClient
     private readonly IFusionTokenProvider _tokenProvider;
     private readonly HttpClient _httpClient;
 
-    public OrgHttpClient(HttpClient httpClient)
+    public OrgHttpClient(IFusionEndpointResolver endpointResolver, IFusionTokenProvider tokenProvider, HttpClient httpClient)
     {
+        _endpointResolver = endpointResolver;
+        _tokenProvider = tokenProvider;
         _httpClient = httpClient;
     }
 

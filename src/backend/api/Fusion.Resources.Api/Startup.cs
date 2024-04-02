@@ -113,7 +113,7 @@ namespace Fusion.Resources.Api
             services.AddHttpClient<IOrgHttpClient, OrgHttpClient>(client =>
             {
                 client.BaseAddress = new Uri("http://not-implemented-here-but-in-client.com");
-                client.Timeout = TimeSpan.FromSeconds(60 * 10);
+                client.Timeout = TimeSpan.FromMinutes(10);
             });
 
             // Keeping for reference - The validator is not added to the .net core validation pipeline. This is due to limitations in running async 
