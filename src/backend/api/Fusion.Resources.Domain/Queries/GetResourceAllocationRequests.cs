@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using FluentValidation;
 using Fusion.Resources.Domain.Commands.Tasks;
 using static Fusion.Resources.Domain.Queries.GetResourceAllocationRequestItem;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -191,13 +192,16 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IMediator mediator;
             private const int DefaultPageSize = 100;
             private readonly IFusionLogger<GetResourceAllocationRequests> log;
+            private readonly IMemoryCache memoryCache;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IFusionLogger<GetResourceAllocationRequests> log)
+
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IFusionLogger<GetResourceAllocationRequests> log, IMemoryCache memoryCache)
             {
                 this.db = db;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
                 this.log = log;
+                this.memoryCache = memoryCache;
             }
 
             public async Task<QueryRangedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
@@ -230,7 +234,7 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("id", i => i.Id);
                         // Casting long to int as long is not suported in filter field. This should work for a while until long is supported
                         // TECHDEPT: Update odata filter package to support long as type
-                        m.MapField("number", i => (int)i.RequestNumber); 
+                        m.MapField("number", i => (int)i.RequestNumber);
                         m.MapField("discipline", i => i.Discipline);
                         m.MapField("isDraft", i => i.IsDraft);
                         m.MapField("project.id", i => i.Project.OrgProjectId);
@@ -386,9 +390,12 @@ namespace Fusion.Resources.Domain.Queries
                 if ((expands.HasFlag(ExpandFields.OrgPosition) || expands.HasFlag(ExpandFields.OrgPositionInstance)) == false)
                     return;
 
+                // because there are many requests that refers to deleted positions, we will cache these and not try to resolve them to avoid to many 404s
+                var requestsWithoutDeletedPosition = requestItems.Where(r => r.OrgPositionId.HasValue && !MemCacheContains(r.OrgPositionId)).ToList();
+
                 // Expand org position.
                 var resolvedOrgChartPositions =
-                    (await orgResolver.ResolvePositionsAsync(requestItems.Where(r => r.OrgPositionId.HasValue)
+                    (await orgResolver.ResolvePositionsAsync(requestsWithoutDeletedPosition.Where(r => r.OrgPositionId.HasValue)
                         .Select(r => r.OrgPositionId!.Value))).ToList();
 
                 // If none resolved, return.
@@ -405,7 +412,17 @@ namespace Fusion.Resources.Domain.Queries
                     {
                         req.WithResolvedOriginalPosition(position, expands.HasFlag(ExpandFields.OrgPositionInstance) ? req.OrgPositionInstanceId : null);
                     }
+                    else if (!MemCacheContains(req.OrgPositionId))
+                    {
+                        // Set timeout of cache to 7 days so that we don't get an unmanageable cache size
+                        memoryCache.Set(req.OrgPositionId, req.OrgPositionId, TimeSpan.FromDays(7));
+                    }
                 }
+            }
+
+            private bool MemCacheContains(Guid? id)
+            {
+                return memoryCache.TryGetValue(id, out id);
             }
 
             private async Task AddWorkFlows(List<QueryResourceAllocationRequest> requestItems)
@@ -442,7 +459,7 @@ namespace Fusion.Resources.Domain.Queries
                     if (id is not null && profiles.ContainsKey(id.Value))
                     {
                         request.ProposedPerson!.Person = profiles[id.Value];
-                        
+
                         if(!expands.HasFlag(ExpandFields.ResourceOwner)) continue;
                         var manager = await mediator.Send(new GetResourceOwner(id.Value));
                         if (manager?.FullDepartment != null)
