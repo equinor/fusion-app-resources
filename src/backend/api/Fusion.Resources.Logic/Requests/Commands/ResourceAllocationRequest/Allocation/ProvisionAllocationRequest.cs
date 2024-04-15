@@ -61,7 +61,7 @@ namespace Fusion.Resources.Logic.Commands
                             {
                                 retriesCounter++;
 
-                                var p = await client.GetAsync<ApiPositionV2>($"/projects/{projectId}/drafts/{draftId}/positions/{positionId}");
+                                var p = await client.GetAsync<ApiPositionV2>($"/projects/{projectId}/drafts/{draftId}/positions/{positionId}?api-version=2.0");
 
                                 if( !p.IsSuccessStatusCode )
                                 {
