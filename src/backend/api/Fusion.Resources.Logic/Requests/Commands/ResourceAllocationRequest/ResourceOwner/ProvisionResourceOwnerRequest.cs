@@ -257,7 +257,6 @@ namespace Fusion.Resources.Logic.Commands
                         }
                     }
 
-
                     private async Task UpdateFutureSplitAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
                         // Update existing 
@@ -271,8 +270,6 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (dbRequest.ProposedPerson.AzureUniqueId != null)
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
-
-                        
 
                         if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);

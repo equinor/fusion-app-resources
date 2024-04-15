@@ -2,6 +2,7 @@
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
@@ -46,7 +47,40 @@ namespace Fusion.Resources.Logic.Commands
                             throw new InvalidOperationException("Position id cannot be empty when provisioning request");
 
                         var position = await client.GetPositionV2Async(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value);
+
                         var draft = await CreateProvisionDraftAsync(dbRequest);
+
+                        var projectId = position.ProjectId;
+                        var positionId = position.Id;
+                        var draftId = draft.Id;
+
+                        var retriesCounter = 0;
+
+                        while(true)
+                        {
+                            try
+                            {
+                                retriesCounter++;
+
+                                var p = await client.GetAsync<ApiPositionV2>($"/projects/{projectId}/drafts/{draftId}/positions/{positionId}");
+
+                                if( !p.IsSuccessStatusCode )
+                                {
+                                    throw new Exception($"Unable to find position, it is not ready? Retry attempt {retriesCounter}");
+                                }
+
+                                break;
+                            }
+                            catch (Exception e)
+                            {
+                                Thread.Sleep(1000);
+
+                                if (retriesCounter > 3)
+                                {
+                                    throw new Exception("Unable to find position after retry attempts", e);
+                                }
+                            }
+                        }
 
                         await AllocateRequestInstanceAsync(dbRequest, draft, position);
 
@@ -65,7 +99,6 @@ namespace Fusion.Resources.Logic.Commands
                         if (instance is null)
                             throw new InvalidOperationException("Could not locate instance request targets on the position.");
 
-
                         var instancePatchRequest = new JObject();
                         var proposedChanges = new JObject();
                         if (!string.IsNullOrEmpty(dbRequest.ProposedChanges))
@@ -75,7 +108,6 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             if (dbRequest.ProposedPerson.AzureUniqueId != null)
                                 instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
-
 
                             if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                                 instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
