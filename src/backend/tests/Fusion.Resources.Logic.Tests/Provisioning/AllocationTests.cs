@@ -9,6 +9,7 @@ using Fusion.Resources.Logic.Workflows;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using MediatR;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -65,16 +66,6 @@ namespace Fusion.Resources.Logic.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, Status = "Published" }), Encoding.UTF8, "application/json")
             });
 
-            // Must mock getting position
-            orgClientMock.Setup(c => c.GetAsync<ApiPositionV2>($"/projects/{testProjectId}/drafts/{draftId}/positions/{positionId}?api-version=2.0")).Returns(RequestResponse<ApiPositionV2>.FromResponseAsync(new HttpResponseMessage
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(new ApiPositionV2()
-                {
-                    Id = draftId,
-                    ProjectId = testProjectId
-                }), Encoding.UTF8, "application/json")
-            }));
         }
 
 
@@ -434,6 +425,13 @@ namespace Fusion.Resources.Logic.Tests
             setup(testPosition);
 
             orgClientMock.Setup(c => c.GetPositionV2Async(It.Is<OrgProjectId>(id => id.ProjectId == testProjectId), testPosition.Id, null)).ReturnsAsync(testPosition);
+            
+            // Not including the ?api-version=2.0 as this breaks the regex check.
+            orgClientMock.Setup(c => c.SendAsync(MockRequest.GET($"/projects/{testProjectId}/drafts/{draftId}/positions/{testPosition.Id}"))).ReturnsAsync(new HttpResponseMessage()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(testPosition), Encoding.UTF8, "application/json")
+            });
 
             return testPosition;
         }
@@ -446,7 +444,7 @@ namespace Fusion.Resources.Logic.Tests
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
-            var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);
+            var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);           
             var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.Allocation.ProvisionAllocationRequest>;
             await handler.Handle(cmd, CancellationToken.None);
