@@ -49,7 +49,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         var draft = await CreateProvisionDraftAsync(dbRequest);
 
-                        var projectId = position.ProjectId;
+                        var projectId = dbRequest.ProjectId;
                         var positionId = position.Id;
                         var draftId = draft.Id;
 

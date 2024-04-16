@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Azure;
+using FluentAssertions;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
@@ -31,6 +32,7 @@ namespace Fusion.Resources.Logic.Tests
         Mock<IOrgApiClient> orgClientMock;
         private readonly Guid testProjectId;
         private readonly Guid draftId;
+        private readonly Guid positionId;
 
         public AllocationTests()
         {
@@ -41,6 +43,7 @@ namespace Fusion.Resources.Logic.Tests
             dbContext = new ResourcesDbContext(options);
             testProjectId = Guid.NewGuid();
             draftId = Guid.NewGuid();
+            positionId = Guid.NewGuid();
 
             orgClientMock = new Mock<IOrgApiClient>();
 
@@ -61,6 +64,17 @@ namespace Fusion.Resources.Logic.Tests
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, Status = "Published" }), Encoding.UTF8, "application/json")
             });
+
+            // Must mock getting position
+            orgClientMock.Setup(c => c.GetAsync<ApiPositionV2>($"/projects/{testProjectId}/drafts/{draftId}/positions/{positionId}?api-version=2.0")).Returns(RequestResponse<ApiPositionV2>.FromResponseAsync(new HttpResponseMessage
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(new ApiPositionV2()
+                {
+                    Id = draftId,
+                    ProjectId = testProjectId
+                }), Encoding.UTF8, "application/json")
+            }));
         }
 
 
