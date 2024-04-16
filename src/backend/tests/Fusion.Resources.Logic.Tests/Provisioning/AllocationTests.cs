@@ -444,8 +444,12 @@ namespace Fusion.Resources.Logic.Tests
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
-            var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);           
-            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object)
+            var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);
+
+            // Add telemetry client that does not send any telemetry.
+            var mockTelemetryClient = new Microsoft.ApplicationInsights.TelemetryClient(new TelemetryConfiguration() { DisableTelemetry = true });
+
+            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(mockTelemetryClient, dbContext, factoryMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.Allocation.ProvisionAllocationRequest>;
             await handler.Handle(cmd, CancellationToken.None);
 

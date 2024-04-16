@@ -1,7 +1,9 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using MediatR;
+using Microsoft.ApplicationInsights;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
@@ -28,11 +30,13 @@ namespace Fusion.Resources.Logic.Commands
                 public class Handler : IRequestHandler<ProvisionAllocationRequest>
                 {
                     private IOrgApiClient client;
+                    private readonly TelemetryClient telemetry;
                     private ResourcesDbContext resourcesDb;
 
-                    public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
+                    public Handler(TelemetryClient telemetry, ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
                     {
                         this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                        this.telemetry = telemetry;
                         this.resourcesDb = resourcesDb;
                     }
 
@@ -45,45 +49,76 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest?.OrgPositionId is null)
                             throw new InvalidOperationException("Position id cannot be empty when provisioning request");
 
+
                         var position = await client.GetPositionV2Async(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value);
 
                         var draft = await CreateProvisionDraftAsync(dbRequest);
+                        await EnsureDraftInitializedAsync(dbRequest, draft.Id);
 
-                        var projectId = dbRequest.ProjectId;
-                        var positionId = position.Id;
+
                         var draftId = draft.Id;
+
+                        await AllocateRequestInstanceAsync(dbRequest, draft, position);
+
+                        draft = await client.PublishAndWaitAsync(draft);
+                    }
+
+                    /// <summary>
+                    /// From time to time the org service might take a while to initialize the draft. 
+                    /// Ensure that the org service has initialized the draft by requesting the position. This should trigger the draft to start initializing. 
+                    /// Give it a few retries to be fault tolerant.
+                    /// </summary>
+                    /// <param name="orgProjectId">The org chart id</param>
+                    /// <param name="draftId">Draft to ensure initialized</param>
+                    /// <param name="orgPositionId">Any existing position, should be the one we want to provision</param>
+                    /// <exception cref="Exception"></exception>
+                    private async Task EnsureDraftInitializedAsync(DbResourceAllocationRequest dbRequest, Guid draftId)
+                    {
+                        if (dbRequest.OrgPositionId is null)
+                            throw new ArgumentNullException(nameof(dbRequest.OrgPositionId), "Request position id property cannot be null");
+
+                        var orgProjectId = dbRequest.Project.OrgProjectId;
+                        var orgPositionId = dbRequest.OrgPositionId.Value; 
 
                         var retriesCounter = 0;
 
-                        while(true)
+                        while (true)
                         {
                             try
                             {
                                 retriesCounter++;
 
-                                var p = await client.GetAsync<ApiPositionV2>($"/projects/{projectId}/drafts/{draftId}/positions/{positionId}?api-version=2.0");
+                                var p = await client.GetAsync<ApiPositionV2>($"/projects/{orgProjectId}/drafts/{draftId}/positions/{orgPositionId}?api-version=2.0");
 
-                                if( !p.IsSuccessStatusCode )
+                                if (!p.IsSuccessStatusCode)
                                 {
-                                    throw new Exception($"Unable to find position, it is not ready? Retry attempt {retriesCounter}");
+                                    telemetry.TrackTrace($"Response from org [{p.StatusCode}]: {p.Content}", Microsoft.ApplicationInsights.DataContracts.SeverityLevel.Error);
+                                    throw new Exception($"Org api returned non successfull response when fetching position for draft initialization. Response code [{p.StatusCode}]");
                                 }
-
+                                
                                 break;
                             }
                             catch (Exception e)
                             {
-                                Thread.Sleep(1000);
+                                // Thread.Sleep is blocking, this will block the whole server thread, not just the request... must use async
+                                // Thread.Sleep(1000);
+
+                                await Task.Delay(1000);
 
                                 if (retriesCounter > 3)
                                 {
-                                    throw new Exception("Unable to find position after retry attempts", e);
+                                    telemetry.TrackFusionCriticalEvent("Could not initialize draft for provisioning request", t => t
+                                        .WithProperty("orgProjectId", $"{orgProjectId}")
+                                        .WithProperty("orgPositionId", $"{orgPositionId}")
+                                        .WithProperty("requestId", $"{dbRequest.Id}")
+                                        .WithProperty("requestNumber", $"{dbRequest.RequestNumber}")
+                                        .WithProperty("orgDraftId", $"{draftId}")
+                                        .WithProperty("application", "FRA"));
+
+                                    throw new Exception($"Could not initialize draft with id {draftId} on project {orgProjectId} for request {dbRequest.Id}", e);
                                 }
                             }
                         }
-
-                        await AllocateRequestInstanceAsync(dbRequest, draft, position);
-
-                        draft = await client.PublishAndWaitAsync(draft);
                     }
 
                     private async Task<ApiDraftV2> CreateProvisionDraftAsync(DbResourceAllocationRequest dbRequest)
