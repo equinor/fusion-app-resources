@@ -100,9 +100,6 @@ namespace Fusion.Resources.Logic.Commands
                             }
                             catch (Exception e)
                             {
-                                // Thread.Sleep is blocking, this will block the whole server thread, not just the request... must use async
-                                // Thread.Sleep(1000);
-
                                 await Task.Delay(1000);
 
                                 if (retriesCounter > 3)
