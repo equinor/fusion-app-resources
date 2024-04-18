@@ -301,6 +301,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task Options_As_NormalEmployee_Should_Be_Able_To_Get_DelegatedResourceOwners()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP5";
+            fixture.EnsureDepartment(testDepartment, testSector);
+
+            var employee = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.UserScope(employee);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, GET");
+        }
+
+        [Fact]
+        public async Task Options_As_Consultant_Should_Be_Able_To_Get_DelegatedResourceOwners()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP5";
+            fixture.EnsureDepartment(testDepartment, testSector);
+
+            var employee = fixture.AddProfile(FusionAccountType.Consultant);
+
+            using var adminScope = fixture.UserScope(employee);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, GET");
+        }
+
+        [Fact]
         public async Task AddDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
         {
             var testDepartment = "TPD LIN ORG TST";
@@ -440,8 +470,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddDepartment(department, children);
             LineOrgServiceMock.AddDepartment("PDP TST", siblings);
 
-            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
-            foreach (var child in children) fixture.EnsureDepartment(child);
+            foreach (var sibling in siblings)
+                fixture.EnsureDepartment(sibling);
+            foreach (var child in children)
+                fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -472,8 +504,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddDepartment(department, children);
             LineOrgServiceMock.AddDepartment("PDP TST", siblings);
 
-            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
-            foreach (var child in children) fixture.EnsureDepartment(child);
+            foreach (var sibling in siblings)
+                fixture.EnsureDepartment(sibling);
+            foreach (var child in children)
+                fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -498,8 +532,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddDepartment(department, children);
             LineOrgServiceMock.AddDepartment("PDP TST", siblings);
 
-            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
-            foreach (var child in children) fixture.EnsureDepartment(child);
+            foreach (var sibling in siblings)
+                fixture.EnsureDepartment(sibling);
+            foreach (var child in children)
+                fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -525,8 +561,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddDepartment(department, children);
             LineOrgServiceMock.AddDepartment("PDP TST", siblings);
 
-            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
-            foreach (var child in children) fixture.EnsureDepartment(child);
+            foreach (var sibling in siblings)
+                fixture.EnsureDepartment(sibling);
+            foreach (var child in children)
+                fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();

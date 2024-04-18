@@ -79,6 +79,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.LimitedAccessWhen(or =>
                 {
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                    or.BeEmployee();
+                    or.BeConsultant();
                 });
             });
 
@@ -117,13 +119,24 @@ namespace Fusion.Resources.Api.Controllers
                     or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
                 });
+                r.LimitedAccessWhen(or =>
+                {
+                    or.BeEmployee();
+                    or.BeConsultant();
+
+                });
             });
 
             #endregion Authorization
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
+
             var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString).IgnoreDateFilter(shouldIgnoreDateFilter));
+            if (authResult.LimitedAuth)
+            {
+                return departmentResourceOwners.Select(x => ApiDepartmentResponsible.CreateLimitedDelegatedResponsible(x)).ToList();
+            }
 
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
