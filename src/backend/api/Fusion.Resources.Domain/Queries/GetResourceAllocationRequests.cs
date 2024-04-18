@@ -422,6 +422,9 @@ namespace Fusion.Resources.Domain.Queries
 
             private bool MemCacheContains(Guid? id)
             {
+                if (id == null)
+                    return false;
+
                 return memoryCache.TryGetValue(id, out id);
             }
 
