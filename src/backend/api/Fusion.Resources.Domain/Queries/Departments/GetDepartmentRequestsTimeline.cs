@@ -6,6 +6,7 @@ using Fusion.Resources.Database.Entities;
 using Itenso.TimePeriod;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,11 +55,15 @@ namespace Fusion.Resources.Domain
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IMemoryCache deletedPositionMemoryCache;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver)
+
+
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMemoryCache memoryCache)
             {
                 this.db = db;
                 this.orgResolver = orgResolver;
+                this.deletedPositionMemoryCache = memoryCache;
             }
 
             public async Task<QueryRequestsTimeline> Handle(GetDepartmentRequestsTimeline request, CancellationToken cancellationToken)
@@ -77,20 +82,29 @@ namespace Fusion.Resources.Domain
                     query = query.Where(c => c.State.IsCompleted == false);
 
                 var items = await query
-                    .OrderBy(x => x.Id) 
-                    .ToListAsync(); 
-                    
+                    .OrderBy(x => x.Id)
+                    .ToListAsync();
+
 
                 var departmentRequests = new List<QueryResourceAllocationRequest>(items.Select(x => new QueryResourceAllocationRequest(x)));
-                
+
                 foreach (var departmentRequest in departmentRequests)
                 {
                     if (departmentRequest.OrgPositionId != null)
                     {
+                        // If memoryCache already contains OrgPositionId we don't want to check it again
+                        if (MemCacheContains(departmentRequest.OrgPositionId))
+                            continue;
+
                         var position = await orgResolver.ResolvePositionAsync(departmentRequest.OrgPositionId.Value);
                         if (position != null)
                         {
                             departmentRequest.WithResolvedOriginalPosition(position, departmentRequest.OrgPositionInstanceId);
+                        }
+                        else if (position == null && !MemCacheContains(departmentRequest.OrgPositionId))
+                        {
+                            // Set timeout of cache to 7 days so that we don't get an unmanageable cache size
+                            deletedPositionMemoryCache.Set(departmentRequest.OrgPositionId, departmentRequest.OrgPositionId, TimeSpan.FromDays(7));
                         }
                     }
                 }
@@ -107,7 +121,7 @@ namespace Fusion.Resources.Domain
                     filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
                 var relevantRequests = TimelineUtils.FilterRequests(departmentRequests, new TimeRange(filterStart, filterEnd)).ToList();
-                
+
                 var timeline = TimelineUtils.GenerateRequestsTimeline(relevantRequests, filterStart, filterEnd).OrderBy(p => p.AppliesFrom)
                             .ToList();
 
@@ -117,6 +131,13 @@ namespace Fusion.Resources.Domain
                     Requests = relevantRequests
                 };
                 return result;
+            }
+            private bool MemCacheContains(Guid? id)
+            {
+                if (id == null)
+                    return false;
+
+                return deletedPositionMemoryCache.TryGetValue(id, out id);
             }
         }
     }
