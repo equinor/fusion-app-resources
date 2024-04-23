@@ -52,7 +52,8 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
         [MapToApiVersion("2.0")]
         [HttpGet("/projects/{projectId}/positions/{positionId}")]
-        public ActionResult<ApiPositionV2> GetPosition(string projectId, Guid positionId)
+        [HttpGet("/projects/{projectId}/drafts/{draftId}/positions/{positionId}")]
+        public ActionResult<ApiPositionV2> GetPosition(string projectId, Guid? draftId, Guid positionId)
         {
             var position = OrgServiceMock.positions.FirstOrDefault(p => p.Id == positionId);
 
