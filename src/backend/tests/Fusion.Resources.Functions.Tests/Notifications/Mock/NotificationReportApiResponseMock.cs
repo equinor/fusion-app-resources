@@ -8,21 +8,6 @@ namespace Fusion.Resources.Functions.Tests.Notifications.Mock;
 
 public abstract class NotificationReportApiResponseMock
 {
-    public static List<ApiChangeLogEvent> GetMockedChangeLogEvents()
-    {
-        // Loop through the ChangeType enum and create a list of ApiChangeLogEvent objects
-        var events = new List<ApiChangeLogEvent>();
-        foreach (var changeType in Enum.GetValues<ChangeType>())
-        {
-            events.Add(new ApiChangeLogEvent
-            {
-                ChangeType = changeType.ToString(),
-                TimeStamp = DateTime.UtcNow
-            });
-        }
-
-        return events;
-    }
 
     public static List<IResourcesApiClient.InternalPersonnelPerson> GetMockedInternalPersonnel(
         double personnelCount,
@@ -67,10 +52,62 @@ public abstract class NotificationReportApiResponseMock
                             AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
                             AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
                             Workload = workload,
+                            AllocationState = null,
+                            AllocationUpdated = null,
                         }
                     }
             }
             );
+            ;
+        }
+
+        return personnel;
+    }
+
+    public static List<IResourcesApiClient.InternalPersonnelPerson> GetMockedInternalPersonnelWithAllocationUpdated(
+      double personnelCount
+      )
+    {
+        var personnel = new List<IResourcesApiClient.InternalPersonnelPerson>();
+        for (var i = 0; i < personnelCount; i++)
+        {
+            personnel.Add(new IResourcesApiClient.InternalPersonnelPerson()
+            {
+                PositionInstances = new List<IResourcesApiClient.PersonnelPosition>
+                    {
+                        new()
+                        {
+                            AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
+                            AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
+                            AllocationState = null,
+                            AllocationUpdated = null,
+                        },
+                        new()
+                        {
+                            AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
+                            AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
+                            AllocationState = "ChangeByTaskOwner",
+                            AllocationUpdated = DateTime.UtcNow,
+                        },
+                        new()                           
+                        {
+                            AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
+                            AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
+                            AllocationState = "ChangeByTaskOwner",
+                            AllocationUpdated = DateTime.UtcNow.AddDays(-10),
+                        },
+                        new()                           
+                        {
+                            AppliesFrom = DateTime.UtcNow.AddDays(91),
+                            AppliesTo = DateTime.UtcNow.AddDays(60 + i * 10),
+                            AllocationState = "ChangeByTaskOwner",
+                            AllocationUpdated = DateTime.UtcNow,
+                        }
+
+                    }
+            }
+            );
+            ;
         }
 
         return personnel;
