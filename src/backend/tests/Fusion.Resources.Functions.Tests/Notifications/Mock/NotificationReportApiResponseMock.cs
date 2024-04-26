@@ -51,9 +51,7 @@ public abstract class NotificationReportApiResponseMock
                         {
                             AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
                             AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
-                            Workload = workload,
-                            AllocationState = null,
-                            AllocationUpdated = null,
+                            Workload = workload
                         }
                     }
             }
@@ -64,19 +62,19 @@ public abstract class NotificationReportApiResponseMock
         return personnel;
     }
 
-    public static List<IResourcesApiClient.InternalPersonnelPerson> GetMockedInternalPersonnelWithAllocationUpdated(
-      double personnelCount
-      )
+    public static List<IResourcesApiClient.InternalPersonnelPerson> GetMockedInternalPersonnelWithInstancesWithAndWithoutChanges(double personnelCount)
     {
         var personnel = new List<IResourcesApiClient.InternalPersonnelPerson>();
         for (var i = 0; i < personnelCount; i++)
         {
             personnel.Add(new IResourcesApiClient.InternalPersonnelPerson()
             {
+                // Should return 4 instances for each person
                 PositionInstances = new List<IResourcesApiClient.PersonnelPosition>
                     {
                         new()
                         {
+                            // One active instance without any changes
                             AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
                             AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
                             AllocationState = null,
@@ -84,26 +82,28 @@ public abstract class NotificationReportApiResponseMock
                         },
                         new()
                         {
+                            // One active instance that contains changes done within the last week
                             AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
                             AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
                             AllocationState = "ChangeByTaskOwner",
                             AllocationUpdated = DateTime.UtcNow,
                         },
-                        new()                           
+                        new()
                         {
+                            // One active instance that contains changes done more than a week ago
                             AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
                             AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
                             AllocationState = "ChangeByTaskOwner",
-                            AllocationUpdated = DateTime.UtcNow.AddDays(-10),
+                            AllocationUpdated = DateTime.UtcNow.AddDays(-8),
                         },
-                        new()                           
+                        new()
                         {
-                            AppliesFrom = DateTime.UtcNow.AddDays(91),
-                            AppliesTo = DateTime.UtcNow.AddDays(60 + i * 10),
+                            // One instance that will become active in more than 3 months that contains changes
+                            AppliesFrom = DateTime.UtcNow.AddMonths(4),
+                            AppliesTo = DateTime.UtcNow.AddMonths(4 + i),
                             AllocationState = "ChangeByTaskOwner",
                             AllocationUpdated = DateTime.UtcNow,
                         }
-
                     }
             }
             );

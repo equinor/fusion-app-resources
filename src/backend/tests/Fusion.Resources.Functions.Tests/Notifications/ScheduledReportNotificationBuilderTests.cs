@@ -12,11 +12,12 @@ namespace Fusion.Resources.Functions.Tests.Notifications;
 public class ScheduledReportNotificationBuilderTests
 {
     [Fact]
-    public void GetProjectChanges_ShouldReturnCountOfRelevantEventsForNextThreeMonths() // Need renaming
+    public void GetChangesForDepartment_Should_ResultInNumberOfChanges()
     {
         // Arrange
         const int personnelCount = 4;
-        var personnel = NotificationReportApiResponseMock.GetMockedInternalPersonnelWithAllocationUpdated(
+        // Returns 4 different instances pr personnel
+        var personnel = NotificationReportApiResponseMock.GetMockedInternalPersonnelWithInstancesWithAndWithoutChanges(
             personnelCount);
 
         // Act
