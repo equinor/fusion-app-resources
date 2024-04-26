@@ -13,6 +13,10 @@ namespace Fusion.Resources.Logic.Tests
         {
             return It.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Post && IsUri(r, uri));
         }
+        public static HttpRequestMessage GET(string uri)
+        {
+            return It.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Get && IsUri(r, uri));
+        }
 
         private static bool IsUri(HttpRequestMessage request, string uri)
         {
