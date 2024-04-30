@@ -150,19 +150,34 @@ public abstract class ResourceOwnerReportDataCreator
             .Count;
     }
 
-    public static int GetProjectChangesAffectingNextThreeMonths(
-        IEnumerable<ApiChangeLogEvent> allRelevantEvents)
+    public static int CalculateDepartmentChangesLastWeek(IEnumerable<IResourcesApiClient.InternalPersonnelPerson> internalPersonnel)
     {
-        return allRelevantEvents
-            .Where(ev => ev.ChangeType == ChangeType.PositionInstancePercentChanged.ToString()
-                         || ev.ChangeType == ChangeType.PositionInstanceLocationChanged.ToString()
-                         || ev.ChangeType == ChangeType.PositionInstanceAppliesFromChanged.ToString()
-                         || ev.ChangeType == ChangeType.PositionInstanceAppliesToChanged.ToString())
-            .ToList().Count;
+        /* 
+         * How we calculate the changes:
+         * Find all active instanses or all instanses for each personnel that starts within 3 months
+         * To find the instances that have changes related to them:
+         * Find all instances that have the field "AllocationState" not set to null
+         * Find all instances where AllocationUpdated > 7 days ago
+        */
+
+        var threeMonthsFromToday = DateTime.UtcNow.AddMonths(3);
+        var today = DateTime.UtcNow;
+        var weekBackInTime = DateTime.UtcNow.AddDays(-7);
+
+        // Find all active (IsActive) instances or instances that have start date (appliesFrom) > threeMonthsFromToday
+        var instancesThatAreActiveOrBecomesActiveWithinThreeMonths = internalPersonnel
+            .SelectMany(per => per.PositionInstances
+            .Where(pis => (pis.AppliesFrom < threeMonthsFromToday && pis.AppliesFrom > today) || pis.AppliesTo > today || pis.IsActive));
+
+        var instancesWithAllocationStateSetAndAllocationUpdateWithinLastWeek = instancesThatAreActiveOrBecomesActiveWithinThreeMonths
+            .Where(per => per.AllocationState != null)
+            .Where(pos => pos.AllocationUpdated != null && pos.AllocationUpdated > weekBackInTime).ToList();
+
+        return instancesWithAllocationStateSetAndAllocationUpdateWithinLastWeek.Count();
     }
 
     public static IEnumerable<AllocatedPersonWithNoFutureAllocation> GetPersonnelPositionsEndingWithNoFutureAllocation(
-        IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
+     IEnumerable<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
     {
         return listOfInternalPersonnel
             .Where(AllocatedPersonWithNoFutureAllocation.GotFutureAllocation)

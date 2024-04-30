@@ -84,8 +84,6 @@ public class ScheduledReportContentBuilderFunction
         // Personnel for the department
         var departmentPersonnel =
             (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
-        // Get relevant change log events
-        var departmentChangeLogEvents = await GetChangeLogEvents(departmentPersonnel);
 
         var sendNotification = await _notificationsClient.SendNotification(
             new SendNotificationsRequest
@@ -93,7 +91,7 @@ public class ScheduledReportContentBuilderFunction
                 Title = $"Weekly summary - {fullDepartment}",
                 EmailPriority = 1,
                 Card = CreateResourceOwnerAdaptiveCard(departmentPersonnel, departmentRequests,
-                    departmentChangeLogEvents, fullDepartment, departmentSapId),
+                    fullDepartment, departmentSapId),
                 Description = $"Weekly report for department - {fullDepartment}"
             },
             azureUniqueId);
@@ -148,15 +146,14 @@ public class ScheduledReportContentBuilderFunction
         });
 
         return (from value in data.Values.ToList()
-            from item in value.Events
-            where listAllRelevantInstanceIds.Contains(item.InstanceId)
-            select item).ToList();
+                from item in value.Events
+                where listAllRelevantInstanceIds.Contains(item.InstanceId)
+                select item).ToList();
     }
 
     private AdaptiveCard CreateResourceOwnerAdaptiveCard(
         List<InternalPersonnelPerson> personnel,
         List<ResourceAllocationRequest> requests,
-        List<ApiChangeLogEvent> events,
         string departmentIdentifier, string departmentSapId)
     {
         var personnelAllocationUri = $"{PortalUri()}apps/personnel-allocation/{departmentSapId}";
@@ -224,7 +221,7 @@ public class ScheduledReportContentBuilderFunction
                 ResourceOwnerReportDataCreator.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
                 "Allocation changes awaiting task owner action"))
             .AddColumnSet(new AdaptiveCardColumn(
-                ResourceOwnerReportDataCreator.GetProjectChangesAffectingNextThreeMonths(events).ToString(),
+                ResourceOwnerReportDataCreator.CalculateDepartmentChangesLastWeek(personnel).ToString(),
                 "Project changes last week affecting next 3 months"))
             .AddListContainer("Allocations ending soon with no future allocation:", endingPositionsObjectList)
             .AddListContainer("Personnel with more than 100% workload:", personnelMoreThan100PercentObjectList)

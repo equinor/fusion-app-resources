@@ -8,21 +8,6 @@ namespace Fusion.Resources.Functions.Tests.Notifications.Mock;
 
 public abstract class NotificationReportApiResponseMock
 {
-    public static List<ApiChangeLogEvent> GetMockedChangeLogEvents()
-    {
-        // Loop through the ChangeType enum and create a list of ApiChangeLogEvent objects
-        var events = new List<ApiChangeLogEvent>();
-        foreach (var changeType in Enum.GetValues<ChangeType>())
-        {
-            events.Add(new ApiChangeLogEvent
-            {
-                ChangeType = changeType.ToString(),
-                TimeStamp = DateTime.UtcNow
-            });
-        }
-
-        return events;
-    }
 
     public static List<IResourcesApiClient.InternalPersonnelPerson> GetMockedInternalPersonnel(
         double personnelCount,
@@ -66,11 +51,63 @@ public abstract class NotificationReportApiResponseMock
                         {
                             AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
                             AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
-                            Workload = workload,
+                            Workload = workload
                         }
                     }
             }
             );
+            ;
+        }
+
+        return personnel;
+    }
+
+    public static List<IResourcesApiClient.InternalPersonnelPerson> GetMockedInternalPersonnelWithInstancesWithAndWithoutChanges(double personnelCount)
+    {
+        var personnel = new List<IResourcesApiClient.InternalPersonnelPerson>();
+        for (var i = 0; i < personnelCount; i++)
+        {
+            personnel.Add(new IResourcesApiClient.InternalPersonnelPerson()
+            {
+                // Should return 4 instances for each person
+                PositionInstances = new List<IResourcesApiClient.PersonnelPosition>
+                    {
+                        new()
+                        {
+                            // One active instance without any changes
+                            AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
+                            AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
+                            AllocationState = null,
+                            AllocationUpdated = null,
+                        },
+                        new()
+                        {
+                            // One active instance that contains changes done within the last week
+                            AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
+                            AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
+                            AllocationState = "ChangeByTaskOwner",
+                            AllocationUpdated = DateTime.UtcNow,
+                        },
+                        new()
+                        {
+                            // One active instance that contains changes done more than a week ago
+                            AppliesFrom = DateTime.UtcNow.AddDays(-1 - i),
+                            AppliesTo = DateTime.UtcNow.AddDays(1 + i * 10),
+                            AllocationState = "ChangeByTaskOwner",
+                            AllocationUpdated = DateTime.UtcNow.AddDays(-8),
+                        },
+                        new()
+                        {
+                            // One instance that will become active in more than 3 months that contains changes
+                            AppliesFrom = DateTime.UtcNow.AddMonths(4),
+                            AppliesTo = DateTime.UtcNow.AddMonths(4 + i),
+                            AllocationState = "ChangeByTaskOwner",
+                            AllocationUpdated = DateTime.UtcNow,
+                        }
+                    }
+            }
+            );
+            ;
         }
 
         return personnel;
