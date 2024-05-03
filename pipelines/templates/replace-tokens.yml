@@ -10,3 +10,5 @@ steps:
       targetFiles: '${{ parameters.targetFiles }}'
       keepToken: ${{ parameters.keepToken }}
       tokenPattern: 'doublebraces'
+      tokenPrefix: '{{'
+      tokenSuffix: '}}'
