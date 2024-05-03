@@ -9,5 +9,4 @@ steps:
     inputs:
       targetFiles: '${{ parameters.targetFiles }}'
       keepToken: ${{ parameters.keepToken }}
-      tokenPrefix: ''
-      tokenSuffix: ''
+      tokenPattern: 'doublebraces'
