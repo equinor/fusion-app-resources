@@ -1,14 +1,13 @@
 parameters:
     targetFiles: ''
-    keepToken: true
     displayName: 'Replace tokens in file'
   
 steps:
   - task: replacetokens@6
     displayName: '${{ parameters.displayName }}'
     inputs:
-      targetFiles: '${{ parameters.targetFiles }}'
-      keepToken: ${{ parameters.keepToken }}
-      tokenPattern: 'doublebraces'
+      sources: '${{ parameters.targetFiles }}'
+      missingVarAction: 'keep'
+      tokenPattern: custom
       tokenPrefix: '{{'
       tokenSuffix: '}}'
