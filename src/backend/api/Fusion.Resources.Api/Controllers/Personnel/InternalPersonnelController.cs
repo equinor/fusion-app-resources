@@ -56,6 +56,7 @@ namespace Fusion.Resources.Api.Controllers
             var sector = new DepartmentPath(fullDepartmentString).Parent();
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
+                //TODO: Testing
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
