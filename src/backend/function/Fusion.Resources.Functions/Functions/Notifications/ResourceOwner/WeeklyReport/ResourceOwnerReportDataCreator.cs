@@ -98,10 +98,19 @@ public abstract class ResourceOwnerReportDataCreator
     public static int GetAverageTimeToHandleRequests(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
+        /*
+         * Average time to handle request: average number of days from request created/sent to candidate is proposed - last 3 months
+         * Calculation:
+         * The number of days that it takes from when a requests is created (which is when the request is sent from Task Owner to ResourceOwner) 
+         * to the requests is handeled by ResourceOwner (proposed person)
+         */
+
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
         var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
+
+        // Not to include requests that are sent by ResourceOwners (ResourceOwnerChange) or requests created more than 3 months ago
         var requestsLastThreeMonthsWithoutResourceOwnerChangeRequest = requests
             .Where(req => req.Created > threeMonthsAgo)
             .Where(r => r.Workflow is not null)
@@ -111,14 +120,17 @@ public abstract class ResourceOwnerReportDataCreator
 
         foreach (var request in requestsLastThreeMonthsWithoutResourceOwnerChangeRequest)
         {
-            if (request.State != null &&
-                request.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase))
+            // If the requests doesnt have state it means that it is in draft. Do not need to check these
+            if (request.State == null)
                 continue;
             if (request.Workflow?.Steps is null)
                 continue;
 
+            // First: find the date for creation (this implies that the request has been sent to resourceowner)
             var dateForCreation = request.Workflow.Steps
                 .FirstOrDefault(step => step.Name.Equals("Created") && step.IsCompleted)?.Completed.Value.DateTime;
+
+            // Second: Find the date for proposed (this implies that resourceowner have handled the request)
             var dateForApproval = request.Workflow.Steps
                 .FirstOrDefault(step => step.Name.Equals("Proposed") && step.IsCompleted)?.Completed.Value.DateTime;
             if (dateForCreation == null || dateForApproval == null)
