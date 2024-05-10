@@ -99,14 +99,14 @@ public abstract class ResourceOwnerReportDataCreator
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         /*
-         * Average time to handle request: average number of days from request created/sent to candidate is proposed - last 12 months
-         * Calculation:
-         * We find all the requests for the last 12 months that are not of type "ResourceOwnerChange" (for the specific Department)
-         * For each of these request we find the number of days that it takes from when a requests is created (which is when the request is sent from Task Owner to ResourceOwner) 
-         * to the requests is handeled by ResourceOwner (a person is proposed). If the request is still being processed it will not have a date for when
-         * it is handled (proposed date), and then we will use todays date.
-         * We then sum up the total amount of days used to handle a request and divide by the total number of requests for which we have found the handle-time
-         */
+                * Average time to handle request: average number of days from request created/sent to candidate is proposed - last 12 months
+                * Calculation:
+                * We find all the requests for the last 12 months that are not of type "ResourceOwnerChange" (for the specific Department)
+                * For each of these request we find the number of days that it takes from when a requests is created (which is when the request is sent from Task Owner to ResourceOwner) 
+                * to the requests is handeled by ResourceOwner (a person is proposed). If the request is still being processed it will not have a date for when
+                * it is handled (proposed date), and then we will use todays date.
+                * We then sum up the total amount of days used to handle a request and divide by the total number of requests for which we have found the handle-time
+                */
 
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
@@ -130,18 +130,23 @@ public abstract class ResourceOwnerReportDataCreator
                 continue;
 
             // First: find the date for creation (this implies that the request has been sent to resourceowner)
-            var dateForCreation = request.Created.Date;
+            var dateForCreation = request.Workflow.Steps
+                .FirstOrDefault(step => step.Name.Equals("Created") && step.IsCompleted)?.Completed.Value.DateTime;
+
+            if (dateForCreation == null)
+                continue;
 
             //Second: Try to find the date for proposed (this implies that resourceowner have handled the request)
-            // if there are no proposal date we will used todays date for calculation 
-            var dateOfApprovalOrToday = request.ProposedPerson?.ProposedAt.Date ?? DateTime.Now;
+            var dateOfApprovalOrToday = request.Workflow.Steps
+                .FirstOrDefault(step => step.Name.Equals("Proposed") && step.IsCompleted)?.Completed.Value.DateTime;
 
-            // Only for testing:
-            //dateOfApprovalOrToday = dateOfApprovalOrToday.Value.AddDays(100);
+            // if there are no proposal date we will used todays date for calculation 
+            dateOfApprovalOrToday = dateOfApprovalOrToday ?? DateTime.UtcNow;
+
 
             requestsHandledByResourceOwner++;
             var timespanDifference = dateOfApprovalOrToday - dateForCreation;
-            var differenceInDays = timespanDifference.TotalDays;
+            var differenceInDays = timespanDifference.Value.TotalDays;
             totalNumberOfDays += differenceInDays;
         }
 
