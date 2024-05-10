@@ -130,18 +130,23 @@ public abstract class ResourceOwnerReportDataCreator
                 continue;
 
             // First: find the date for creation (this implies that the request has been sent to resourceowner)
-            var dateForCreation = request.Created.Date;
+            var dateForCreation = request.Workflow.Steps
+                .FirstOrDefault(step => step.Name.Equals("Created") && step.IsCompleted)?.Completed.Value.DateTime;
+
+            if (dateForCreation == null)
+                continue;
 
             //Second: Try to find the date for proposed (this implies that resourceowner have handled the request)
-            // if there are no proposal date we will used todays date for calculation 
-            var dateOfApprovalOrToday = request.ProposedPerson?.ProposedAt.Date ?? DateTime.Now;
+            var dateOfApprovalOrToday = request.Workflow.Steps
+                .FirstOrDefault(step => step.Name.Equals("Proposed") && step.IsCompleted)?.Completed.Value.DateTime;
 
-            // Only for testing:
-            //dateOfApprovalOrToday = dateOfApprovalOrToday.Value.AddDays(100);
+            // if there are no proposal date we will used todays date for calculation 
+            dateOfApprovalOrToday = dateOfApprovalOrToday ?? DateTime.UtcNow;
+
 
             requestsHandledByResourceOwner++;
             var timespanDifference = dateOfApprovalOrToday - dateForCreation;
-            var differenceInDays = timespanDifference.TotalDays;
+            var differenceInDays = timespanDifference.Value.TotalDays;
             totalNumberOfDays += differenceInDays;
         }
 
