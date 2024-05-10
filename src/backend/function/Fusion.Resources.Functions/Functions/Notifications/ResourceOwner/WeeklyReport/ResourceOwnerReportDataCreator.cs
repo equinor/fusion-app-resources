@@ -99,14 +99,14 @@ public abstract class ResourceOwnerReportDataCreator
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         /*
-        * Average time to handle request: average number of days from request created/sent to candidate is proposed - last 12 months
-        * Calculation:
-        * We find all the requests for the last 12 months that are not of type "ResourceOwnerChange" (for the specific Department)
-        * For each of these request we find the number of days that it takes from when a requests is created (which is when the request is sent from Task Owner to ResourceOwner) 
-        * to the requests is handeled by ResourceOwner (a person is proposed). If the request is still being processed it will not have a date for when
-        * it is handled (proposed date), and then we will use todays date.
-        * We then sum up the total amount of days used to handle a request and divide by the total number of requests for which we have found the handle-time
-        */
+         * Average time to handle request: average number of days from request created/sent to candidate is proposed - last 12 months
+         * Calculation:
+         * We find all the requests for the last 12 months that are not of type "ResourceOwnerChange" (for the specific Department)
+         * For each of these request we find the number of days that it takes from when a requests is created (which is when the request is sent from Task Owner to ResourceOwner) 
+         * to the requests is handeled by ResourceOwner (a person is proposed). If the request is still being processed it will not have a date for when
+         * it is handled (proposed date), and then we will use todays date.
+         * We then sum up the total amount of days used to handle a request and divide by the total number of requests for which we have found the handle-time
+         */
 
         var requestsHandledByResourceOwner = 0;
         var totalNumberOfDays = 0.0;
