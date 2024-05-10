@@ -216,7 +216,7 @@ public class ScheduledReportContentBuilderFunction
                 averageTimeToHandleRequests > 0
                     ? averageTimeToHandleRequests + " day(s)"
                     : "Less than a day",
-                "Average time to handle request (last 12 months"))
+                "Average time to handle request (last 12 months)"))
             .AddColumnSet(new AdaptiveCardColumn(
                 ResourceOwnerReportDataCreator.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
                 "Allocation changes awaiting task owner action"))
