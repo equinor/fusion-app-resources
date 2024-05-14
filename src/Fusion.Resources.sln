@@ -1,53 +1,55 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29806.167
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Api", "api\Fusion.Resources.Api\Fusion.Resources.Api.csproj", "{405CA56F-B0F8-4515-B45D-AE143965A178}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Api", "backend\api\Fusion.Resources.Api\Fusion.Resources.Api.csproj", "{405CA56F-B0F8-4515-B45D-AE143965A178}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Database", "api\Fusion.Resources.Database\Fusion.Resources.Database.csproj", "{5F2CDAAF-C625-46FC-AB82-EDE4F47DF69C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Database", "backend\api\Fusion.Resources.Database\Fusion.Resources.Database.csproj", "{5F2CDAAF-C625-46FC-AB82-EDE4F47DF69C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Domain", "api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj", "{EC425C33-9AE9-49F9-A3AD-4BECFE4CBD8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Domain", "backend\api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj", "{EC425C33-9AE9-49F9-A3AD-4BECFE4CBD8B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D12DC33D-BB83-40E4-9F36-18F59351A21D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Domain.Tests", "tests\Fusion.Resources.Domain.Tests\Fusion.Resources.Domain.Tests.csproj", "{2E8F0443-BE79-4722-87EA-25AC341581BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Domain.Tests", "backend\tests\Fusion.Resources.Domain.Tests\Fusion.Resources.Domain.Tests.csproj", "{2E8F0443-BE79-4722-87EA-25AC341581BF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "function", "function", "{286E3C76-C860-4661-9AEF-817458D1231B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Functions", "function\Fusion.Resources.Functions\Fusion.Resources.Functions.csproj", "{277742EC-1734-47FE-9A45-3B05355212A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Functions", "backend\function\Fusion.Resources.Functions\Fusion.Resources.Functions.csproj", "{277742EC-1734-47FE-9A45-3B05355212A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Logic", "api\Fusion.Resources.Logic\Fusion.Resources.Logic.csproj", "{EB05FA8C-DC27-4DBB-8963-B1692D1CE662}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Logic", "backend\api\Fusion.Resources.Logic\Fusion.Resources.Logic.csproj", "{EB05FA8C-DC27-4DBB-8963-B1692D1CE662}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "integration", "integration", "{0AA102F1-FA48-4A4A-9E47-1301C47048EB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Integration.Models", "integration\Fusion.Resources.Integration.Models\Fusion.Resources.Integration.Models.csproj", "{9F8D9356-145A-44DE-93D8-2DCD0E58D16B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Integration.Models", "backend\integration\Fusion.Resources.Integration.Models\Fusion.Resources.Integration.Models.csproj", "{9F8D9356-145A-44DE-93D8-2DCD0E58D16B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Application", "api\Fusion.Resources.Application\Fusion.Resources.Application.csproj", "{E6A6487B-B276-441B-A661-F202681400F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Application", "backend\api\Fusion.Resources.Application\Fusion.Resources.Application.csproj", "{E6A6487B-B276-441B-A661-F202681400F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Logic.Tests", "tests\Fusion.Resources.Logic.Tests\Fusion.Resources.Logic.Tests.csproj", "{7BE089A8-F824-4273-9312-3D32E064569E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Logic.Tests", "backend\tests\Fusion.Resources.Logic.Tests\Fusion.Resources.Logic.Tests.csproj", "{7BE089A8-F824-4273-9312-3D32E064569E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Api.Tests", "tests\Fusion.Resources.Api.Tests\Fusion.Resources.Api.Tests.csproj", "{FC455F0E-0880-4272-AFFE-38D8EF358B6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Api.Tests", "backend\tests\Fusion.Resources.Api.Tests\Fusion.Resources.Api.Tests.csproj", "{FC455F0E-0880-4272-AFFE-38D8EF358B6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Test.Core", "tests\Fusion.Resources.Test.Core\Fusion.Resources.Test.Core.csproj", "{BA3A0B0E-5D2B-43DA-AA71-A72A5642B340}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Test.Core", "backend\tests\Fusion.Resources.Test.Core\Fusion.Resources.Test.Core.csproj", "{BA3A0B0E-5D2B-43DA-AA71-A72A5642B340}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Authentication", "tests\Fusion.Testing.Authentication\Fusion.Testing.Authentication.csproj", "{50C5830A-ED39-4B58-9947-53AB41A98C4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Authentication", "backend\tests\Fusion.Testing.Authentication\Fusion.Testing.Authentication.csproj", "{50C5830A-ED39-4B58-9947-53AB41A98C4D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Core", "tests\Fusion.Testing.Core\Fusion.Testing.Core.csproj", "{348E5E93-D975-457D-8DC4-9579B936E53B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Core", "backend\tests\Fusion.Testing.Core\Fusion.Testing.Core.csproj", "{348E5E93-D975-457D-8DC4-9579B936E53B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.ProfileService", "tests\Fusion.Testing.Mocks.ProfileService\Fusion.Testing.Mocks.ProfileService.csproj", "{471EBA1F-067D-44D5-92B8-FB80016D7290}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.ProfileService", "backend\tests\Fusion.Testing.Mocks.ProfileService\Fusion.Testing.Mocks.ProfileService.csproj", "{471EBA1F-067D-44D5-92B8-FB80016D7290}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.OrgService", "tests\Fusion.Testing.Mocks.OrgService\Fusion.Testing.Mocks.OrgService.csproj", "{A54602CE-2240-40AC-9B7C-CB47BC9EF999}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.OrgService", "backend\tests\Fusion.Testing.Mocks.OrgService\Fusion.Testing.Mocks.OrgService.csproj", "{A54602CE-2240-40AC-9B7C-CB47BC9EF999}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.ContextService", "tests\Fusion.Testing.Mocks.ContextService\Fusion.Testing.Mocks.ContextService.csproj", "{77835023-8755-4A75-B395-7CBD6BAA3D70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.ContextService", "backend\tests\Fusion.Testing.Mocks.ContextService\Fusion.Testing.Mocks.ContextService.csproj", "{77835023-8755-4A75-B395-7CBD6BAA3D70}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Functions.Tests", "tests\Fusion.Resources.Functions.Tests\Fusion.Resources.Functions.Tests.csproj", "{328044CD-FA1F-46FE-B273-108B157A9D41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Functions.Tests", "backend\tests\Fusion.Resources.Functions.Tests\Fusion.Resources.Functions.Tests.csproj", "{328044CD-FA1F-46FE-B273-108B157A9D41}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Authorization", "Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj", "{4A9DBBB0-5758-4ECC-8551-2655DDF971BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Authorization", "backend\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj", "{4A9DBBB0-5758-4ECC-8551-2655DDF971BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.LineOrgService", "tests\Fusion.Testing.Mocks.LineOrgService\Fusion.Testing.Mocks.LineOrgService.csproj", "{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.LineOrgService", "backend\tests\Fusion.Testing.Mocks.LineOrgService\Fusion.Testing.Mocks.LineOrgService.csproj", "{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Summary.Api", "Fusion.Summary.Api\Fusion.Summary.Api.csproj", "{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -131,6 +133,10 @@ Global
 		{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -155,6 +161,7 @@ Global
 		{328044CD-FA1F-46FE-B273-108B157A9D41} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 		{4A9DBBB0-5758-4ECC-8551-2655DDF971BA} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
+		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F47D8FDB-3919-45C8-8C08-486405ECEC01}
