@@ -29,6 +29,7 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
+
 var app = builder.Build();
 app.UseCors(opts => opts
     .AllowAnyOrigin()
