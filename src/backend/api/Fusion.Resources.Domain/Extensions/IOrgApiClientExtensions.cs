@@ -114,7 +114,6 @@ namespace Fusion.Resources
 
             return publishedDraft;
         }
-
     }
 
     public class RequestResponse<TResponse>

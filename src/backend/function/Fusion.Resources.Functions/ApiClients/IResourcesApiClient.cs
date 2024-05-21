@@ -97,6 +97,7 @@ namespace Fusion.Resources.Functions.ApiClients
         public class ProposedPerson
         {
             public InternalPersonnelPerson Person { get; set; } = null!;
+            public DateTimeOffset ProposedAt { get; set; }
         }
 
         public class Person
