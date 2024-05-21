@@ -20,7 +20,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
         with:
-          paths: '["src/backend/**"]'
+          paths: '["src/**"]'
 
   build:
     needs: pre_job
@@ -31,7 +31,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: src/backend
+        working-directory: src
 
     steps:
     - uses: actions/checkout@v2
