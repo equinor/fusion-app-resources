@@ -172,6 +172,7 @@ namespace Fusion.Resources.Domain
                             BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
                             Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
                             Workload = p.workload,
+                            Obs = p.obs,
                             AllocationState = p.allocationState,
                             AllocationUpdated = p.allocationUpdated
                         }).OrderBy(p => p.AppliesFrom).ToList()
@@ -256,6 +257,7 @@ namespace Fusion.Resources.Domain
                                 BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
                                 Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
                                 Workload = p.workload,
+                                Obs = p.obs,
                                 AllocationState = p.allocationState,
                                 AllocationUpdated = p.allocationUpdated,
                                 HasChangeRequest = changeRequest is not null,
