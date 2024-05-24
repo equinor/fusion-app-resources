@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["api/Fusion.Resources.Api/Fusion.Resources.Api.csproj", "api/Fusion.Resources.Api/"]
 COPY ["api/Fusion.Resources.Database/Fusion.Resources.Database.csproj", "api/Fusion.Resources.Database/"]
