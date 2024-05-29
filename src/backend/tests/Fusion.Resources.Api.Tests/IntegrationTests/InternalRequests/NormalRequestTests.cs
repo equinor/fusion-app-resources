@@ -15,6 +15,7 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -214,21 +215,47 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task NormalRequest_Create_ShouldBeAbleToSetAssignedDepartmentDirectly()
+        public async Task Ceate_AssignedDepartment_ShouldSetAssingedSapId_WhenFullDepartmentProvided()
         {
+            var testDepartmentString = "CRE ATE TST ADP";
             using var adminScope = fixture.AdminScope();
             var position = testProject.AddPosition();
-            var department = InternalRequestData.RandomDepartment;
+            var orgUnit = fixture.AddOrgUnit(testDepartmentString);
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id,
-                assignedDepartment = department
+                assignedDepartment = testDepartmentString
             });
             response.Should().BeSuccessfull();
-            response.Value.AssignedDepartment.Should().Be(department);
+            response.Value.AssignedDepartment.Should().Be(testDepartmentString);
+
+            using (var db = fixture.DbScope())
+            {
+                var req = await db.DbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == response.Value.Id);
+                req?.AssignedDepartmentId.Should().Be(orgUnit.SapId);
+            }
+        }
+
+        [Fact]
+        public async Task Ceate_AssignedDepartment_ShouldReturnFullDepartment_WhenAssignedDepartmentIsSapId()
+        {
+            var testDepartmentString = "CRE ATE TST ADP 2";
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var orgUnit = fixture.AddOrgUnit(testDepartmentString);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                assignedDepartment = orgUnit.SapId
+            });
+            response.Should().BeSuccessfull();
+            response.Value.AssignedDepartment.Should().Be(testDepartmentString);
         }
 
         [Fact]

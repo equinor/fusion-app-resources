@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? SubType { get; set; }
 
         public string? AssignedDepartment { get; set; }
-        
+
         // All requests should be created as drafts. Initializing the workflow shoud set the flag to false.
         //public bool? IsDraft { get; set; }
 
@@ -107,14 +107,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     });
                 RuleFor(x => x.AssignedDepartment)
-                   .MustAsync(async (d, ct) =>
-                   {
-                       if (d is null)
-                           return true;
-
-                       var department = await mediator.Send(new GetDepartment(d), ct);
-                       return department is not null;
-                   })
+                   .BeValidOrgUnit(service)
                    .WithMessage("Invalid department specified")
                    .When(x => !string.IsNullOrEmpty(x.AssignedDepartment));
 

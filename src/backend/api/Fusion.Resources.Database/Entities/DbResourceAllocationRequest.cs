@@ -12,8 +12,18 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Should contain the full department string for the org unit. As this can be used for querying
+        /// </summary>
         [MaxLength(100)]
         public string? AssignedDepartment { get; set; }
+
+        /// <summary>
+        /// The identifier for the org unit.
+        /// </summary>
+        [MaxLength(100)]
+        public string? AssignedDepartmentId { get; set; }
+
         public bool IsDraft { get; set; }
 
         public long RequestNumber { get; set; }
