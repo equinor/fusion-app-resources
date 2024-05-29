@@ -32,6 +32,7 @@ namespace Fusion.Resources.Domain
             Project = position.Project;
             AppliesFrom = position.AppliesFrom;
             AppliesTo = position.AppliesTo;
+            Obs = position.Obs;
         }
 
         public QueryPersonnelTimelineItem(string type, QueryResourceAllocationRequest request)
@@ -40,6 +41,7 @@ namespace Fusion.Resources.Domain
             var instance = request.OrgPositionInstance;
             Type = type;
             Workload = instance.Workload;
+            Obs = instance.Obs;
             Id = request.RequestId;
             Description = $"{request.OrgPosition?.Name}";
             BasePosition = (request.OrgPosition?.BasePosition is not null)
@@ -53,6 +55,7 @@ namespace Fusion.Resources.Domain
         public string Type { get; set; }
         public double? Workload { get; set; }
         public string Description { get; set; }
+        public string? Obs { get; set; }
 
         public QueryProjectRef? Project { get; set; }
         public QueryBasePosition? BasePosition { get; set; }
