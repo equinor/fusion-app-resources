@@ -1,4 +1,5 @@
 ﻿using Fusion.Events;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Domain;
 using Fusion.Services.LineOrg.ApiModels;
@@ -44,9 +45,8 @@ namespace Fusion.Testing.Mocks.LineOrgService
 
 
             // Add entry to org unit as well.
-            var sapId = HashUtils.HashTextAsInt(fullName);
             // Ignoring parents for now
-            AddOrgUnit($"{sapId}", fullName, name.GetShortName(), fullName, fullName.Split(' ').LastOrDefault());
+            AddOrgUnit(fullName);
         }
         public static void UpdateDepartmentManager(string name, ApiLineOrgUser manager)
         {
@@ -63,13 +63,23 @@ namespace Fusion.Testing.Mocks.LineOrgService
             var item = OrgUnits.FirstOrDefault(x => x.SapId == sapId);
             if (item == null)
             {
+                // Need to add the business unit element, as this is used in authorization logic
+                var orgPath = DepartmentId.FromFullPath(fullDepartment);
+
                 item = new ApiOrgUnit()
                 {
                     SapId = sapId,
                     Name = name,
                     Department = department,
                     FullDepartment = fullDepartment,
-                    ShortName = shortname
+                    ShortName = shortname,
+                    BusinessArea = new ApiOrgUnitRef()
+                    {
+                        Name = orgPath.BusinessArea,
+                        ShortName = orgPath.BusinessArea,
+                        FullDepartment = orgPath.BusinessArea,
+                        Level = 1
+                    }
                 };
                 OrgUnits.Add(item);
             }
