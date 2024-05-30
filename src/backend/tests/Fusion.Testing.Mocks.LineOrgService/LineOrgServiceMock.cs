@@ -64,7 +64,7 @@ namespace Fusion.Testing.Mocks.LineOrgService
             if (item == null)
             {
                 // Need to add the business unit element, as this is used in authorization logic
-                var orgPath = DepartmentId.FromFullPath(fullDepartment);
+                var orgPath = !string.IsNullOrEmpty(fullDepartment) ? DepartmentId.FromFullPath(fullDepartment) : DepartmentId.Empty;
 
                 item = new ApiOrgUnit()
                 {
