@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20240529134053_Added field for org id on request")]
+    [Migration("20240530073453_Added field for org id on request")]
     partial class Addedfieldfororgidonrequest
     {
         /// <inheritdoc />
@@ -840,9 +840,21 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedDepartment");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("AssignedDepartment"), false);
+
+                    b.HasIndex("AssignedDepartmentId");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("AssignedDepartmentId"), false);
+
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("RequestNumber");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("RequestNumber"), false);
 
                     b.HasIndex("UpdatedById");
 

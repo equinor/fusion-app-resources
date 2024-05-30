@@ -837,9 +837,21 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedDepartment");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("AssignedDepartment"), false);
+
+                    b.HasIndex("AssignedDepartmentId");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("AssignedDepartmentId"), false);
+
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("RequestNumber");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("RequestNumber"), false);
 
                     b.HasIndex("UpdatedById");
 

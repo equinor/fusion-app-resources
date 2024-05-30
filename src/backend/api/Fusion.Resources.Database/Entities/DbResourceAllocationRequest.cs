@@ -131,6 +131,11 @@ namespace Fusion.Resources.Database.Entities
                 entity
                     .HasMany(x => x.Candidates)
                     .WithMany(x => x.CandidatesForRequest);
+
+                entity.HasIndex(e => e.AssignedDepartmentId).IsClustered(false);
+                entity.HasIndex(e => e.AssignedDepartment).IsClustered(false);
+                entity.HasIndex(e => e.RequestNumber).IsClustered(false);
+
             });
         }
 
