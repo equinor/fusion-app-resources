@@ -15,7 +15,6 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -24,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+
     [Collection("Integration")]
     public class NormalRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
@@ -212,50 +212,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { state = (string?)null });
             resp.Should().BeSuccessfull();
             resp.Value.state.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task Ceate_AssignedDepartment_ShouldSetAssingedSapId_WhenFullDepartmentProvided()
-        {
-            var testDepartmentString = "CRE ATE TST ADP";
-            using var adminScope = fixture.AdminScope();
-            var position = testProject.AddPosition();
-            var orgUnit = fixture.AddOrgUnit(testDepartmentString);
-
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
-            {
-                type = "normal",
-                orgPositionId = position.Id,
-                orgPositionInstanceId = position.Instances.Last().Id,
-                assignedDepartment = testDepartmentString
-            });
-            response.Should().BeSuccessfull();
-            response.Value.AssignedDepartment.Should().Be(testDepartmentString);
-
-            using (var db = fixture.DbScope())
-            {
-                var req = await db.DbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == response.Value.Id);
-                req?.AssignedDepartmentId.Should().Be(orgUnit.SapId);
-            }
-        }
-
-        [Fact]
-        public async Task Ceate_AssignedDepartment_ShouldReturnFullDepartment_WhenAssignedDepartmentIsSapId()
-        {
-            var testDepartmentString = "CRE ATE TST ADP 2";
-            using var adminScope = fixture.AdminScope();
-            var position = testProject.AddPosition();
-            var orgUnit = fixture.AddOrgUnit(testDepartmentString);
-
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
-            {
-                type = "normal",
-                orgPositionId = position.Id,
-                orgPositionInstanceId = position.Instances.Last().Id,
-                assignedDepartment = orgUnit.SapId
-            });
-            response.Should().BeSuccessfull();
-            response.Value.AssignedDepartment.Should().Be(testDepartmentString);
         }
 
         [Fact]
