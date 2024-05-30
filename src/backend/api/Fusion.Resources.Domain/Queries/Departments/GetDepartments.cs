@@ -4,7 +4,6 @@ using Fusion.Resources.Application;
 using Fusion.Resources.Database;
 using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
-using Microsoft.AspNetCore.JsonPatch.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System;
