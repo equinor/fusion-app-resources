@@ -68,8 +68,8 @@ namespace Fusion.Resources.Domain
 
             public const string OrgUnitsMemCacheKey = "line-org-org-units";
 
-            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory, IMemoryCache cache)
-                : base(db, lineOrgResolver, profileResolver)
+            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory, IMemoryCache cache)
+                : base(db, profileResolver)
             {
                 this.httpClientFactory = httpClientFactory;
                 this.cache = cache;

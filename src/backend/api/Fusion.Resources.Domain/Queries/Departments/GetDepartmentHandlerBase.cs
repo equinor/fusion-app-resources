@@ -16,13 +16,11 @@ namespace Fusion.Resources.Domain
     public class DepartmentHandlerBase
     {
         protected readonly ResourcesDbContext db;
-        protected readonly ILineOrgResolver lineOrgResolver;
         protected readonly IFusionProfileResolver profileResolver;
 
-        public DepartmentHandlerBase(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
+        public DepartmentHandlerBase(ResourcesDbContext db, IFusionProfileResolver profileResolver)
         {
             this.db = db;
-            this.lineOrgResolver = lineOrgResolver;
             this.profileResolver = profileResolver;
         }
 

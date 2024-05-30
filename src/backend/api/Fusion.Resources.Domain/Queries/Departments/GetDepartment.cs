@@ -1,5 +1,4 @@
 using Fusion.Integration;
-using Fusion.Integration.LineOrg;
 using Fusion.Resources.Database;
 using MediatR;
 using System.Threading;
@@ -28,8 +27,8 @@ namespace Fusion.Resources.Domain
         {
             private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext  db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IMediator mediator)
-                : base(db, lineOrgResolver, profileResolver)
+            public Handler(ResourcesDbContext  db, IFusionProfileResolver profileResolver, IMediator mediator)
+                : base(db, profileResolver)
             {
                 this.mediator = mediator;
             }
