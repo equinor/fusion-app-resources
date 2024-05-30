@@ -153,6 +153,11 @@ namespace Fusion.Resources.Domain.Commands
 
                     dbItem.AssignedDepartment = orgUnit.FullDepartment;
                     dbItem.AssignedDepartmentId = orgUnit.SapId;
+                } 
+                else
+                {
+                    dbItem.AssignedDepartment = null;
+                    dbItem.AssignedDepartmentId = null;
                 }
             }
         }
