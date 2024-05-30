@@ -48,7 +48,7 @@ namespace Fusion.Resources.Domain
         }
 
         public string DepartmentId { get; }
-        public string? SectorId { get; }
+        public string? SectorId { get; set; }
 
         public FusionPersonProfile? LineOrgResponsible { get; set; }
         public List<FusionPersonProfile>? DelegatedResourceOwners { get; set; }

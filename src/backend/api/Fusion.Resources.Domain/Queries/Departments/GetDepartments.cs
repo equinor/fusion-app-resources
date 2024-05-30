@@ -60,120 +60,13 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
             private readonly IHttpClientFactory httpClientFactory;
-
-            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory)
-                : base(db, lineOrgResolver, profileResolver)
-            {
-                this.httpClientFactory = httpClientFactory;
-            }
-
-            public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
-            {
-                List<QueryDepartment> result;
-
-                IEnumerable<ApiLineOrgUser> lineOrgDepartments;
-                if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
-                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request.resourceOwnerSearch);
-                else
-                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync();
-
-                if (request.departmentIds is not null)
-                {
-                    var ids = new HashSet<string>(request.departmentIds);
-                    lineOrgDepartments = lineOrgDepartments
-                        .Where(x => ids.Contains(x.FullDepartment!))
-                        .ToList();
-                }
-
-                if (!string.IsNullOrEmpty(request.sector))
-                {
-                    lineOrgDepartments = lineOrgDepartments
-                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
-                        .ToList();
-                }
-
-                if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
-                {
-                    lineOrgDepartments = lineOrgDepartments
-                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
-                        .ToList();
-                }
-
-                result = await lineOrgDepartments.ToQueryDepartment(profileResolver);
-
-                if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
-                {
-                    result = result.Where(dpt =>
-                        dpt.DepartmentId.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase)
-                        || dpt.LineOrgResponsible?.Name.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
-                        || dpt.LineOrgResponsible?.Mail?.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
-                    ).ToList();
-                }
-
-                if (request.shouldExpandDelegatedResourceOwners)
-                {
-                    await ExpandDelegatedResourceOwner(result, cancellationToken);
-                }
-
-                return result;
-            }
-       
-        }
-    }
-
-    public class GetDepartmentsV2 : IRequest<IEnumerable<QueryDepartment>>
-    {
-        private bool shouldExpandDelegatedResourceOwners = false;
-        private string? resourceOwnerSearch;
-
-        private string? departmentIdStartsWith;
-        private string? sector;
-        private string[]? departmentIds = null;
-
-        public GetDepartmentsV2 StartsWith(string department)
-        {
-            this.departmentIdStartsWith = department;
-            return this;
-        }
-
-        public GetDepartmentsV2 ByIds(params string[] departmentIds)
-        {
-            this.departmentIds = departmentIds;
-            return this;
-        }
-
-        public GetDepartmentsV2 ByIds(IEnumerable<string> departmentIds)
-        {
-            this.departmentIds = departmentIds.ToArray();
-            return this;
-        }
-
-        public GetDepartmentsV2 InSector(string sector)
-        {
-            this.sector = sector;
-            return this;
-        }
-
-        public GetDepartmentsV2 ExpandDelegatedResourceOwners()
-        {
-            shouldExpandDelegatedResourceOwners = true;
-            return this;
-        }
-
-        public GetDepartmentsV2 WhereResourceOwnerMatches(string search)
-        {
-            resourceOwnerSearch = search;
-            return this;
-        }
-
-
-        public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartmentsV2, IEnumerable<QueryDepartment>>
-        {
-            private readonly IHttpClientFactory httpClientFactory;
             private readonly IMemoryCache cache;
+
+            public const string OrgUnitsMemCacheKey = "line-org-org-units";
 
             public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory, IMemoryCache cache)
                 : base(db, lineOrgResolver, profileResolver)
@@ -182,7 +75,7 @@ namespace Fusion.Resources.Domain
                 this.cache = cache;
             }
 
-            public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartmentsV2 request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
 
                 var orgUnits = await LoadLineOrgUnitsAsync();
@@ -238,10 +131,15 @@ namespace Fusion.Resources.Domain
                 return result;
             }
 
-
+            /// <summary>
+            /// Quick fix for now. Should wrap line org functionality in seperate service that centralized this a bit more.
+            /// Could also consider gathering requirements here and update the integration lib.. 
+            /// 
+            /// Cache is invalidated on updates from line-org by event handler <see cref="LineOrgOrgUnitHandler"/>
+            /// </summary>
             private async Task<List<ApiOrgUnit>> LoadLineOrgUnitsAsync()
             {
-                if (cache.TryGetValue<List<ApiOrgUnit>>("line-org-units", out var cachedItems))
+                if (cache.TryGetValue<List<ApiOrgUnit>>(OrgUnitsMemCacheKey, out var cachedItems))
                     return cachedItems!;
 
                 var client = httpClientFactory.CreateClient(Fusion.Integration.IntegrationConfig.HttpClients.ApplicationLineOrg());
@@ -250,7 +148,7 @@ namespace Fusion.Resources.Domain
                 var json = await resp.Content.ReadAsStringAsync();
                 var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() });
 
-                cache.Set("line-org-units", orgUnits.value, TimeSpan.FromMinutes(5));
+                cache.Set(OrgUnitsMemCacheKey, orgUnits.value, TimeSpan.FromMinutes(60));
 
                 return orgUnits.value;
 
