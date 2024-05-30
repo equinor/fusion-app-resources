@@ -40,6 +40,19 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(result.Select(x => new ApiDepartment(x)));
         }
 
+        [MapToApiVersion("1.1-preview")]
+        [HttpGet("/departments")]
+        public async Task<ActionResult<List<ApiDepartment>>> SearchVpreview([FromQuery(Name = "$search")] string query)
+        {
+            var request = new GetDepartmentsV2()
+                .ExpandDelegatedResourceOwners()
+                .WhereResourceOwnerMatches(query);
+
+            var result = await DispatchAsync(request);
+
+            return Ok(result.Select(x => new ApiDepartment(x)));
+        }
+
         [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
