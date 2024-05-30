@@ -5,6 +5,7 @@ using Fusion.Resources.Database;
 using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
 using Microsoft.AspNetCore.JsonPatch.Internal;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -173,11 +174,13 @@ namespace Fusion.Resources.Domain
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartmentsV2, IEnumerable<QueryDepartment>>
         {
             private readonly IHttpClientFactory httpClientFactory;
+            private readonly IMemoryCache cache;
 
-            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory)
+            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory, IMemoryCache cache)
                 : base(db, lineOrgResolver, profileResolver)
             {
                 this.httpClientFactory = httpClientFactory;
+                this.cache = cache;
             }
 
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartmentsV2 request, CancellationToken cancellationToken)
@@ -228,50 +231,6 @@ namespace Fusion.Resources.Domain
                 result = query.Select(o => new QueryDepartment(o))
                     .ToList();
 
-                //result = await lineOrgDepartments.ToQueryDepartment(profileResolver);
-
-
-
-                //IEnumerable<ApiLineOrgUser> lineOrgDepartments;
-                //if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
-                //    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request.resourceOwnerSearch);
-                //else
-                //    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync();
-
-                //if (request.departmentIds is not null)
-                //{
-                //    var ids = new HashSet<string>(request.departmentIds);
-                //    lineOrgDepartments = lineOrgDepartments
-                //        .Where(x => ids.Contains(x.FullDepartment!))
-                //        .ToList();
-                //}
-
-                //if (!string.IsNullOrEmpty(request.sector))
-                //{
-                //    lineOrgDepartments = lineOrgDepartments
-                //        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
-                //        .ToList();
-                //}
-
-                //if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
-                //{
-                //    lineOrgDepartments = lineOrgDepartments
-                //        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
-                //        .ToList();
-                //}
-
-
-                //result = await lineOrgDepartments.ToQueryDepartment(profileResolver);
-
-                //if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
-                //{
-                //    result = result.Where(dpt =>
-                //        dpt.DepartmentId.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase)
-                //        || dpt.LineOrgResponsible?.Name.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
-                //        || dpt.LineOrgResponsible?.Mail?.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
-                //    ).ToList();
-                //}
-
                 if (request.shouldExpandDelegatedResourceOwners)
                 {
                     await ExpandDelegatedResourceOwner(result, cancellationToken);
@@ -283,11 +242,16 @@ namespace Fusion.Resources.Domain
 
             private async Task<List<ApiOrgUnit>> LoadLineOrgUnitsAsync()
             {
+                if (cache.TryGetValue<List<ApiOrgUnit>>("line-org-units", out var cachedItems))
+                    return cachedItems!;
+
                 var client = httpClientFactory.CreateClient(Fusion.Integration.IntegrationConfig.HttpClients.ApplicationLineOrg());
                 var resp = await client.GetAsync("/org-units?$top=5000&$expand=management");
 
                 var json = await resp.Content.ReadAsStringAsync();
                 var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() });
+
+                cache.Set("line-org-units", orgUnits.value, TimeSpan.FromMinutes(5));
 
                 return orgUnits.value;
 
