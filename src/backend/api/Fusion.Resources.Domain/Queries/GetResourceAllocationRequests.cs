@@ -375,7 +375,7 @@ namespace Fusion.Resources.Domain.Queries
                     .ExpandDelegatedResourceOwners()
                 );
 
-                var departmentMap = departments.ToDictionary(dpt => dpt.DepartmentId);
+                var departmentMap = departments.ToDictionary(dpt => dpt.FullDepartment);
 
                 foreach (var req in pagedQuery)
                 {

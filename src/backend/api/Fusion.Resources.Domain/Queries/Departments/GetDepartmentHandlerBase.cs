@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain
         internal async Task ExpandDelegatedResourceOwner(QueryDepartment department, CancellationToken cancellationToken)
         {
             var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
-                .Where(r => r.DepartmentId == department.DepartmentId &&
+                .Where(r => r.DepartmentId == department.FullDepartment &&
                  r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date)
                 .ToListAsync(cancellationToken);
 
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain
 
         internal async Task ExpandDelegatedResourceOwner(List<QueryDepartment> departments, CancellationToken cancellationToken)
         {
-            var departmentIds = departments.Select(x => x.DepartmentId).ToArray();
+            var departmentIds = departments.Select(x => x.FullDepartment).ToArray();
 
             var query = await db.DelegatedDepartmentResponsibles
                 .Where(r => departmentIds.Contains(r.DepartmentId) &&
@@ -47,8 +47,8 @@ namespace Fusion.Resources.Domain
 
             foreach (var department in departments)
             {
-                if (delegatedMap.Contains(department.DepartmentId))
-                    await ResolveDelegatedOwners(department, delegatedMap[department.DepartmentId]);
+                if (delegatedMap.Contains(department.FullDepartment))
+                    await ResolveDelegatedOwners(department, delegatedMap[department.FullDepartment]);
             }
         }
 

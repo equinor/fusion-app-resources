@@ -10,7 +10,7 @@ namespace Fusion.Resources.Domain
     {
         public QueryDepartment(ApiOrgUnit lineOrgUnit)
         {
-            DepartmentId = lineOrgUnit.FullDepartment;
+            FullDepartment = lineOrgUnit.FullDepartment;
             Identifier = lineOrgUnit.SapId;
             Name = lineOrgUnit.Name;
             ShortName = lineOrgUnit.ShortName;
@@ -40,13 +40,13 @@ namespace Fusion.Resources.Domain
 
         public QueryDepartment(ApiDepartment lineOrgDepartment, FusionPersonProfile? manager)
         {
-            DepartmentId = lineOrgDepartment.FullName;
+            FullDepartment = lineOrgDepartment.FullName;
             LineOrgResponsible = manager;
         }
 
         public QueryDepartment(string departmentId, string? sectorId)
         {
-            DepartmentId = departmentId;
+            FullDepartment = departmentId;
             SectorId = sectorId;
         }
 
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Domain
         public string? Name { get; set; }
         public string? ShortName { get; set; }
 
-        public string DepartmentId { get; }
+        public string FullDepartment { get; }
         public string? SectorId { get; set; }
 
         public FusionPersonProfile? LineOrgResponsible { get; set; }

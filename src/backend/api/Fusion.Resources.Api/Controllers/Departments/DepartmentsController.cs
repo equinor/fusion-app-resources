@@ -73,12 +73,12 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.FullDepartment));
 
                 });
                 r.LimitedAccessWhen(or =>
                 {
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.FullDepartment), AccessRoles.ResourceOwner);
                     or.BeEmployee();
                     or.BeConsultant();
                 });
@@ -116,8 +116,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.FullDepartment));
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.FullDepartment), AccessRoles.ResourceOwner);
                 });
                 r.LimitedAccessWhen(or =>
                 {
@@ -157,7 +157,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.DepartmentId));
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.FullDepartment));
                 });
 
             });
@@ -212,7 +212,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.DepartmentId));
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.FullDepartment));
                 });
             });
 

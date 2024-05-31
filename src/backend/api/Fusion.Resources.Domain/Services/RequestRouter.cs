@@ -69,7 +69,7 @@ namespace Fusion.Resources.Domain
             {
                 // Check if department path is an actual department
                 var actualDepartment = await mediator.Send(new GetDepartment(basePosition.Department));
-                departmentPath = actualDepartment?.DepartmentId;
+                departmentPath = actualDepartment?.FullDepartment;
             }
 
             return departmentPath;

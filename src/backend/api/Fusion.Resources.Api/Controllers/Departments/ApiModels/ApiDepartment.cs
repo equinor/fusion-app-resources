@@ -7,8 +7,8 @@ namespace Fusion.Resources.Api.Controllers
     public class ApiDepartment
     {
         public ApiDepartment(QueryDepartment department)
-        {
-            Name = department.DepartmentId;
+        {            
+            Name = department.FullDepartment;
             Sector = department.SectorId;
             LineOrgResponsible = (department.LineOrgResponsible is not null) ? new ApiPerson(department.LineOrgResponsible) : null;
             DelegatedResponsibles = (department.DelegatedResourceOwners is not null) 
