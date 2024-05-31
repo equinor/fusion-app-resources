@@ -46,7 +46,16 @@ namespace Fusion.Testing.Mocks.LineOrgService
 
             // Add entry to org unit as well.
             // Ignoring parents for now
-            AddOrgUnit(fullName);
+            var orgUnit = AddOrgUnit(fullName);
+            // Add children if provided
+            if (children is not null)
+            {
+                foreach (var child in children)
+                {
+                    var childUnit = AddOrgUnit(child);
+                    childUnit.ParentSapId = orgUnit.SapId;
+                }
+            }
         }
         public static void UpdateDepartmentManager(string name, ApiLineOrgUser manager)
         {

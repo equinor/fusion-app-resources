@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration.LineOrg;
+using Fusion.Resources;
 using Fusion.Services.LineOrg.ApiModels;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -41,12 +42,27 @@ namespace Fusion.Testing.Mocks.LineOrgService.Api
         [HttpGet("/org-units/{orgUnitId}")]
         public ActionResult<ApiOrgUnit> GetOrgUnit([FromRoute] string orgUnitId, [FromQuery] ODataQueryParams query)
         {
-            var orgUnit = LineOrgServiceMock.OrgUnits.FirstOrDefault(o => string.Equals(o.SapId, orgUnitId, System.StringComparison.OrdinalIgnoreCase) || string.Equals(o.FullDepartment, orgUnitId, System.StringComparison.OrdinalIgnoreCase));
+            var orgUnit = LineOrgServiceMock.OrgUnits.FirstOrDefault(o => o.SapId.EqualsIgnCase(orgUnitId) || o.FullDepartment.EqualsIgnCase(orgUnitId));
 
             if (orgUnit is null)
                 return NotFound();
 
-            return Ok(orgUnit);
+            // Clone the response as we must add stuff
+            var responseObject = MockUtils.JsonClone<ApiOrgUnit>(orgUnit);
+            
+            // Populate parent node
+            if (responseObject.ParentSapId is not null)
+            {
+                responseObject.Parent = LineOrgServiceMock.OrgUnits.Where(o => o.SapId.EqualsIgnCase(orgUnit.ParentSapId)).Select(o => MockUtils.JsonClone<ApiOrgUnitRef>(o)).FirstOrDefault();
+            }
+
+            if (query.ShouldExpand("children"))
+            {
+                responseObject.Children = LineOrgServiceMock.OrgUnits.Where(o => o.ParentSapId.EqualsIgnCase(orgUnit.SapId)).Select(o => MockUtils.JsonClone<ApiOrgUnitRef>(o) ).ToList();
+            }
+
+
+            return Ok(responseObject);
 
             //var departmentId = DepartmentId.FromFullPath(orgUnitId);
             //var parts = orgUnitId.Split(' ');
@@ -71,5 +87,14 @@ namespace Fusion.Testing.Mocks.LineOrgService.Api
             //return Ok(orgUnit);
         }
 
+    }
+
+    internal static class MockUtils
+    {
+        public static T JsonClone<T>(object item)
+        {
+            var json = JsonConvert.SerializeObject(item);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
     }
 }

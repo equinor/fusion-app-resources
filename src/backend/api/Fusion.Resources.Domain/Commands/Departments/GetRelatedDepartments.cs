@@ -79,7 +79,7 @@ namespace Fusion.Resources.Domain
                     if (parentOrg.Children is null)
                         throw new NullReferenceException($"Child org unit should have been expanded and not be null for org unit {orgUnit?.FullDepartment}");
 
-                    relevantDepartments.Siblings = orgUnit.Children!
+                    relevantDepartments.Siblings = parentOrg.Children!
                         .Where(o => o.SapId != orgUnit.SapId) // Exclude self
                         .Select(o => new QueryDepartment(o))
                         .ToList();

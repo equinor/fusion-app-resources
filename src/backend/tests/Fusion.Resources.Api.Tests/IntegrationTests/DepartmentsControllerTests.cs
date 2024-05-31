@@ -468,12 +468,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            //foreach (var sibling in siblings)
+            //    fixture.EnsureDepartment(sibling);
+            //foreach (var child in children)
+            //    fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
