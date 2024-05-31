@@ -716,6 +716,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwnerRole", WildcardScope, "GET,PATCH")]
         public async Task CanGetOptionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
         {
+            fixture.EnsureDepartment(TestDepartment);
+
             var request = await CreateChangeRequest(TestDepartment);
 
             using (var adminscope = fixture.AdminScope())
@@ -726,7 +728,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 await client.AssignDepartmentAsync(request.Id, null);
             }
 
-            fixture.EnsureDepartment(TestDepartment);
             var user = GetUser(role, department);
             using (var userScope = fixture.UserScope(user))
             {

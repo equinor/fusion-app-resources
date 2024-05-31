@@ -108,7 +108,7 @@ namespace Fusion.Resources.Api
 
             services.AddControllers()
                 .AddModelValidationAsyncActionFilter();
-
+            
             // Keeping for reference - The validator is not added to the .net core validation pipeline. This is due to limitations in running async 
             // validators. This is required to validate against external requirements, e.g. position exists.
             // The validation is executed by an action attribute filter, added by ".AddModelValidationAsyncActionFilter()". 

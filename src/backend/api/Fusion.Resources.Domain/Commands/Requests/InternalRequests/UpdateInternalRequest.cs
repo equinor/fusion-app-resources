@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
+using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -57,10 +58,12 @@ namespace Fusion.Resources.Domain.Commands
 
                 bool modified = false;
 
-                modified |= request.AssignedDepartment.IfSet(dep => dbRequest.AssignedDepartment = dep);
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.ProposedChanges.IfSet(changes => dbRequest.ProposedChanges = changes.SerializeToStringOrDefault());
+                
+                modified |= await request.AssignedDepartment.IfSetAsync(async dep => await UpdateAssignedOrgUnitAsync(dep, dbRequest));
+
                 modified |= await request.Properties.IfSetAsync(async properties =>
                 {
                     if (properties is not null)
@@ -85,10 +88,6 @@ namespace Fusion.Resources.Domain.Commands
                         }
                         dbRequest.Properties = existingProps.SerializeToStringOrDefault();
                     }
-
-
-
-
                 });
                 modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
                     {
@@ -139,6 +138,29 @@ namespace Fusion.Resources.Domain.Commands
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;
             }
+
+            private async Task UpdateAssignedOrgUnitAsync(string? assignedDepartment, DbResourceAllocationRequest dbItem)
+            {
+                if (!string.IsNullOrEmpty(assignedDepartment))
+                {
+                    var orgUnit = await mediator.Send(new ResolveLineOrgUnit(assignedDepartment));
+
+                    // If the assigned department is provided as input, it should be validated that it exists.
+                    if (orgUnit is null)
+                    {
+                        throw new InvalidOperationException($"Could not resolve org unit using identifier '{assignedDepartment}'. Unable to set assigned department");
+                    }
+
+                    dbItem.AssignedDepartment = orgUnit.FullDepartment;
+                    dbItem.AssignedDepartmentId = orgUnit.SapId;
+                } 
+                else
+                {
+                    dbItem.AssignedDepartment = null;
+                    dbItem.AssignedDepartmentId = null;
+                }
+            }
         }
+
     }
 }
