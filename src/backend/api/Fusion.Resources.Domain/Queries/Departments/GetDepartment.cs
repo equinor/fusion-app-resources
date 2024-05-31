@@ -1,7 +1,13 @@
 using Fusion.Integration;
+using Fusion.Integration.Diagnostics;
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Database;
+using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,12 +32,35 @@ namespace Fusion.Resources.Domain
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartment, QueryDepartment?>
         {
-            public Handler(ResourcesDbContext  db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-                : base(db, lineOrgResolver, profileResolver) { }
+        private readonly IHttpClientFactory _httpClientFactory;
+            private readonly IFusionLogger<GetDepartment> logger;
+            public Handler(IHttpClientFactory httpClientFactory, ResourcesDbContext  db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver, IFusionLogger<GetDepartment> logger)
+                : base(db, lineOrgResolver, profileResolver) {
+                this._httpClientFactory = httpClientFactory;
+                this.logger = logger;
+            }
 
             public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
             {
-                var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId));
+                var client = _httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
+                var departmentId = Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId);
+
+                var uri = $"/org-units/{departmentId}?$expand=parentPath";
+                var httpResponse = await client.GetAsync(uri);
+                if (httpResponse.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else if (!httpResponse.IsSuccessStatusCode)
+                {
+                    var message = $"Read department info from line org failed with status {httpResponse.StatusCode}.";
+                    logger.LogCritical(message);
+
+                    await LineOrgIntegrationError.ThrowFromResponse(message, httpResponse);
+                }
+                var lineOrgDpt = JsonConvert.DeserializeObject<ApiDepartment>(
+                    await httpResponse.Content.ReadAsStringAsync()
+                );
 
                 if (lineOrgDpt is null) return null;
 
