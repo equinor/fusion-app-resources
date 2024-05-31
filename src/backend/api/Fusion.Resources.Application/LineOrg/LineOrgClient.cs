@@ -2,6 +2,7 @@
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.LineOrg.Cache;
 using Fusion.Services.LineOrg.ApiModels;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -12,17 +13,60 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Application.LineOrg
 {
+    /// <summary>
+    /// Wrap all integration with line org in this client service, for future move to integration lib.
+    /// </summary>
     public class LineOrgClient : ILineOrgClient 
     {
         private readonly ILogger<LineOrgClient> logger;
         private readonly ILineOrgCache cache;
+        private readonly IMemoryCache memoryCache;
         private HttpClient client;
 
-        public LineOrgClient(ILogger<LineOrgClient> logger, IHttpClientFactory httpClientFactory, ILineOrgCache cache)
+        public const string OrgUnitsMemCacheKey = "line-org-org-units";
+
+        public LineOrgClient(ILogger<LineOrgClient> logger, IHttpClientFactory httpClientFactory, ILineOrgCache cache, IMemoryCache memoryCache)
         {
             client = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
             this.logger = logger;
             this.cache = cache;
+            this.memoryCache = memoryCache;
+        }
+
+        public async Task<List<ApiOrgUnit>> LoadAllOrgUnitsAsync()
+        {
+            /// <summary>
+            /// Quick fix for now. Should wrap line org functionality in seperate service that centralized this a bit more.
+            /// Could also consider gathering requirements here and update the integration lib.. 
+            /// 
+            /// Cache is invalidated on updates from line-org by event handler <see cref="LineOrgOrgUnitHandler"/>
+            /// </summary>
+            
+            if (memoryCache.TryGetValue<List<ApiOrgUnit>>(OrgUnitsMemCacheKey, out var cachedItems))
+                return cachedItems!;
+            
+            var resp = await client.GetAsync("/org-units?$top=5000&$expand=management");
+
+
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            else
+            {
+                var message = $"Error with request '{resp.RequestMessage?.RequestUri}'. Responded with {resp.StatusCode}.";
+                logger.LogCritical(message);
+
+                await LineOrgIntegrationError.ThrowFromResponse(message, resp);
+            }
+
+
+            var json = await resp.Content.ReadAsStringAsync();
+            var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() });
+
+            memoryCache.Set(OrgUnitsMemCacheKey, orgUnits.value, TimeSpan.FromMinutes(60));
+
+            return orgUnits.value;
         }
 
         public async Task<ApiOrgUnit?> ResolveOrgUnitAsync(string identifier, Action<OrgUnitExpand>? expand)

@@ -63,23 +63,17 @@ namespace Fusion.Resources.Domain
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
-            private readonly IHttpClientFactory httpClientFactory;
-            private readonly IMemoryCache cache;
+            private readonly ILineOrgClient lineorg;
 
-            public const string OrgUnitsMemCacheKey = "line-org-org-units";
-
-            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver, IHttpClientFactory httpClientFactory, IMemoryCache cache)
+            public Handler(ResourcesDbContext db, ILineOrgClient lineorg, IFusionProfileResolver profileResolver)
                 : base(db, profileResolver)
             {
-                this.httpClientFactory = httpClientFactory;
-                this.cache = cache;
+                this.lineorg = lineorg;
             }
 
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
-
-                var orgUnits = await LoadLineOrgUnitsAsync();
-
+                var orgUnits = await lineorg.LoadAllOrgUnitsAsync();
 
                 var query = orgUnits.AsQueryable();
 
@@ -130,37 +124,6 @@ namespace Fusion.Resources.Domain
 
                 return result;
             }
-
-            /// <summary>
-            /// Quick fix for now. Should wrap line org functionality in seperate service that centralized this a bit more.
-            /// Could also consider gathering requirements here and update the integration lib.. 
-            /// 
-            /// Cache is invalidated on updates from line-org by event handler <see cref="LineOrgOrgUnitHandler"/>
-            /// </summary>
-            private async Task<List<ApiOrgUnit>> LoadLineOrgUnitsAsync()
-            {
-                if (cache.TryGetValue<List<ApiOrgUnit>>(OrgUnitsMemCacheKey, out var cachedItems))
-                    return cachedItems!;
-
-                var client = httpClientFactory.CreateClient(Fusion.Integration.IntegrationConfig.HttpClients.ApplicationLineOrg());
-                var resp = await client.GetAsync("/org-units?$top=5000&$expand=management");
-
-                var json = await resp.Content.ReadAsStringAsync();
-                var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() });
-
-                cache.Set(OrgUnitsMemCacheKey, orgUnits.value, TimeSpan.FromMinutes(60));
-
-                return orgUnits.value;
-
-            }
-        }
-    }
-
-    public static class CompareUtils
-    {
-        public static bool ContainsNullSafe(this string? value, string? comp)
-        {
-            return (value ?? "").Contains(comp ?? "", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
