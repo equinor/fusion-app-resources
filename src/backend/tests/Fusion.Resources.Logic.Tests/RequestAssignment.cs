@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Fusion.ApiClients.Org;
+using Fusion.Events;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -201,7 +202,7 @@ namespace Fusion.Resources.Logic.Tests
 
                 mediatorMock => mediatorMock
                     .Setup(x => x.Send(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null))
+                    .ReturnsAsync(new MockQueryDepartment(position.BasePosition.Department))
             );
 
             var resolvedDepartment = await handler.Handle(
@@ -368,7 +369,7 @@ namespace Fusion.Resources.Logic.Tests
                   .ReturnsAsync(position),
               mediatorMock => mediatorMock
                    .Setup(x => x.Send(It.Is<GetDepartment>(x => x.DepartmentId == position.BasePosition.Department), It.IsAny<CancellationToken>()))
-                   .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null))
+                   .ReturnsAsync(new MockQueryDepartment(position.BasePosition.Department))
             );
 
             var resolvedDepartment = await handler.Handle(
@@ -423,7 +424,7 @@ namespace Fusion.Resources.Logic.Tests
             var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
             mediatorMock
                     .Setup(x => x.Send(It.Is<GetDepartment>(x => x.DepartmentId == requestPosition.BasePosition.Department), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new QueryDepartment(requestPosition.BasePosition.Department, null));
+                    .ReturnsAsync(new MockQueryDepartment(requestPosition.BasePosition.Department));
 
             setupMediatorMock?.Invoke(mediatorMock);
 
@@ -438,6 +439,21 @@ namespace Fusion.Resources.Logic.Tests
         {
             await this.db.Database.EnsureDeletedAsync();
             await this.db.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Extension of the internal query model, to create more convenience constructor for testing.
+    /// </summary>
+    internal class MockQueryDepartment : QueryDepartment
+    {
+        public MockQueryDepartment(string fullDepartment) : base(new Services.LineOrg.ApiModels.ApiOrgUnitBase { 
+            FullDepartment = fullDepartment,
+            Name = fullDepartment,
+            SapId = $"{Math.Abs(HashUtils.HashTextAsInt(fullDepartment))}",
+            Management = new Services.LineOrg.ApiModels.ApiOrgUnitManagement() { Persons = new List<Services.LineOrg.ApiModels.ApiPerson>() }
+        })
+        {
         }
     }
 }

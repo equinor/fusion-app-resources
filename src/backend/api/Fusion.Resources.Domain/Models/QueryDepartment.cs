@@ -38,17 +38,17 @@ namespace Fusion.Resources.Domain
 
         }
 
-        public QueryDepartment(string departmentId, string? sectorId)
-        {
-            FullDepartment = departmentId;
-            SectorId = sectorId;
-        }
-
         /// <summary>
         /// Identifier for the org unit in it's master system, SAP or workday. String should support both.
         /// </summary>
         public string? Identifier { get; set; }
+        /// <summary>
+        /// The full name of the department
+        /// </summary>
         public string? Name { get; set; }
+        /// <summary>
+        /// The 3-4 char name of the department, used as one part in the full department string.
+        /// </summary>
         public string? ShortName { get; set; }
 
         public string FullDepartment { get; }
