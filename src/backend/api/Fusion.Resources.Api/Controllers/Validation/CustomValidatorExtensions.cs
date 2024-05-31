@@ -1,6 +1,9 @@
-﻿using FluentValidation;
+﻿using AdaptiveExpressions;
+using FluentValidation;
 using FluentValidation.Results;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,6 +13,33 @@ namespace Fusion.Resources.Api.Controllers
 {
     public static class CustomValidatorExtensions
     {
+
+        /// <summary>
+        /// Checks if the org unit exists in line org. 
+        /// The provided value can be either a full department string or the SAP id.
+        /// </summary>
+        public static IRuleBuilderOptions<T, string?> BeValidOrgUnit<T>(this IRuleBuilder<T, string?> ruleBuilder, IServiceProvider services)
+        {
+            var result = ruleBuilder.CustomAsync(async (value, context, ct) =>
+            {
+                if (value!= null)
+                {
+                    var lineorg = services.GetRequiredService<ILineOrgResolver>();
+
+
+                    var departmentId = value.IsNumber() ? DepartmentId.FromSapId(value) : DepartmentId.FromFullPath(value);
+
+                    var orgUnit = await lineorg.ResolveOrgUnitAsync(departmentId);
+
+                    if (orgUnit == null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Org unit does not seem to exist. Used {value} as reference value."));
+                    }
+                }
+            });
+
+            return (IRuleBuilderOptions<T, string?>)result;
+        }
 
         public static IRuleBuilderOptions<T, BasePositionReference> BeValidBasePosition<T>(this IRuleBuilder<T, BasePositionReference> ruleBuilder, IProjectOrgResolver projectOrgResolver)
         {

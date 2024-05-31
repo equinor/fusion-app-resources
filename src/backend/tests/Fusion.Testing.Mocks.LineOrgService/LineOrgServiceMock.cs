@@ -1,4 +1,6 @@
-﻿using Fusion.Integration.Profile.ApiClient;
+﻿using Fusion.Events;
+using Fusion.Integration.LineOrg;
+using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Domain;
 using Fusion.Services.LineOrg.ApiModels;
 using Fusion.Testing.Mocks.LineOrgService.Api;
@@ -40,6 +42,11 @@ namespace Fusion.Testing.Mocks.LineOrgService
 
             if (Departments.FirstOrDefault(x => string.Equals(x.Name, fullName, StringComparison.OrdinalIgnoreCase)) == null)
                 Departments.Add(new ApiDepartment { Name = name.GetShortName(), FullName = fullName, Children = childRefs });
+
+
+            // Add entry to org unit as well.
+            // Ignoring parents for now
+            AddOrgUnit(fullName);
         }
         public static void UpdateDepartmentManager(string name, ApiLineOrgUser manager)
         {
@@ -51,19 +58,45 @@ namespace Fusion.Testing.Mocks.LineOrgService
 
             dep.Manager = manager;
         }
-        public static void AddOrgUnit(string sapId, string name, string department, string fullDepartment, string shortname)
+        public static ApiOrgUnit AddOrgUnit(string sapId, string name, string department, string fullDepartment, string shortname)
         {
-            if (OrgUnits.FirstOrDefault(x => x.SapId == sapId) == null)
+            var item = OrgUnits.FirstOrDefault(x => x.SapId == sapId);
+            if (item == null)
             {
-                OrgUnits.Add(new ApiOrgUnit()
+                // Need to add the business unit element, as this is used in authorization logic
+                var orgPath = !string.IsNullOrEmpty(fullDepartment) ? DepartmentId.FromFullPath(fullDepartment) : DepartmentId.Empty;
+
+                item = new ApiOrgUnit()
                 {
                     SapId = sapId,
                     Name = name,
                     Department = department,
                     FullDepartment = fullDepartment,
-                    ShortName = shortname
-                });
+                    ShortName = shortname,
+                    BusinessArea = new ApiOrgUnitRef()
+                    {
+                        Name = orgPath.BusinessArea,
+                        ShortName = orgPath.BusinessArea,
+                        FullDepartment = orgPath.BusinessArea,
+                        Level = 1
+                    }
+                };
+                OrgUnits.Add(item);
             }
+
+            return item;
+        }
+
+        /// <summary>
+        /// Not ment for consumption, but temp workaround during department refactor.
+        /// </summary>
+        /// <param name="fullDepartment"></param>
+        public static ApiOrgUnit AddOrgUnit(string fullDepartment)
+        {
+            var sapId = $"{Math.Abs(HashUtils.HashTextAsInt(fullDepartment))}";
+
+            var name = new DepartmentPath(fullDepartment);
+            return AddOrgUnit($"{sapId}", fullDepartment, name.GetShortName(), fullDepartment, fullDepartment.Split(' ').LastOrDefault());
         }
     }
 
@@ -119,6 +152,8 @@ namespace Fusion.Testing.Mocks.LineOrgService
             LineOrgServiceMock.AddDepartment(user.FullDepartment);
             if (user.IsResourceOwner)
                 LineOrgServiceMock.UpdateDepartmentManager(user.FullDepartment, user);
+
+            LineOrgServiceMock.AddOrgUnit(user.FullDepartment);
             return user;
         }
     }

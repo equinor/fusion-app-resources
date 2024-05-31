@@ -12,8 +12,18 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Should contain the full department string for the org unit. As this can be used for querying
+        /// </summary>
         [MaxLength(100)]
         public string? AssignedDepartment { get; set; }
+
+        /// <summary>
+        /// The identifier for the org unit.
+        /// </summary>
+        [MaxLength(100)]
+        public string? AssignedDepartmentId { get; set; }
+
         public bool IsDraft { get; set; }
 
         public long RequestNumber { get; set; }
@@ -121,6 +131,11 @@ namespace Fusion.Resources.Database.Entities
                 entity
                     .HasMany(x => x.Candidates)
                     .WithMany(x => x.CandidatesForRequest);
+
+                entity.HasIndex(e => e.AssignedDepartmentId).IsClustered(false);
+                entity.HasIndex(e => e.AssignedDepartment).IsClustered(false);
+                entity.HasIndex(e => e.RequestNumber).IsClustered(false);
+
             });
         }
 

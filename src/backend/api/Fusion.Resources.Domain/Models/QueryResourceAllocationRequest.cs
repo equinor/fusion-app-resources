@@ -32,6 +32,7 @@ namespace Fusion.Resources.Domain
             RequestId = entity.Id;
             RequestNumber = entity.RequestNumber;
             AssignedDepartment = entity.AssignedDepartment;
+            AssignedDepartmentId = entity.AssignedDepartmentId;
             Discipline = entity.Discipline;
             Type = entity.Type.MapToDomain();
 
@@ -83,6 +84,7 @@ namespace Fusion.Resources.Domain
         public Guid? OrgPositionInstanceId { get; set; }
 
         public string? AssignedDepartment { get; set; }
+        public string? AssignedDepartmentId { get; set; }
         public QueryDepartment? AssignedDepartmentDetails { get; set; }
         public string? Discipline { get; set; }
         public InternalRequestType Type { get; set; }

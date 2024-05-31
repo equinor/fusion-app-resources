@@ -47,16 +47,10 @@ namespace Fusion.Resources.Api.Controllers
                     .When(x => x.ProposedPersonAzureUniqueId.HasValue && x.ProposedPersonAzureUniqueId.Value.HasValue);
 
 
-                RuleFor(x => x.AssignedDepartment)
-                    .MustAsync(async (d, cancellationToken) =>
-                    {
-                        if (d.Value is null)
-                            return true;
-
-                        var department = await mediator.Send(new GetDepartment(d.Value), cancellationToken);
-                        return department is not null;
-                    })
+                RuleFor(x => x.AssignedDepartment.Value)
+                    .BeValidOrgUnit(services)
                     .WithMessage("Invalid department specified")
+                    .WithName("assignedDepartment")
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);
 
                 RuleFor(x => x.ProposedChanges)
