@@ -439,7 +439,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 fixture.EnsureDepartment(child);
             }
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
             LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
@@ -530,12 +530,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -559,12 +554,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { routedDepartment, "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
