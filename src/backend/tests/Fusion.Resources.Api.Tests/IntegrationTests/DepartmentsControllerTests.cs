@@ -118,6 +118,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ListDepartments_Should_PopulateSapId()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments?$search=MY TEST", new[] { new { sapId = string.Empty }});
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.Should().Contain(i => i.sapId.EqualsIgnCase(testOrgUnit.SapId));
+        }
+
+        [Fact]
+        public async Task GetDepartment_Should_PopulateSapId_WhenDepartmentStringProvided()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT 2");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testOrgUnit.FullDepartment}", new { sapId = string.Empty });
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.sapId.Should().Be(testOrgUnit.SapId);
+        }
+
+        [Fact]
         public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
         {
             var source = $"Department.Test";
