@@ -47,19 +47,13 @@ namespace Fusion.Resources.Application.LineOrg
             
             var resp = await client.GetAsync("/org-units?$top=5000&$expand=management");
 
-
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-            else
+            if (resp.IsSuccessStatusCode == false)
             {
                 var message = $"Error with request '{resp.RequestMessage?.RequestUri}'. Responded with {resp.StatusCode}.";
                 logger.LogCritical(message);
 
                 await LineOrgIntegrationError.ThrowFromResponse(message, resp);
             }
-
 
             var json = await resp.Content.ReadAsStringAsync();
             var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() });
@@ -107,7 +101,7 @@ namespace Fusion.Resources.Application.LineOrg
             {
                 return null;
             }
-            else
+            else if (resp.IsSuccessStatusCode == false)
             {
                 var message = $"Error with request '{resp.RequestMessage?.RequestUri}'. Responded with {resp.StatusCode}.";
                 logger.LogCritical(message);

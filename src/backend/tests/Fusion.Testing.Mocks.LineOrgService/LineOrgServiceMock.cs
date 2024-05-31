@@ -98,6 +98,7 @@ namespace Fusion.Testing.Mocks.LineOrgService
             var name = new DepartmentPath(fullDepartment);
             return AddOrgUnit($"{sapId}", fullDepartment, name.GetShortName(), fullDepartment, fullDepartment.Split(' ').LastOrDefault());
         }
+    
     }
 
     public class FusionTestUserBuilder
@@ -150,10 +151,36 @@ namespace Fusion.Testing.Mocks.LineOrgService
                 LineOrgServiceMock.Users.Add(user);
 
             LineOrgServiceMock.AddDepartment(user.FullDepartment);
+            
+            var orgUnit = LineOrgServiceMock.AddOrgUnit(user.FullDepartment);
             if (user.IsResourceOwner)
-                LineOrgServiceMock.UpdateDepartmentManager(user.FullDepartment, user);
+            {
+                // Add user to the management list for the org unit
+                if (orgUnit.Management is null)
+                {
+                    orgUnit.Management = new ApiOrgUnitManagement()
+                    {
+                        Persons = new System.Collections.Generic.List<ApiPerson>()
+                    };
+                }
 
-            LineOrgServiceMock.AddOrgUnit(user.FullDepartment);
+                orgUnit.Management.Persons.Add(new ApiPerson
+                {
+                    Name = user.Name,
+                    AzureUniqueId = user.AzureUniqueId,
+                    FullDepartment = user.FullDepartment,
+                    Department = user.Department,
+                    Mail = user.Mail,
+                    Upn = user.Mail,
+                    JobTitle = user.JobTitle,
+                    ManagerAzureUniqueId = user.ManagerId,
+                    AccountType = "Employee", // for now..
+                    AccountClassification = "Internal", // for now..
+                    MobilePhone = user.Phone,
+                    OfficeLocation = user.OfficeLocation,
+                });
+            }
+            
             return user;
         }
     }
