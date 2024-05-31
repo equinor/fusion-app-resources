@@ -38,12 +38,6 @@ namespace Fusion.Resources.Domain
 
         }
 
-        public QueryDepartment(ApiDepartment lineOrgDepartment, FusionPersonProfile? manager)
-        {
-            FullDepartment = lineOrgDepartment.FullName;
-            LineOrgResponsible = manager;
-        }
-
         public QueryDepartment(string departmentId, string? sectorId)
         {
             FullDepartment = departmentId;
