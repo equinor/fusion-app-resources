@@ -25,15 +25,15 @@ namespace Fusion.Resources.Domain
         {
             private readonly ILogger<Handler> logger;
             private readonly IMediator mediator;
-            private readonly ILineOrgResolver lineOrgResolver;
             private readonly IFusionProfileResolver profileService;
+            private readonly ILineOrgClient lineOrg;
 
-            public Handler(ILogger<Handler> logger, IMediator mediator, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileService)
+            public Handler(ILogger<Handler> logger, IMediator mediator, IFusionProfileResolver profileService, ILineOrgClient lineOrg)
             {
                 this.logger = logger;
                 this.mediator = mediator;
-                this.lineOrgResolver = lineOrgResolver;
                 this.profileService = profileService;
+                this.lineOrg = lineOrg;
             }
 
             public async Task<QueryRelatedDepartments?> Handle(GetRelatedDepartments request, CancellationToken cancellationToken)
@@ -61,19 +61,38 @@ namespace Fusion.Resources.Domain
             private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
             {
                 var relevantDepartments = new QueryRelatedDepartments();
-                var department = await lineOrgResolver.ResolveDepartmentAsync(DepartmentId.FromFullPath(fullDepartmentPath));
-                if (department is null) return null;
 
-                var children = await lineOrgResolver.ResolveDepartmentChildrenAsync(department);
-                if (children is not null)
-                {
-                    relevantDepartments.Children = await children.ToQueryDepartment(profileService);
-                }
 
-                var siblings = await lineOrgResolver.ResolveDepartmentChildrenAsync(string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1)));
-                if(siblings is not null)
+                var orgUnit = await lineOrg.ResolveOrgUnitAsync(fullDepartmentPath, a => a.ExpandChildren());
+
+                if (orgUnit is null)
+                    return null;
+
+                // Add children
+
+                // Children should be returned
+                if (relevantDepartments.Children is null)
+                    throw new NullReferenceException($"Child org unit should have been expanded and not be null for org unit {orgUnit?.FullDepartment}");
+
+                relevantDepartments.Children = orgUnit.Children!.Select(o => new QueryDepartment(o)).ToList(); 
+
+
+                // Add siblings
+
+                if (orgUnit.Parent is not null)
                 {
-                    relevantDepartments.Siblings = await siblings.ToQueryDepartment(profileService);
+                    var parentOrg = await lineOrg.ResolveOrgUnitAsync(orgUnit.Parent.SapId, a => a.ExpandChildren());
+
+                    if (parentOrg is null) throw new InvalidOperationException($"Parent org unit of {orgUnit.FullDepartment}, using sap id '{orgUnit.Parent.SapId}', does not seem to exist, got null.");
+
+                    if (parentOrg.Children is null)
+                        throw new NullReferenceException($"Child org unit should have been expanded and not be null for org unit {orgUnit?.FullDepartment}");
+
+                    relevantDepartments.Siblings = orgUnit.Children!
+                        .Where(o => o.SapId != orgUnit.SapId) // Exclude self
+                        .Select(o => new QueryDepartment(o))
+                        .ToList();
+
                 }
 
                 return relevantDepartments;

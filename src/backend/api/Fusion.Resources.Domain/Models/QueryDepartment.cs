@@ -8,7 +8,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryDepartment
     {
-        public QueryDepartment(ApiOrgUnit lineOrgUnit)
+        public QueryDepartment(ApiOrgUnitBase lineOrgUnit)
         {
             FullDepartment = lineOrgUnit.FullDepartment;
             Identifier = lineOrgUnit.SapId;
