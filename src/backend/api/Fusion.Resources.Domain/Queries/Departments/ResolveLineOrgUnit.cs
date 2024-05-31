@@ -43,4 +43,5 @@ namespace Fusion.Resources.Domain
             }
         }
     }
+
 }
