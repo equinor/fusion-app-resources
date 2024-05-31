@@ -1,11 +1,6 @@
-using Fusion.Integration;
-using Fusion.Integration.LineOrg;
-using Fusion.Integration.Profile;
-using Fusion.Resources.Application;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,15 +19,11 @@ namespace Fusion.Resources.Domain
         public class Handler : IRequestHandler<GetRelatedDepartments, QueryRelatedDepartments?>
         {
             private readonly ILogger<Handler> logger;
-            private readonly IMediator mediator;
-            private readonly IFusionProfileResolver profileService;
             private readonly ILineOrgClient lineOrg;
 
-            public Handler(ILogger<Handler> logger, IMediator mediator, IFusionProfileResolver profileService, ILineOrgClient lineOrg)
+            public Handler(ILogger<Handler> logger, ILineOrgClient lineOrg)
             {
                 this.logger = logger;
-                this.mediator = mediator;
-                this.profileService = profileService;
                 this.lineOrg = lineOrg;
             }
 
