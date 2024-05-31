@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Resources.Api.Controllers
@@ -38,6 +39,13 @@ namespace Fusion.Resources.Api.Controllers
         [JsonIgnore]
         public bool Exists { get; set; }
 
+        public override string ToString()
+        {
+            return Exists ? OriginalIdentifier : $"{OriginalIdentifier}:{Exists}";
+        }
+
         public static OrgUnitIdentifier NotFound(string identifier) => new OrgUnitIdentifier(identifier);
+
+        public static implicit operator LineOrgId(OrgUnitIdentifier identifier) => new LineOrgId() { SapId = identifier.SapId, FullDepartment = identifier.FullDepartment };
     }
 }

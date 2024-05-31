@@ -17,8 +17,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             resolvedIdentifier.Clear();
         }
-
-
+        
         public static void ClearCache(string identifier)
         {
             var cachedItems = resolvedIdentifier
