@@ -11,6 +11,9 @@ namespace Fusion.Resources.Domain
         public QueryDepartment(ApiOrgUnit lineOrgUnit)
         {
             DepartmentId = lineOrgUnit.FullDepartment;
+            Identifier = lineOrgUnit.SapId;
+            Name = lineOrgUnit.Name;
+            ShortName = lineOrgUnit.ShortName;
 
             if (lineOrgUnit.Management is not null)
             {
@@ -46,6 +49,13 @@ namespace Fusion.Resources.Domain
             DepartmentId = departmentId;
             SectorId = sectorId;
         }
+
+        /// <summary>
+        /// Identifier for the org unit in it's master system, SAP or workday. String should support both.
+        /// </summary>
+        public string? Identifier { get; set; }
+        public string? Name { get; set; }
+        public string? ShortName { get; set; }
 
         public string DepartmentId { get; }
         public string? SectorId { get; set; }
