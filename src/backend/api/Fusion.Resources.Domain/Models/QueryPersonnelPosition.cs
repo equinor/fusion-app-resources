@@ -16,6 +16,7 @@ namespace Fusion.Resources.Domain
 
         public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
         public double Workload { get; set; }
+        public string? Obs { get; set; }
         public QueryProjectRef Project { get; set; } = null!;
 
         /// <summary>

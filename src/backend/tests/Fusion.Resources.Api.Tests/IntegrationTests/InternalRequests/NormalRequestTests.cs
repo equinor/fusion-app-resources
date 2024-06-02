@@ -23,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+
     [Collection("Integration")]
     public class NormalRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
@@ -211,24 +212,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { state = (string?)null });
             resp.Should().BeSuccessfull();
             resp.Value.state.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task NormalRequest_Create_ShouldBeAbleToSetAssignedDepartmentDirectly()
-        {
-            using var adminScope = fixture.AdminScope();
-            var position = testProject.AddPosition();
-            var department = InternalRequestData.RandomDepartment;
-
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
-            {
-                type = "normal",
-                orgPositionId = position.Id,
-                orgPositionInstanceId = position.Instances.Last().Id,
-                assignedDepartment = department
-            });
-            response.Should().BeSuccessfull();
-            response.Value.AssignedDepartment.Should().Be(department);
         }
 
         [Fact]

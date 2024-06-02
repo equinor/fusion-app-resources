@@ -22,6 +22,7 @@
     <PackageReference Include="Fusion.Events.Client" Version="8.0.2" />
     <PackageReference Include="Fusion.Events.Server" Version="8.0.0" />
     <PackageReference Include="Fusion.Integration.Authorization" Version="7.0.4" />
+    <PackageReference Include="Fusion.Integration.LineOrg" Version="7.0.4" />
     <PackageReference Include="Fusion.Integration.Org" Version="8.0.0" />
     <PackageReference Include="Fusion.Integration.Roles" Version="8.0.0" />
     <PackageReference Include="Fusion.Integration.Notification" Version="7.0.4" />

@@ -105,6 +105,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 Id = item.Id;
                 Workload = item.Workload;
+                Obs = item.Obs;
                 Type = item.Type;
                 Description = item.Description;
 
@@ -122,6 +123,7 @@ namespace Fusion.Resources.Api.Controllers
             public Guid Id { get; set; }
             public string Type { get; set; } = null!;
             public double? Workload { get; set; }
+            public string? Obs { get; set; }
             public string Description { get; set; } = null!;
 
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -148,6 +150,7 @@ namespace Fusion.Resources.Api.Controllers
                 Name = pos.Name;
                 Location = pos.Location;
                 Workload = pos.Workload;
+                Obs = pos.Obs;
                 AllocationState = pos.AllocationState;
                 AllocationUpdated = pos.AllocationUpdated;
 
@@ -166,6 +169,7 @@ namespace Fusion.Resources.Api.Controllers
             public ApiBasePosition BasePosition { get; set; } = null!;
             public string Name { get; set; } = null!;
             public string? Location { get; set; }
+            public string? Obs { get; set; }
             public string? AllocationState { get; set; }
             public DateTime? AllocationUpdated { get; set; }
 
