@@ -36,11 +36,11 @@ namespace Fusion.Resources.Domain.Notifications.System
             public async Task Handle(OrgUnitPathUpdated notification, CancellationToken cancellationToken)
             {
 
-                var affectedReqeusts = await db.ResourceAllocationRequests.Where(r => r.AssignedDepartmentId == notification.SapId || (r.AssignedDepartmentId == null && r.AssignedDepartment == notification.FullDepartment))
+                var affectedReqeusts = await db.ResourceAllocationRequests.Where(r => r.AssignedDepartmentId == notification.SapId || (r.AssignedDepartmentId == null && r.AssignedDepartment == notification.FullDepartment))                    
                     .ToListAsync();
 
                 // TODO: Could perhaps generate a summary notification here, informing requests are assigned.
-
+                
                 // As this is only a lookup id, we can just update the properties behind the scene instead of doing it through a request.
                 foreach (var affected in affectedReqeusts)
                 {
