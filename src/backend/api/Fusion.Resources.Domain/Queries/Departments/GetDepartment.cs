@@ -60,7 +60,7 @@ namespace Fusion.Resources.Domain
 
                     await LineOrgIntegrationError.ThrowFromResponse(message, httpResponse);
                 }
-                var lineOrgDpt = JsonConvert.DeserializeObject<ApiOrgUnit>( //<ApiDepartment>
+                var lineOrgDpt = JsonConvert.DeserializeObject<ApiOrgUnit>(
                 await httpResponse.Content.ReadAsStringAsync()
                 );
 
