@@ -1,0 +1,16 @@
+{
+  "functionTimeout": "00:10:00",
+  "version": "2.0",
+  "extensions": {
+    "serviceBus": {
+      "messageHandlerOptions": {
+        "autoComplete": false
+      }
+    }
+  },
+  "logging": {
+    "logLevel": {
+      "default": "Information"
+    }
+  }
+}
