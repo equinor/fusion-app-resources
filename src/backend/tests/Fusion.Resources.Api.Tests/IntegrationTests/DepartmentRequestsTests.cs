@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
+using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -27,6 +28,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel testRequest;
 
+        private ApiOrgUnit userOrgUnit;
         private ApiPersonProfileV3 user;
         public DepartmentRequestsTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -50,6 +52,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsResourceOwner()
                 .SaveProfile();
 
+            userOrgUnit = fixture.AddOrgUnit(user.FullDepartment);
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -484,6 +487,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var timeline = person.timeline.Single();
             timeline.items.Should().Contain(x => x.id == absence.Id.ToString());
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldSupportSAPId()
+        {
+            using var adminScope = fixture.AdminScope();
+           
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{userOrgUnit.SapId}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var person = response.Value.value
+                .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            person.Should().NotBeNull("User should exist in the department");
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldReturnNotFound_WhenSapIdDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/9999999999999/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            response.Should().BeNotFound();
         }
 
         [Fact]
