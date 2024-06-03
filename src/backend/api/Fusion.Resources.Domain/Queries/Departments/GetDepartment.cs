@@ -72,6 +72,7 @@ namespace Fusion.Resources.Domain
                 if (request.shouldExpandDelegatedResourceOwners)
                     await ExpandDelegatedResourceOwner(result, cancellationToken);
 
+                    //TODO: resolvelineorgresponsible in another way, redo this, checkout Hans pr or queryDepartment file in method
                 if (lineOrgDpt?.Management?.Persons[0].AzureUniqueId is not null)
                 {
                     result.LineOrgResponsible = await profileResolver.ResolvePersonBasicProfileAsync(new Integration.Profile.PersonIdentifier(lineOrgDpt.Management.Persons[0].AzureUniqueId));
