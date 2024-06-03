@@ -29,6 +29,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private TestApiInternalRequestModel testRequest;
 
         private ApiOrgUnit userOrgUnit;
+        private ApiOrgUnit assignedOrgUnit;
         private ApiPersonProfileV3 user;
         public DepartmentRequestsTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -70,6 +71,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testRequest = await adminClient.CreateDefaultRequestAsync(testProject);
             testRequest = await adminClient.StartProjectRequestAsync(testProject, testRequest.Id);
             testRequest = await adminClient.AssignRandomDepartmentAsync(testRequest.Id);
+
+            // Should either create or fetch existing org unit.
+            assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment); 
+
         }
 
         #region GetDeparmentRequests
@@ -130,6 +135,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 $"/departments/{testRequest.AssignedDepartment}/resources/requests");
 
             response.Value.Value.Should().OnlyContain(req => !String.IsNullOrEmpty(req.ProposedPerson.Person.Name));
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldSupportSapId()
+        {
+            using var adminScope = fixture.AdminScope();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            await Client.ProposePersonAsync(testRequest.Id, proposedPerson);
+
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/{assignedOrgUnit.SapId}/resources/requests");
+
+            response.Value.Value.Should().Contain(r => r.Id == testRequest.Id);
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldReturnNotFound_WhenDepartmentDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            await Client.ProposePersonAsync(testRequest.Id, proposedPerson);
+
+            var assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment); // Should either create or fetch existing org unit.
+
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/12312312399/resources/requests");
+
+            response.Should().BeNotFound();
         }
 
         #endregion
