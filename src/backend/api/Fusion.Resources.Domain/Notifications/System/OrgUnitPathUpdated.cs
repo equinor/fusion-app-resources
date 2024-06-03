@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Notifications.System
 {
@@ -20,7 +22,7 @@ namespace Fusion.Resources.Domain.Notifications.System
         public string NewFullDepartment { get; }
 
 
-        public class RequestAssignedDepartmentHandler : NotificationHandler<OrgUnitPathUpdated>
+        public class RequestAssignedDepartmentHandler : INotificationHandler<OrgUnitPathUpdated>
         {
             private readonly ILogger<RequestAssignedDepartmentHandler> logger;
             private readonly ResourcesDbContext db;
@@ -31,14 +33,14 @@ namespace Fusion.Resources.Domain.Notifications.System
                 this.db = db;
             }
 
-            protected override async void Handle(OrgUnitPathUpdated notification)
+            public async Task Handle(OrgUnitPathUpdated notification, CancellationToken cancellationToken)
             {
 
-                var affectedReqeusts = await db.ResourceAllocationRequests.Where(r => r.AssignedDepartmentId == notification.SapId || (r.AssignedDepartmentId == null && r.AssignedDepartment == notification.FullDepartment))                    
+                var affectedReqeusts = await db.ResourceAllocationRequests.Where(r => r.AssignedDepartmentId == notification.SapId || (r.AssignedDepartmentId == null && r.AssignedDepartment == notification.FullDepartment))
                     .ToListAsync();
 
                 // TODO: Could perhaps generate a summary notification here, informing requests are assigned.
-                
+
                 // As this is only a lookup id, we can just update the properties behind the scene instead of doing it through a request.
                 foreach (var affected in affectedReqeusts)
                 {
@@ -49,6 +51,7 @@ namespace Fusion.Resources.Domain.Notifications.System
                 }
 
                 await db.SaveChangesAsync();
+
             }
         }
     }
