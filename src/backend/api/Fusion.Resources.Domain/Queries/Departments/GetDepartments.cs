@@ -4,9 +4,12 @@ using Fusion.Resources.Application;
 using Fusion.Resources.Database;
 using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
+using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,53 +60,62 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
-            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-                : base(db, lineOrgResolver, profileResolver) { }
+            private readonly ILineOrgClient lineorg;
+
+            public Handler(ResourcesDbContext db, ILineOrgClient lineorg, IFusionProfileResolver profileResolver)
+                : base(db, profileResolver)
+            {
+                this.lineorg = lineorg;
+            }
 
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
-                List<QueryDepartment> result;
+                var orgUnits = await lineorg.LoadAllOrgUnitsAsync();
 
-                IEnumerable<ApiLineOrgUser> lineOrgDepartments;
+                var query = orgUnits.AsQueryable();
+
+                var cmp = StringComparer.OrdinalIgnoreCase;
+
                 if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
-                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request.resourceOwnerSearch);
-                else
-                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync();
+                {
+                    query = query.Where(o => o.FullDepartment.ContainsNullSafe(request.resourceOwnerSearch)
+                        || (o.Management != null && o.Management.Persons.Any(p => p.Name.ContainsNullSafe(request.resourceOwnerSearch) || p.Mail.ContainsNullSafe(request.resourceOwnerSearch))
+                    ));
+                }
 
-                if (request.departmentIds is not null)
+
+                if (request.departmentIds?.Any() == true)
                 {
                     var ids = new HashSet<string>(request.departmentIds);
-                    lineOrgDepartments = lineOrgDepartments
-                        .Where(x => ids.Contains(x.FullDepartment!))
-                        .ToList();
+
+                    query = query.Where(o => ids.Contains(o.FullDepartment));
                 }
 
                 if (!string.IsNullOrEmpty(request.sector))
                 {
-                    lineOrgDepartments = lineOrgDepartments
-                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
-                        .ToList();
+                    var items = query.ToList()
+                       .Where(o => new DepartmentPath(o.FullDepartment!).Parent() == request.sector)
+                       .ToList();
+
+                    query = query.AsQueryable();
                 }
 
                 if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
                 {
-                    lineOrgDepartments = lineOrgDepartments
+                    var items = query.ToList()
                         .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
                         .ToList();
+
+                    query = query.AsQueryable();
                 }
 
-                result = await lineOrgDepartments.ToQueryDepartment(profileResolver);
+                List<QueryDepartment> result;
 
-                if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
-                {
-                    result = result.Where(dpt =>
-                        dpt.DepartmentId.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase)
-                        || dpt.LineOrgResponsible?.Name.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
-                        || dpt.LineOrgResponsible?.Mail?.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
-                    ).ToList();
-                }
+                result = query.Select(o => new QueryDepartment(o))
+                    .ToList();
 
                 if (request.shouldExpandDelegatedResourceOwners)
                 {

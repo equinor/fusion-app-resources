@@ -1,5 +1,4 @@
 using Fusion.Integration;
-using Fusion.Integration.LineOrg;
 using Fusion.Resources.Database;
 using MediatR;
 using System.Threading;
@@ -26,25 +25,29 @@ namespace Fusion.Resources.Domain
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartment, QueryDepartment?>
         {
-            public Handler(ResourcesDbContext  db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-                : base(db, lineOrgResolver, profileResolver) { }
+            private readonly IMediator mediator;
+
+            public Handler(ResourcesDbContext  db, IFusionProfileResolver profileResolver, IMediator mediator)
+                : base(db, profileResolver)
+            {
+                this.mediator = mediator;
+            }
 
             public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
             {
-                var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId));
 
-                if (lineOrgDpt is null) return null;
+                var orgUnit = await mediator.Send(new ResolveLineOrgUnit(request.DepartmentId));
 
-                var sector = new DepartmentPath(lineOrgDpt.FullName).Parent();
-                var result = new QueryDepartment(lineOrgDpt.FullName, sector);
+                if (orgUnit is null) return null;
+
+                var sector = new DepartmentPath(orgUnit.FullDepartment).Parent();
+                var result = new QueryDepartment(orgUnit)
+                {
+                    SectorId = sector
+                };
 
                 if (request.shouldExpandDelegatedResourceOwners)
                     await ExpandDelegatedResourceOwner(result, cancellationToken);
-
-                if (lineOrgDpt?.Manager?.AzureUniqueId is not null)
-                {
-                    result.LineOrgResponsible = await profileResolver.ResolvePersonBasicProfileAsync(new Integration.Profile.PersonIdentifier(lineOrgDpt.Manager.AzureUniqueId));
-                }
 
                 return result;
             }

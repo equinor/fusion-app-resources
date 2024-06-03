@@ -73,6 +73,13 @@ namespace Fusion.Resources.Api.Tests
 
     public class TestDepartment
     {
+        public string SapId { get; set; }
+        public string Title { get; set; }
+        public string ShortName { get; set; }
+
+        public string FullDepartment { get; set; }
+
+
         public string Name { get; set; }
         public string Sector { get; set; }
         public TestApiPerson LineOrgResponsible { get; set; }

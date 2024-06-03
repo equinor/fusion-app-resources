@@ -118,6 +118,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ListDepartments_Should_PopulateSapId()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments?$search=MY TEST", new[] { new { sapId = string.Empty }});
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.Should().Contain(i => i.sapId.EqualsIgnCase(testOrgUnit.SapId));
+        }
+
+        [Fact]
+        public async Task GetDepartment_Should_PopulateSapId_WhenDepartmentStringProvided()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT 2");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testOrgUnit.FullDepartment}", new { sapId = string.Empty });
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.sapId.Should().Be(testOrgUnit.SapId);
+        }
+
+        [Fact]
         public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
         {
             var source = $"Department.Test";
@@ -439,7 +465,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 fixture.EnsureDepartment(child);
             }
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
             LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
@@ -468,12 +494,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            //foreach (var sibling in siblings)
+            //    fixture.EnsureDepartment(sibling);
+            //foreach (var child in children)
+            //    fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -530,12 +556,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -559,12 +580,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { routedDepartment, "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
