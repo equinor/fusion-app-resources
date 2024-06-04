@@ -40,9 +40,8 @@ namespace Fusion.Resources.Domain.Behaviours
                         throw new InvalidOperationException("Could not determin editor");
 
                     trackableRequest.SetEditor(uniqueId, editor);
-                }
-                
-                if (SystemEditorScope.IsEnabled.Value == true)
+                } 
+                else if (SystemEditorScope.IsEnabled.Value == true)
                 {
                     // Ensure system account in db. 
                     var editor = await profileServices.EnsureSystemAccountAsync();
