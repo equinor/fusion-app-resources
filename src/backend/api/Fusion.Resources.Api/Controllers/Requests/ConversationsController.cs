@@ -65,7 +65,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         [HttpPost("/requests/internal/{requestId}/conversation")]
         [HttpPost("/departments/{departmentString}/resources/requests/{requestId}/conversation")]
-        public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, Guid? projectIdentifier, string? departmentString, [FromBody] AddRequestConversationMessageRequest request)
+        public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, Guid? projectIdentifier, [FromRoute] OrgUnitIdentifier? departmentString, [FromBody] AddRequestConversationMessageRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -139,7 +139,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         [HttpGet("/requests/internal/{requestId}/conversation")]
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation")]
-        public async Task<ActionResult> GetRequestConversation(Guid requestId, string? departmentString)
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, [FromRoute] OrgUnitIdentifier? departmentString)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -205,7 +205,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         [HttpGet("/requests/internal/{requestId}/conversation/{messageId}")]
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
-        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId, string? departmentString)
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId, [FromRoute] OrgUnitIdentifier? departmentString)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -243,8 +243,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return Ok(new ApiRequestConversationMessage(conversation));
         }
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}/conversation/{messageId}")]
-        [HttpPut("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation/{messageId}")]
-        public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, Guid? projectIdentifier, string? departmentString, [FromBody] UpdateRequestConversationMessageRequest request)
+        [HttpPut("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation/{messageId}")]  // This seems like a copy-paste mistake - but out of scope for this update.
+        public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, Guid? projectIdentifier, [FromBody] UpdateRequestConversationMessageRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -283,7 +283,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         [HttpPut("/requests/internal/{requestId}/conversation/{messageId}")]
         [HttpPut("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
-        public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, string? departmentString, [FromBody] UpdateRequestConversationMessageRequest request)
+        public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, [FromRoute] OrgUnitIdentifier? departmentString, [FromBody] UpdateRequestConversationMessageRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");

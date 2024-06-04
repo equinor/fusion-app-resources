@@ -21,9 +21,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
     {
         [HttpGet("departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentRequests(
-            [FromRoute] string departmentString,
+            [FromRoute] OrgUnitIdentifier departmentString,
             [FromQuery] ODataQueryParams query)
         {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -31,8 +34,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -42,7 +45,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var requestCommand = new GetResourceAllocationRequests(query)
                 .ForResourceOwners()
-                .WithAssignedDepartment(departmentString);
+                .WithAssignedDepartment(departmentString.FullDepartment);
             var result = await DispatchAsync(requestCommand);
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
@@ -92,7 +95,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         [HttpGet("departments/{departmentString}/resources/requests/timeline")]
         public async Task<ActionResult<ApiRequestsTimeline>> GetDepartmentTimeline(
-            [FromRoute] string departmentString,
+            [FromRoute] OrgUnitIdentifier departmentString,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
             [FromQuery] string? timelineDuration = null,
@@ -105,8 +108,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -137,7 +140,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
 
-            var requestCommand = new GetDepartmentRequestsTimeline(departmentString, timelineStart.Value, timelineEnd.Value, query);
+            var requestCommand = new GetDepartmentRequestsTimeline(departmentString.FullDepartment, timelineStart.Value, timelineEnd.Value, query);
             var departmentRequestsTimeline = await DispatchAsync(requestCommand);
 
             var apiModel = new ApiRequestsTimeline(departmentRequestsTimeline, timelineStart.Value, timelineEnd.Value);
@@ -146,7 +149,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("departments/{departmentString}/resources/requests/unassigned")]
-        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentUnassignedRequests(string departmentString) 
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentUnassignedRequests([FromRoute] OrgUnitIdentifier departmentString) 
         {
             #region Authorization
 
@@ -155,8 +158,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -165,7 +168,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
             var countEnabled = Request.Query.ContainsKey("$count");
 
-            var requestCommand = new GetDepartmentUnassignedRequests(departmentString).WithOnlyCount(countEnabled);
+            var requestCommand = new GetDepartmentUnassignedRequests(departmentString.FullDepartment).WithOnlyCount(countEnabled);
 
             var result = await DispatchAsync(requestCommand);
 
@@ -177,7 +180,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("departments/{departmentString}/resources/requests/tbn")]
-        public async Task<ActionResult> GetTBNPositions(string departmentString)
+        public async Task<ActionResult> GetTBNPositions([FromRoute] OrgUnitIdentifier departmentString)
         {
             #region Authorization
 
@@ -186,8 +189,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -195,7 +198,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             #endregion
 
-            var request = new GetTbnPositions(departmentString);
+            var request = new GetTbnPositions(departmentString.FullDepartment);
 
             var data = await DispatchAsync(request);
 
@@ -205,7 +208,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("departments/{departmentString}/resources/tbn-positions/timeline")]
 
         public async Task<ActionResult> GetTbnPositionsTimeline(
-            [FromRoute] string departmentString,
+            [FromRoute] OrgUnitIdentifier departmentString,
             [FromQuery] DateTime? timelineStart = null,
             [FromQuery] string? timelineDuration = null,
             [FromQuery] DateTime? timelineEnd = null)
@@ -217,8 +220,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -248,7 +251,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             }
             #endregion
 
-            var request = new GetTbnPositionsTimeline(departmentString, timelineStart.Value, timelineEnd.Value);
+            var request = new GetTbnPositionsTimeline(departmentString.FullDepartment, timelineStart.Value, timelineEnd.Value);
             var timeline = await DispatchAsync(request);
 
             return Ok(new ApiTbnPositionTimeline(timeline, timelineStart.Value, timelineEnd.Value));

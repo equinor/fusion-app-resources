@@ -15,12 +15,12 @@ namespace Fusion.Resources.Domain
     {
 
         private bool shouldIgnoreDateFilter;
-        public GetDelegatedDepartmentResponsibles(string departmentId)
+        public GetDelegatedDepartmentResponsibles(LineOrgId departmentId)
         {
             DepartmentId = departmentId;
         }
 
-        private string DepartmentId { get; set; }
+        private LineOrgId DepartmentId { get; set; }
 
         public GetDelegatedDepartmentResponsibles IgnoreDateFilter(bool ignore = true)
         {
@@ -32,23 +32,18 @@ namespace Fusion.Resources.Domain
         {
             private readonly ResourcesDbContext db;
             private readonly IFusionProfileResolver profileResolver;
-            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver, IMediator mediator)
+            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver)
             {
                 this.db = db;
                 this.profileResolver = profileResolver;
-                this.mediator = mediator;
             }
 
             public async Task<IEnumerable<QueryDepartmentResponsible>> Handle(GetDelegatedDepartmentResponsibles request, CancellationToken cancellationToken)
             {
                 var returnModel = new List<QueryDepartmentResponsible>();
-                var department = await mediator.Send(new GetDepartment(request.DepartmentId));
-                if (department is null)
-                    return returnModel;
 
-                var query =  db.DelegatedDepartmentResponsibles.AsNoTracking().Where(x => x.DepartmentId == request.DepartmentId);
+                var query = db.DelegatedDepartmentResponsibles.AsNoTracking().Where(x => x.DepartmentId == request.DepartmentId.FullDepartment);
                 if (!request.shouldIgnoreDateFilter)
                 {
                     query =  query.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date);

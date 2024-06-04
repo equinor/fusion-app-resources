@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Domain;
 using Microsoft.Extensions.Caching.Memory;
 using Fusion.Resources.Application.LineOrg;
+using Fusion.Resources.Api.Controllers;
 
 namespace Fusion.Resources.Api
 {
@@ -25,6 +26,9 @@ namespace Fusion.Resources.Api
         {
             await orgUnitCache.ClearOrgUnitCacheAsync();
             cache.Remove(LineOrgClient.OrgUnitsMemCacheKey);
+
+            // Just clearing all org unit cache if there are changes.
+            OrgUnitResolver.ClearCache();
         }
     }
 }

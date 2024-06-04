@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
+using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -27,6 +28,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel testRequest;
 
+        private ApiOrgUnit userOrgUnit;
+        private ApiOrgUnit assignedOrgUnit;
         private ApiPersonProfileV3 user;
         public DepartmentRequestsTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -50,6 +53,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsResourceOwner()
                 .SaveProfile();
 
+            userOrgUnit = fixture.AddOrgUnit(user.FullDepartment);
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -67,6 +71,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testRequest = await adminClient.CreateDefaultRequestAsync(testProject);
             testRequest = await adminClient.StartProjectRequestAsync(testProject, testRequest.Id);
             testRequest = await adminClient.AssignRandomDepartmentAsync(testRequest.Id);
+
+            // Should either create or fetch existing org unit.
+            assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment); 
+
         }
 
         #region GetDeparmentRequests
@@ -127,6 +135,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 $"/departments/{testRequest.AssignedDepartment}/resources/requests");
 
             response.Value.Value.Should().OnlyContain(req => !String.IsNullOrEmpty(req.ProposedPerson.Person.Name));
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldSupportSapId()
+        {
+            using var adminScope = fixture.AdminScope();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            await Client.ProposePersonAsync(testRequest.Id, proposedPerson);
+
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/{assignedOrgUnit.SapId}/resources/requests");
+
+            response.Value.Value.Should().Contain(r => r.Id == testRequest.Id);
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldReturnNotFound_WhenDepartmentDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            await Client.ProposePersonAsync(testRequest.Id, proposedPerson);
+
+            var assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment); // Should either create or fetch existing org unit.
+
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/12312312399/resources/requests");
+
+            response.Should().BeNotFound();
         }
 
         #endregion
@@ -484,6 +520,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var timeline = person.timeline.Single();
             timeline.items.Should().Contain(x => x.id == absence.Id.ToString());
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldSupportSAPId()
+        {
+            using var adminScope = fixture.AdminScope();
+           
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{userOrgUnit.SapId}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var person = response.Value.value
+                .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            person.Should().NotBeNull("User should exist in the department");
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldReturnNotFound_WhenSapIdDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/9999999999999/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            response.Should().BeNotFound();
         }
 
         [Fact]
