@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Behaviours
-{    
+{
 
     public class TrackableRequestBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
@@ -41,11 +41,17 @@ namespace Fusion.Resources.Domain.Behaviours
 
                     trackableRequest.SetEditor(uniqueId, editor);
                 }
+                
+                if (SystemEditorScope.IsEnabled.Value == true)
+                {
+                    // Ensure system account in db. 
+                    var editor = await profileServices.EnsureSystemAccountAsync();
+
+                    trackableRequest.SetEditor(Guid.Empty, editor);
+                }
             }
 
             return await next();
         }
     }
-
-
 }

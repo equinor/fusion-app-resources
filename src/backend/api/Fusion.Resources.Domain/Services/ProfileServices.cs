@@ -123,6 +123,38 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
+        public async Task<DbPerson> EnsureSystemAccountAsync()
+        {
+            await locker.WaitAsync();
+
+            try
+            {
+                var person = await resourcesDb.Persons.FirstOrDefaultAsync(p => p.AzureUniqueId == Guid.Empty);
+                if (person != null)
+                    return person;
+
+
+                person = new DbPerson
+                {
+                    AccountType = $"{FusionAccountType.Application}",
+                    AzureUniqueId = Guid.Empty,
+                    JobTitle = "System Account",
+                    Mail = $"system@FRA",
+                    Name = "FRA System Account",
+                    Phone = string.Empty
+                };
+
+                await resourcesDb.Persons.AddAsync(person);
+                await resourcesDb.SaveChangesAsync();
+
+                return person;
+            }
+            finally
+            {
+                locker.Release();
+            }
+        }
+
         public async Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId)
         {
             await locker.WaitAsync();
@@ -133,6 +165,7 @@ namespace Fusion.Resources.Domain.Services
                 if (person != null)
                     return person;
 
+
                 var profile = await ResolveApplicationAsync(azureUniqueId);
 
                 if (profile == null)
@@ -141,7 +174,7 @@ namespace Fusion.Resources.Domain.Services
                 person = new DbPerson
                 {
                     AccountType = $"{FusionAccountType.Application}",
-                    AzureUniqueId = azureUniqueId,
+                    AzureUniqueId = Guid.Empty,
                     JobTitle = "Azure AD Application",
                     Mail = $"{profile.ServicePrincipalId}@{profile.ApplicationId}",
                     Name = profile.DisplayName,
