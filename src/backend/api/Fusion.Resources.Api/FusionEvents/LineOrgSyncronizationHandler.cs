@@ -67,8 +67,8 @@ namespace Fusion.Resources.Api
 
         private async Task HandleOrgUnitUpdatedAsync(LineOrgEventBody payloadData)
         {            
-            // Need to disable cache 
-            using var disableCacheScope = new Fusion.Integration.DisableCacheScope();   // Need to verify this works..
+            // Need to disable cache in the resolver so we get a fresh copy
+            using var disableCacheScope = new Fusion.Integration.DisableCacheScope();  
 
             var orgUnit = await mediator.Send(new ResolveLineOrgUnit(payloadData.SapId));
 
