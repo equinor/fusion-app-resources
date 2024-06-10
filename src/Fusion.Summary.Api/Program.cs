@@ -1,4 +1,8 @@
+using Fusion.Summary.Api.Database;
+using Fusion.Summary.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +20,6 @@ builder.Services
     .AddMicrosoftIdentityWebApi(builder.Configuration)
     .EnableTokenAcquisitionToCallDownstreamApi()
     .AddInMemoryTokenCaches();
-
 builder.Services.AddFusionIntegration(f =>
 {
     f.UseServiceInformation("Fusion.Summary.Api", "Dev");
@@ -27,8 +30,9 @@ builder.Services.AddFusionIntegration(f =>
         opts.ClientSecret = builder.Configuration["AzureAd:ClientSecret"];
     });
 });
-
 builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseContext")));
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
 var app = builder.Build();
 app.UseCors(opts => opts
