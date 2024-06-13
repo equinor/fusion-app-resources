@@ -49,19 +49,26 @@ namespace Fusion.Resources.Api
                 return;
             }
 
-            if (payloadData.GetChangeType() == LineOrgEventBody.ChangeType.Updated)
+            switch (payloadData.GetChangeType())
             {
-                if (payloadData.Changes?.Any(i => i.EqualsIgnCase("fullDepartment")) == true) 
-                {
-                    await HandleOrgUnitUpdatedAsync(payloadData);
-                }
+                case LineOrgEventBody.ChangeType.Updated:
+                    if (payloadData.Changes?.Any(i => i.EqualsIgnCase("fullDepartment")) == true) 
+                    {
+                        await HandleOrgUnitUpdatedAsync(payloadData);
+                    }
+                    break;
+
+                case LineOrgEventBody.ChangeType.Deleted:
+                    await HandleOrgUnitDeletedAsync(payloadData);
+                    break;
+
             }
         }
 
         private async Task HandleOrgUnitUpdatedAsync(LineOrgEventBody payloadData)
         {            
-            // Need to disable cache 
-            using var disableCacheScope = new Fusion.Integration.DisableCacheScope();   // Need to verify this works..
+            // Need to disable cache in the resolver so we get a fresh copy
+            using var disableCacheScope = new Fusion.Integration.DisableCacheScope();  
 
             var orgUnit = await mediator.Send(new ResolveLineOrgUnit(payloadData.SapId));
 
@@ -76,6 +83,12 @@ namespace Fusion.Resources.Api
             }
 
             await mediator.Publish(new Domain.Notifications.System.OrgUnitPathUpdated(payloadData.SapId, payloadData.FullDepartment, orgUnit.FullDepartment));
+        }
+
+        private async Task HandleOrgUnitDeletedAsync(LineOrgEventBody payloadData)
+        {
+            // Need to disable cache 
+            await mediator.Publish(new Domain.Notifications.System.OrgUnitDeleted(payloadData.SapId, payloadData.FullDepartment));
         }
     }
 }

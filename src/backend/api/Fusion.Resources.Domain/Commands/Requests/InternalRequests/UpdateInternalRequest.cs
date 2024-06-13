@@ -39,6 +39,22 @@ namespace Fusion.Resources.Domain.Commands
 
         public MonitorableProperty<List<PersonId>> Candidates { get; set; } = new();
 
+
+        /// <summary>
+        /// Unassign the request. Set assigned department to null.
+        /// 
+        /// Factory to create unassign command more reable.
+        /// </summary>
+        /// <param name="requestId">The request to update</param>
+        /// <returns>Dispatchable command</returns>
+        public static UpdateInternalRequest UnassignRequest(Guid requestId)
+        {
+            var cmd = new UpdateInternalRequest(requestId);
+            cmd.AssignedDepartment = new MonitorableProperty<string?>(null);
+
+            return cmd;
+        }
+
         public class Handler : IRequestHandler<UpdateInternalRequest, QueryResourceAllocationRequest>
         {
             private readonly ResourcesDbContext db;

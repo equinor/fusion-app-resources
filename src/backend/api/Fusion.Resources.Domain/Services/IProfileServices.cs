@@ -33,5 +33,6 @@ namespace Fusion.Resources.Domain
         /// <param name="person"></param>
         /// <returns></returns>
         Task<FusionPersonProfile?> ResolveProfileAsync(PersonId person);
+        Task<DbPerson> EnsureSystemAccountAsync();
     }
 }
