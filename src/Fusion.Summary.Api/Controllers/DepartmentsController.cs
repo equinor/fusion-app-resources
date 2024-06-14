@@ -1,4 +1,5 @@
-﻿using Fusion.Summary.Api.Database.Entities;
+﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Summary.Api.Database.Entities;
 using Fusion.Summary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,31 +10,45 @@ public record PutDepartmentRquest(string DepartmentSapId, string FullDepartmentN
 
 public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAzureUniqueId, string fullDepartmentName);
 
+/// <summary>
+/// TODO: Add summary
+/// </summary>
+[ApiVersion("1.0")]
 [Authorize]
-[Route("api/[controller]")]
 [ApiController]
 public class DepartmentsController : ControllerBase
 {
     private readonly IDepartmentService _departmentService;
 
-    public DepartmentsController(IDepartmentService departmentService) 
+    public DepartmentsController(IDepartmentService departmentService)
     {
         _departmentService = departmentService;
     }
 
-    [HttpGet]
-    [ProducesResponseType(typeof(List<DepartmentTableEntity>), 200)]
-    [ProducesResponseType(typeof(string), 401)]
-    [ProducesResponseType(typeof(string), 403)]
-    [ProducesResponseType(typeof(string), 404)]
+    /// <summary>
+    /// TODO: Add summary
+    /// <returns></returns>
+    [HttpGet("departments")]
+
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDepartmentsV1()
     {
+
+        #region Authorization
+        // Add authorization
+        #endregion Authorization
+
         var ret = new List<DepartmentTableEntity>();
 
         // Query
         var departments = await _departmentService.GetAllDepartments();
 
-        if (departments.Count == 0) return NotFound();
+        if (departments.Count == 0)
+            return NotFound();
 
         ret.AddRange(departments);
 
@@ -41,17 +56,25 @@ public class DepartmentsController : ControllerBase
         return Ok(ret);
     }
 
-    [HttpGet("{sapDepartmentId}")]
-    [ProducesResponseType(typeof(DepartmentTableEntity), 200)]
-    [ProducesResponseType(typeof(string), 401)]
-    [ProducesResponseType(typeof(string), 403)]
-    [ProducesResponseType(typeof(string), 404)]
+    /// <summary>
+    /// TODO: Add summary
+    /// <returns></returns>
+    [HttpGet("departments/{sapDepartmentId}")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDepartmentV1(string sapDepartmentId)
     {
+        #region Authorization
+        // Add authorization
+        #endregion Authorization
+
         var department = await _departmentService.GetDepartmentById(sapDepartmentId);
 
         // Check if department is null
-        if( department == null )
+        if (department == null)
         {
             return NotFound();
         }
@@ -59,14 +82,21 @@ public class DepartmentsController : ControllerBase
         return Ok(department);
     }
 
-    [HttpPut]
-    [ProducesResponseType(typeof(string), 200)]
-    [ProducesResponseType(typeof(string), 201)]
-    [ProducesResponseType(typeof(string), 401)]
-    [ProducesResponseType(typeof(string), 403)]
-    [ProducesResponseType(typeof(string), 404)]
+    /// <summary>
+    /// TODO: Add summary
+    /// <returns></returns>
+    [HttpPut("departments/{sapDepartmentId}")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutV1(PutDepartmentRquest request)
     {
+        #region Authorization
+        // Add authorization
+        #endregion Authorization
+
         var department = await _departmentService.GetDepartmentById(request.DepartmentSapId);
 
         // Check if department exist
