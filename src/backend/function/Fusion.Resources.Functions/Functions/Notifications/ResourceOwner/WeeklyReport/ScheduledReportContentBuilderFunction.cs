@@ -82,7 +82,7 @@ public class ScheduledReportContentBuilderFunction
     {
         //  Requests for department
         var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(fullDepartment)).ToList();
-        
+
         // Personnel for the department
         var departmentPersonnel =
             (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
