@@ -69,7 +69,6 @@ public class ScheduledReportTimerTriggerFunction
             if (departments == null || !departments.Any())
                 throw new Exception("No departments found.");
 
-            // TODO: These resource-owners are handpicked to limit the scope of the project.
             var selectedDepartments = departments
                 .Where(d => d.FullDepartment != null).Distinct().ToList();
 
