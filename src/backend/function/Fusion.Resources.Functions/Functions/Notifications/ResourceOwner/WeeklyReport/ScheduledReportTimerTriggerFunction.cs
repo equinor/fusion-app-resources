@@ -21,6 +21,8 @@ public class ScheduledReportTimerTriggerFunction
     private readonly string _serviceBusConnectionString;
     private readonly string _queueName;
 
+    private int _totalBatchTimeInMinutes = 270;
+
     public ScheduledReportTimerTriggerFunction(ILineOrgApiClient lineOrgApiClient,
         ILogger<ScheduledReportTimerTriggerFunction> logger, IConfiguration configuration)
     {
@@ -44,7 +46,7 @@ public class ScheduledReportTimerTriggerFunction
             var client = new ServiceBusClient(_serviceBusConnectionString);
             var sender = client.CreateSender(_queueName);
 
-            await SendResourceOwnersToQueue(sender);
+            await SendResourceOwnersToQueue(sender, _totalBatchTimeInMinutes);
 
             _logger.LogInformation(
                 $"{nameof(ScheduledReportTimerTriggerFunction)} " +
@@ -58,7 +60,7 @@ public class ScheduledReportTimerTriggerFunction
         }
     }
 
-    private async Task SendResourceOwnersToQueue(ServiceBusSender sender)
+    private async Task SendResourceOwnersToQueue(ServiceBusSender sender, int totalBatchTimeInMinutes)
     {
         try
         {
@@ -78,7 +80,7 @@ public class ScheduledReportTimerTriggerFunction
 
             var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId).ToList();
 
-            var batchTimeInMinutes = Math.Ceiling((4.5 * 60) / resourceOwnersToSendNotifications.Count);
+            var batchTimeInMinutes = totalBatchTimeInMinutes / resourceOwnersToSendNotifications.Count;
 
             if (batchTimeInMinutes < 1)
                 batchTimeInMinutes = 1;
