@@ -85,7 +85,7 @@ public class ScheduledReportTimerTriggerFunction
                 throw new Exception("No departments found.");
 
             var selectedDepartments = departments
-                .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
+                .Where(d => d.FullDepartment != null).Distinct().ToList();
 
             var resourceOwners = await GetLineOrgPersonsFromDepartmentsChunked(selectedDepartments);
 
