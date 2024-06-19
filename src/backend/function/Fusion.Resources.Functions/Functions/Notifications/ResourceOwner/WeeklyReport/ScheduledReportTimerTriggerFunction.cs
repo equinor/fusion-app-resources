@@ -32,12 +32,13 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 0 5 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 10 2 * * MON", RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
             $"{nameof(ScheduledReportTimerTriggerFunction)} " +
             $"started at: {DateTime.UtcNow}");
+
         try
         {
             var client = new ServiceBusClient(_serviceBusConnectionString);
@@ -62,26 +63,32 @@ public class ScheduledReportTimerTriggerFunction
         try
         {
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
+
             if (departments == null || !departments.Any())
                 throw new Exception("No departments found.");
 
             // TODO: These resource-owners are handpicked to limit the scope of the project.
             var selectedDepartments = departments
                 .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
+
             var resourceOwners = await GetLineOrgPersonsFromDepartmentsChunked(selectedDepartments);
+
             if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
 
             var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId).ToList();
 
-            var batchTimeInMinutes = Math.Ceiling(120.0 / resourceOwnersToSendNotifications.Count);
+            var batchTimeInMinutes = Math.Ceiling((4.5 * 60) / resourceOwnersToSendNotifications.Count);
+
             if (batchTimeInMinutes < 1)
                 batchTimeInMinutes = 1;
+
             var resourceOwnerMessageSent = 0;
 
             foreach (var resourceOwner in resourceOwnersToSendNotifications)
             {
                 var timeDelayInMinutes = resourceOwnerMessageSent * batchTimeInMinutes;
+
                 try
                 {
                     if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
@@ -110,6 +117,8 @@ public class ScheduledReportTimerTriggerFunction
                 $"ServiceBus queue '{_queueName}' " +
                 $"failed collecting resource-owners with exception: {e.Message}");
         }
+
+        _logger.LogInformation("Job completed");
     }
 
     private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmentsChunked(
