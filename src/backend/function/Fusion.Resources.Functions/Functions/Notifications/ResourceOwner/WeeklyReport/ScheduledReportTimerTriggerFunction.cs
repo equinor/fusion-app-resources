@@ -21,6 +21,7 @@ public class ScheduledReportTimerTriggerFunction
     private readonly string _serviceBusConnectionString;
     private readonly string _queueName;
 
+    // The function should start 02:10 and in order to be finished before 07:00 it spaces out the batch work over 4.5 hours
     private int _totalBatchTimeInMinutes = 270;
 
     public ScheduledReportTimerTriggerFunction(ILineOrgApiClient lineOrgApiClient,
