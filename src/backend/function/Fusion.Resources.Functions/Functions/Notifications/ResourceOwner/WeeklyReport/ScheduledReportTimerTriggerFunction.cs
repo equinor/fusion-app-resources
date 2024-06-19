@@ -31,6 +31,20 @@ public class ScheduledReportTimerTriggerFunction
         _logger = logger;
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _queueName = configuration["scheduled_notification_report_queue"];
+
+        // Handling reading 'total_batch_time_in_minutes' from configuration
+        var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
+
+        if (!string.IsNullOrEmpty(totalBatchTimeInMinutesStr))
+        {
+            _totalBatchTimeInMinutes = int.Parse(totalBatchTimeInMinutesStr);
+        }
+        else
+        {
+            logger.LogWarning("Env variable 'scheduled_notification_report_queue' not found, using default '120'.");
+
+            _totalBatchTimeInMinutes = 120;
+        }
     }
 
     [FunctionName("scheduled-report-timer-trigger-function")]
