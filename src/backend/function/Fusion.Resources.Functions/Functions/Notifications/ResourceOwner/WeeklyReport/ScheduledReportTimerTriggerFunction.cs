@@ -69,7 +69,7 @@ public class ScheduledReportTimerTriggerFunction
 
             // TODO: These resource-owners are handpicked to limit the scope of the project.
             var selectedDepartments = departments
-                .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
+                .Where(d => d.FullDepartment != null).Distinct().ToList();
 
             var resourceOwners = await GetLineOrgPersonsFromDepartmentsChunked(selectedDepartments);
 
