@@ -6,10 +6,10 @@ namespace Fusion.Summary.Api.Services;
 
 public interface IDepartmentService
 {
-    Task<List<DepartmentTableEntity>> GetAllDepartments();
-    Task<DepartmentTableEntity?> GetDepartmentById(string sapId);
-    Task <bool> CreateDepartment(DepartmentTableEntity department);
-    Task UpdateDepartment(string sapId, DepartmentTableEntity department);
+    Task<List<DbDepartment>> GetAllDepartments();
+    Task<DbDepartment?> GetDepartmentById(string sapId);
+    Task <bool> CreateDepartment(DbDepartment department);
+    Task UpdateDepartment(string sapId, DbDepartment department);
 }
 
 public class DepartmentService : IDepartmentService
@@ -21,7 +21,7 @@ public class DepartmentService : IDepartmentService
         _context = context;
     }
 
-    public async Task<bool> CreateDepartment(DepartmentTableEntity department)
+    public async Task<bool> CreateDepartment(DbDepartment department)
     {
         _context.Departments.Add(department);
 
@@ -30,17 +30,17 @@ public class DepartmentService : IDepartmentService
         return true;
     }
 
-    public Task<List<DepartmentTableEntity>> GetAllDepartments()
+    public Task<List<DbDepartment>> GetAllDepartments()
     {
         return _context.Departments.ToListAsync();
     }
 
-    public async Task<DepartmentTableEntity?> GetDepartmentById(string sapId)
+    public async Task<DbDepartment?> GetDepartmentById(string sapId)
     {
         return await _context.Departments.FindAsync(sapId);
     }
 
-    public async Task UpdateDepartment(string sapId, DepartmentTableEntity department)
+    public async Task UpdateDepartment(string sapId, DbDepartment department)
     {
         var existingDepartment = await _context.Departments.FindAsync(sapId);
 

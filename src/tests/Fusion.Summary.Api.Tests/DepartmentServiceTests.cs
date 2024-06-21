@@ -35,7 +35,7 @@ public class DepartmentServiceTests
     public async Task CreateDepartment_ShouldReturnTrue()
     {
         // Arrange
-        var department = new DepartmentTableEntity { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
+        var department = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
 
         // Act
         var result = await _departmentService.CreateDepartment(department);
@@ -48,8 +48,8 @@ public class DepartmentServiceTests
     public async Task GetAllDepartments_ShouldReturnAllDepartments()
     {
         // Arrange
-        var departmentA = new DepartmentTableEntity { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
-        var departmentB = new DepartmentTableEntity { DepartmentSapId = "1002", FullDepartmentName = "Department B" };
+        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
+        var departmentB = new DbDepartment { DepartmentSapId = "1002", FullDepartmentName = "Department B" };
         await _departmentService.CreateDepartment(departmentA);
         await _departmentService.CreateDepartment(departmentB);
 
@@ -67,8 +67,8 @@ public class DepartmentServiceTests
     public async Task GetDepartmentById_ExistingId_ShouldReturnDepartment()
     {
         // Arrange
-        var departmentA = new DepartmentTableEntity { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
-        var departmentB = new DepartmentTableEntity { DepartmentSapId = "1002", FullDepartmentName = "Department B" };
+        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
+        var departmentB = new DbDepartment { DepartmentSapId = "1002", FullDepartmentName = "Department B" };
         await _departmentService.CreateDepartment(departmentA);
         await _departmentService.CreateDepartment(departmentB);
 
@@ -99,8 +99,8 @@ public class DepartmentServiceTests
         var resourceOwner1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
         var resourceOwner2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
 
-        var departmentA = new DepartmentTableEntity { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
-        var departmentB = new DepartmentTableEntity { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner2 };
+        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
+        var departmentB = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner2 };
         
         await _departmentService.CreateDepartment(departmentA);
 
@@ -120,8 +120,8 @@ public class DepartmentServiceTests
         var resourceOwner1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
         var resourceOwner2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
 
-        var departmentA = new DepartmentTableEntity { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
-        var departmentB = new DepartmentTableEntity { DepartmentSapId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = resourceOwner2 };
+        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
+        var departmentB = new DbDepartment { DepartmentSapId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = resourceOwner2 };
         
         await _departmentService.CreateDepartment(departmentA);
 

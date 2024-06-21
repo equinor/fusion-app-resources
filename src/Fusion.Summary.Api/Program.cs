@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,7 @@ builder.Services.AddFusionIntegration(f =>
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var app = builder.Build();
 app.UseCors(opts => opts

@@ -1,5 +1,7 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Summary.Api.Database.Entities;
+using Fusion.Summary.Api.Domain.Queries;
+using Fusion.Summary.Api.Models;
 using Fusion.Summary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +16,10 @@ public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAz
 /// TODO: Add summary
 /// </summary>
 [ApiVersion("1.0")]
-[Authorize]
+//[Authorize]
+[AllowAnonymous]
 [ApiController]
-public class DepartmentsController : ControllerBase
+public class DepartmentsController : BaseController
 {
     private readonly IDepartmentService _departmentService;
 
@@ -29,7 +32,6 @@ public class DepartmentsController : ControllerBase
     /// TODO: Add summary
     /// <returns></returns>
     [HttpGet("departments")]
-
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -42,15 +44,17 @@ public class DepartmentsController : ControllerBase
         // Add authorization
         #endregion Authorization
 
-        var ret = new List<DepartmentTableEntity>();
+        var ret = new List<ApiDepartment>();
 
         // Query
-        var departments = await _departmentService.GetAllDepartments();
+        var departments = await DispatchAsync(new GetAllDepartments());
 
-        if (departments.Count == 0)
+        if (departments.Count() == 0)
             return NotFound();
-
-        ret.AddRange(departments);
+        else
+        {
+            foreach (var d in departments) ret.Add(ApiDepartment.FromQueryDepartment(d));
+        }
 
         // Return val
         return Ok(ret);
@@ -102,7 +106,7 @@ public class DepartmentsController : ControllerBase
         // Check if department exist
         if (department == null)
         {
-            await _departmentService.CreateDepartment(new DepartmentTableEntity
+            await _departmentService.CreateDepartment(new DbDepartment
             {
                 DepartmentSapId = request.DepartmentSapId,
                 ResourceOwnerAzureUniqueId = request.ResourceOwnerAzureUniqueId,
@@ -114,7 +118,7 @@ public class DepartmentsController : ControllerBase
         // Check if department owner has changed
         else if (department.ResourceOwnerAzureUniqueId != request.ResourceOwnerAzureUniqueId)
         {
-            await _departmentService.UpdateDepartment(request.DepartmentSapId, new DepartmentTableEntity
+            await _departmentService.UpdateDepartment(request.DepartmentSapId, new DbDepartment
             {
                 DepartmentSapId = request.DepartmentSapId,
                 FullDepartmentName = request.FullDepartmentName,
