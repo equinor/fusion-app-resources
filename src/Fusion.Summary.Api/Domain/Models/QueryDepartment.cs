@@ -1,11 +1,11 @@
-﻿using Fusion.Summary.Api.Database.Entities;
+﻿using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Models;
 
 namespace Fusion.Summary.Api.Domain.Models;
 
 public class QueryDepartment
 {
-    public string DepartmentSapId { get; set; } = string.Empty;
+    public string SapDepartmentId { get; set; } = string.Empty;
     public Guid ResourceOwnerAzureUniqueId { get; set; }
     public string FullDepartmentName { get; set; } = string.Empty;
 
@@ -13,7 +13,7 @@ public class QueryDepartment
     {
         return new QueryDepartment
         {
-            DepartmentSapId = dbDepartment.DepartmentSapId,
+            SapDepartmentId = dbDepartment.DepartmentSapId,
             ResourceOwnerAzureUniqueId = dbDepartment.ResourceOwnerAzureUniqueId,
             FullDepartmentName = dbDepartment.FullDepartmentName
         };
@@ -23,7 +23,7 @@ public class QueryDepartment
     {
         return new QueryDepartment
         {
-            DepartmentSapId = apiDepartment.DepartmentSapId,
+            SapDepartmentId = apiDepartment.DepartmentSapId,
             FullDepartmentName = apiDepartment.FullDepartmentName
         };
     }

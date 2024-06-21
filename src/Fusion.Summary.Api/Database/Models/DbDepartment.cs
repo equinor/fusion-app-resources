@@ -1,7 +1,7 @@
 ﻿using Fusion.Summary.Api.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace Fusion.Summary.Api.Database.Entities;
+namespace Fusion.Summary.Api.Database.Models;
 
 public class DbDepartment
 {
@@ -14,7 +14,7 @@ public class DbDepartment
     {
         return new DbDepartment
         {
-            DepartmentSapId = queryDepartment.DepartmentSapId,
+            DepartmentSapId = queryDepartment.SapDepartmentId,
             ResourceOwnerAzureUniqueId = queryDepartment.ResourceOwnerAzureUniqueId,
             FullDepartmentName = queryDepartment.FullDepartmentName
         };

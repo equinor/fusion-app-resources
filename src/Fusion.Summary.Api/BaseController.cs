@@ -21,14 +21,12 @@ public class BaseController : ControllerBase
         }
     }
 
-    /*
     protected Task DispatchCommandAsync(IRequest command)
     {
         var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
 
         return mediator.Send(command);
     }
-    */
 
     protected Task<TResult> DispatchAsync<TResult>(IRequest<TResult> command)
     {

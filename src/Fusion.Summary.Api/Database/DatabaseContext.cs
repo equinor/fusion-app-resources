@@ -1,4 +1,4 @@
-﻿using Fusion.Summary.Api.Database.Entities;
+﻿using Fusion.Summary.Api.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

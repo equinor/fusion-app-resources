@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Summary.Api.Database.Entities;
+using Fusion.Summary.Api.Database.Models;
+using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
 using Fusion.Summary.Api.Models;
 using Fusion.Summary.Api.Services;
@@ -106,24 +107,22 @@ public class DepartmentsController : BaseController
         // Check if department exist
         if (department == null)
         {
-            await _departmentService.CreateDepartment(new DbDepartment
-            {
-                DepartmentSapId = request.DepartmentSapId,
-                ResourceOwnerAzureUniqueId = request.ResourceOwnerAzureUniqueId,
-                FullDepartmentName = request.FullDepartmentName
-            });
+            await DispatchCommandAsync(
+                new CreateDepartment(
+                    request.DepartmentSapId, 
+                    request.ResourceOwnerAzureUniqueId, 
+                    request.FullDepartmentName));
 
             return Created();
         }
         // Check if department owner has changed
         else if (department.ResourceOwnerAzureUniqueId != request.ResourceOwnerAzureUniqueId)
         {
-            await _departmentService.UpdateDepartment(request.DepartmentSapId, new DbDepartment
-            {
-                DepartmentSapId = request.DepartmentSapId,
-                FullDepartmentName = request.FullDepartmentName,
-                ResourceOwnerAzureUniqueId = request.ResourceOwnerAzureUniqueId
-            });
+            await DispatchCommandAsync(
+                new UpdateDepartment(
+                    request.DepartmentSapId,
+                    request.ResourceOwnerAzureUniqueId,
+                    request.FullDepartmentName));
 
             return Ok();
         }

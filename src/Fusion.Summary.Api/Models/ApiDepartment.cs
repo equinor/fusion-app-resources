@@ -12,7 +12,7 @@ public class ApiDepartment
     {
         return new ApiDepartment
         {
-            DepartmentSapId = queryDepartment.DepartmentSapId,
+            DepartmentSapId = queryDepartment.SapDepartmentId,
             ResourceOwnerAzureUniqueId = queryDepartment.ResourceOwnerAzureUniqueId,
             FullDepartmentName = queryDepartment.FullDepartmentName
         };
