@@ -21,6 +21,9 @@ public class ScheduledReportTimerTriggerFunction
     private readonly string _serviceBusConnectionString;
     private readonly string _queueName;
 
+    // The function should start 02:10 and in order to be finished before 07:00 it spaces out the batch work over 4.5 hours
+    private int _totalBatchTimeInMinutes = 270;
+
     public ScheduledReportTimerTriggerFunction(ILineOrgApiClient lineOrgApiClient,
         ILogger<ScheduledReportTimerTriggerFunction> logger, IConfiguration configuration)
     {
@@ -28,22 +31,37 @@ public class ScheduledReportTimerTriggerFunction
         _logger = logger;
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _queueName = configuration["scheduled_notification_report_queue"];
+
+        // Handling reading 'total_batch_time_in_minutes' from configuration
+        var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
+
+        if (!string.IsNullOrEmpty(totalBatchTimeInMinutesStr))
+        {
+            _totalBatchTimeInMinutes = int.Parse(totalBatchTimeInMinutesStr);
+        }
+        else
+        {
+            logger.LogWarning("Env variable 'scheduled_notification_report_queue' not found, using default '120'.");
+
+            _totalBatchTimeInMinutes = 120;
+        }
     }
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 0 5 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 10 2 * * MON", RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
             $"{nameof(ScheduledReportTimerTriggerFunction)} " +
             $"started at: {DateTime.UtcNow}");
+
         try
         {
             var client = new ServiceBusClient(_serviceBusConnectionString);
             var sender = client.CreateSender(_queueName);
 
-            await SendResourceOwnersToQueue(sender);
+            await SendResourceOwnersToQueue(sender, _totalBatchTimeInMinutes);
 
             _logger.LogInformation(
                 $"{nameof(ScheduledReportTimerTriggerFunction)} " +
@@ -57,31 +75,36 @@ public class ScheduledReportTimerTriggerFunction
         }
     }
 
-    private async Task SendResourceOwnersToQueue(ServiceBusSender sender)
+    private async Task SendResourceOwnersToQueue(ServiceBusSender sender, int totalBatchTimeInMinutes)
     {
         try
         {
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
+
             if (departments == null || !departments.Any())
                 throw new Exception("No departments found.");
 
-            // TODO: These resource-owners are handpicked to limit the scope of the project.
             var selectedDepartments = departments
-                .Where(d => d.FullDepartment != null && d.FullDepartment.Contains("PRD")).Distinct().ToList();
+                .Where(d => d.FullDepartment != null).Distinct().ToList();
+
             var resourceOwners = await GetLineOrgPersonsFromDepartmentsChunked(selectedDepartments);
+
             if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
 
             var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId).ToList();
 
-            var batchTimeInMinutes = Math.Ceiling(120.0 / resourceOwnersToSendNotifications.Count);
+            var batchTimeInMinutes = totalBatchTimeInMinutes / resourceOwnersToSendNotifications.Count;
+
             if (batchTimeInMinutes < 1)
                 batchTimeInMinutes = 1;
+
             var resourceOwnerMessageSent = 0;
 
             foreach (var resourceOwner in resourceOwnersToSendNotifications)
             {
                 var timeDelayInMinutes = resourceOwnerMessageSent * batchTimeInMinutes;
+
                 try
                 {
                     if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
@@ -110,6 +133,8 @@ public class ScheduledReportTimerTriggerFunction
                 $"ServiceBus queue '{_queueName}' " +
                 $"failed collecting resource-owners with exception: {e.Message}");
         }
+
+        _logger.LogInformation("Job completed");
     }
 
     private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmentsChunked(

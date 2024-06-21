@@ -164,6 +164,10 @@
             {
               "name": "provision_position_queue",
               "value": "[parameters('settings').queues.provisionPosition]"
+            },
+            {
+              "name": "total_batch_time_in_minutes",
+              "value": "270"
             }
           ]
         }
