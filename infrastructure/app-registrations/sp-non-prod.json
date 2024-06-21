@@ -1,0 +1,46 @@
+{
+    "id": "fab7c06b-0779-4eee-b628-87fd25361f80",
+    "displayName": "DevOps SP - Fusion resource allocation - non-production",
+    "notes": "DevOps Service Principal - Non-Production\nFusion Resource Allocation solution.\n\nShould have access to non-production environments/resources.",
+    "serviceManagementReference": "107767",
+    "tags": ["fra", "fusion", "iac-automation", "production", "backup-enabled"],
+    "web": {
+      "homePageUrl": "https://statoil-proview.visualstudio.com/Fusion%20Resource%20Allocation/_build",
+      "implicitGrantSettings": {
+        "enableAccessTokenIssuance": false,
+        "enableIdTokenIssuance": false
+      },
+      "logoutUrl": null,
+      "redirectUriSettings": [],
+      "redirectUris": []
+    },
+    "requiredResourceAccess": [
+		{
+			"resourceAppId": "5a842df8-3238-415d-b168-9f16a6a6031b",
+			"resourceAccess": [
+				{
+					"id": "885260ee-8b4c-4841-863f-85f5289fcbfb",
+					"type": "Role"
+				}
+			]
+		},
+		{
+			"resourceAppId": "8ab89850-219a-4929-a726-5a7a496efac2",
+			"resourceAccess": [
+				{
+					"id": "1b31a3b0-f617-429f-aa0e-73b9c930fa5f",
+					"type": "Role"
+				}
+			]
+		},
+		{
+			"resourceAppId": "00000003-0000-0000-c000-000000000000",
+			"resourceAccess": [
+				{
+					"id": "18a4783c-866b-4cc7-a460-3d5e5662c884",
+					"type": "Role"
+				}
+			]
+		}
+	]
+  }

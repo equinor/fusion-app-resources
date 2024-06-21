@@ -1,0 +1,47 @@
+{
+    "displayName": "DevOps SP - Fusion resource allocation - production",
+    "id": "555b9404-0898-421a-b094-41c5b671bc84",
+    "notes": "DevOps Service Principal - Non-Production\nFusion Resource Allocation solution.\n\nShould have access to production environments/resources.\n- azure resource groups\n- fusion app creation\n- fusion infra management",
+    "serviceManagementReference": "107767",
+    "tags": ["fra", "fusion", "iac-automation", "production", "backup-enabled"],
+
+    "web": {
+      "homePageUrl": "https://statoil-proview.visualstudio.com/Fusion%20Resource%20Allocation/_build",
+      "implicitGrantSettings": {
+        "enableAccessTokenIssuance": false,
+        "enableIdTokenIssuance": false
+      },
+      "logoutUrl": null,
+      "redirectUriSettings": [],
+      "redirectUris": []
+    },
+    "requiredResourceAccess": [
+		{
+			"resourceAppId": "97978493-9777-4d48-b38a-67b0b9cd88d2",
+			"resourceAccess": [
+				{
+					"id": "885260ee-8b4c-4841-863f-85f5289fcbfb",
+					"type": "Role"
+				}
+			]
+		},
+		{
+			"resourceAppId": "00000003-0000-0000-c000-000000000000",
+			"resourceAccess": [
+				{
+					"id": "18a4783c-866b-4cc7-a460-3d5e5662c884",
+					"type": "Role"
+				}
+			]
+		},
+		{
+			"resourceAppId": "8ab89850-219a-4929-a726-5a7a496efac2",
+			"resourceAccess": [
+				{
+					"id": "1b31a3b0-f617-429f-aa0e-73b9c930fa5f",
+					"type": "Role"
+				}
+			]
+		}
+	]
+  }
