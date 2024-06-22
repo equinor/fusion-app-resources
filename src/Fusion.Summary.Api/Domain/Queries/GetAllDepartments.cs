@@ -9,8 +9,6 @@ namespace Fusion.Summary.Api.Domain.Queries;
 
 public class GetAllDepartments : IRequest<IEnumerable<QueryDepartment>>
 {
-    
-
     public GetAllDepartments All()
     {
         return this;

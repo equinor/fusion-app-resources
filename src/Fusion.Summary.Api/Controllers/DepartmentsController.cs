@@ -17,7 +17,7 @@ public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAz
 /// TODO: Add summary
 /// </summary>
 [ApiVersion("1.0")]
-//[Authorize]
+[Authorize]
 [AllowAnonymous]
 [ApiController]
 public class DepartmentsController : BaseController
@@ -76,7 +76,7 @@ public class DepartmentsController : BaseController
         // Add authorization
         #endregion Authorization
 
-        var department = await _departmentService.GetDepartmentById(sapDepartmentId);
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department is null
         if (department == null)
