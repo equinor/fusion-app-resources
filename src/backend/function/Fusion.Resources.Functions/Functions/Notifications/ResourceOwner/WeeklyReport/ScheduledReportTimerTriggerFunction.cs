@@ -49,7 +49,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 10 2 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 10 0 * * MON", RunOnStartup = true)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -94,10 +94,9 @@ public class ScheduledReportTimerTriggerFunction
 
             var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId).ToList();
 
-            var batchTimeInMinutes = totalBatchTimeInMinutes / resourceOwnersToSendNotifications.Count;
+            var batchTimeInMinutes = totalBatchTimeInMinutes * 1f / resourceOwnersToSendNotifications.Count;
 
-            if (batchTimeInMinutes < 1)
-                batchTimeInMinutes = 1;
+            _logger.LogInformation($"Batching time is calculated to {batchTimeInMinutes.ToString("F2")} minutes ({(60 * batchTimeInMinutes).ToString("F2")} sec)");
 
             var resourceOwnerMessageSent = 0;
 
