@@ -8,7 +8,7 @@ parameters:
 steps:
   - checkout: self
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Ensure environment resource group'
     inputs:
       azureSubscription: ${{ azureSubscription }}
@@ -18,7 +18,7 @@ steps:
       ScriptPath: src/backend/infrastructure/ensure-resourcegroup.ps1
       ScriptArguments: -environment ${{ parameters.environment }}
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Deploy sql database'
     inputs:
       azureSubscription: ${{ azureSubscription }}
@@ -28,7 +28,7 @@ steps:
       ScriptPath: src/backend/infrastructure/deploy-database.ps1
       ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Grant azure ad app sql database access'
     inputs:
       azureSubscription: ${{ azureSubscription }}
@@ -38,7 +38,7 @@ steps:
       ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
       ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Deploy ARM template'
     inputs:
       azureSubscription: ${{ azureSubscription }}
