@@ -3,6 +3,7 @@ using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Data;
 
 namespace Fusion.Summary.Api.Tests;
@@ -34,7 +35,7 @@ public class DepartmentServiceTests
 
     
     [TestMethod]
-    public async Task CreateDepartment_ShouldReturnTrue()
+    public async Task CreateDepartment_ShouldCreateDepartment()
     {
         // Arrange
         var handler = new CreateDepartment.Handler(_context);
@@ -42,12 +43,12 @@ public class DepartmentServiceTests
         var department = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
 
         // Act
-        var r = await handler.Handle(new CreateDepartment(department.DepartmentSapId, department.ResourceOwnerAzureUniqueId, department.FullDepartmentName));
-
-        var result = await _departmentService.CreateDepartment(department);
+        await handler.Handle(new CreateDepartment(department.DepartmentSapId, department.ResourceOwnerAzureUniqueId, department.FullDepartmentName), CancellationToken.None);
 
         // Assert
-        Assert.IsTrue(result);
+        var dbDepartment = _context.Departments.FirstOrDefault(d => d.DepartmentSapId == department.DepartmentSapId);
+
+        Assert.IsNotNull(dbDepartment, "Department was not added to the database");
     }
     /*
     [TestMethod]
