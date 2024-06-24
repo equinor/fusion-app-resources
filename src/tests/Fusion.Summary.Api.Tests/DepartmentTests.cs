@@ -1,15 +1,12 @@
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Domain.Commands;
-using Fusion.Summary.Api.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.Data;
 
 namespace Fusion.Summary.Api.Tests;
 
 [TestClass]
-public class DepartmentServiceTests
+public class DepartmentTests
 {
     private DatabaseContext _context;
     // TODO: Add dispatching tests instead of service test
@@ -33,7 +30,7 @@ public class DepartmentServiceTests
         _context.Database.EnsureDeleted();
     }
 
-    
+
     [TestMethod]
     public async Task CreateDepartment_ShouldCreateDepartment()
     {
