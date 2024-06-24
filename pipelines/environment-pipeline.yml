@@ -25,6 +25,7 @@ stages:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: fusion-test-sqlserver
+              azureSubscription: FRA Automation Non-Prod
 
 - stage: DeployPR
   displayName: PR Azure Infra
@@ -44,6 +45,7 @@ stages:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: fusion-test-sqlserver
+              azureSubscription: FRA Automation Non-Prod
 
           ## To get the pr slots to talk to the correct databases, we need to kill the key vault secret for connection string.
           ## The secret would override the direct env property used to target the correct db.
@@ -77,6 +79,7 @@ stages:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: fusion-test-sqlserver
+              azureSubscription: FRA Automation Non-Prod
 
 - stage: DeployTR
   displayName: TR Azure Infra
@@ -96,6 +99,7 @@ stages:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: fusion-test-sqlserver
+              azureSubscription: FRA Automation Non-Prod
 
 - stage: DeployPROD
   displayName: PROD Azure Infra
@@ -116,4 +120,5 @@ stages:
               clientId: 97978493-9777-4d48-b38a-67b0b9cd88d2
               sqlServer: fusion-prod-sqlserver
               clientSecretName: ClientSecret-Resources-Prod
+              azureSubscription: FRA Automation Prod
                     
