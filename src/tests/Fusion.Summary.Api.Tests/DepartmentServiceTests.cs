@@ -1,5 +1,6 @@
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Database.Models;
+using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -31,20 +32,24 @@ public class DepartmentServiceTests
         _context.Database.EnsureDeleted();
     }
 
-    /*
+    
     [TestMethod]
     public async Task CreateDepartment_ShouldReturnTrue()
     {
         // Arrange
+        var handler = new CreateDepartment.Handler(_context);
+
         var department = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
 
         // Act
+        var r = await handler.Handle(new CreateDepartment(department.DepartmentSapId, department.ResourceOwnerAzureUniqueId, department.FullDepartmentName));
+
         var result = await _departmentService.CreateDepartment(department);
 
         // Assert
         Assert.IsTrue(result);
     }
-
+    /*
     [TestMethod]
     public async Task GetAllDepartments_ShouldReturnAllDepartments()
     {
