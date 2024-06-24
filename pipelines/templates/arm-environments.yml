@@ -3,7 +3,7 @@ parameters:
   clientId: ''
   sqlServer: ''
   clientSecretName: 'ClientSecret-Resources-Test'
-  azureSubscription: ''
+  azureSubscription: 'FRA Automation Non-Prod'
   
 steps:
   - checkout: self
@@ -11,7 +11,7 @@ steps:
   - task: AzurePowerShell@5
     displayName: 'Ensure environment resource group'
     inputs:
-      azureSubscription: ${{ azureSubscription }}
+      azureSubscription: ${{ parameters.azureSubscription }}
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
@@ -21,7 +21,7 @@ steps:
   - task: AzurePowerShell@5
     displayName: 'Deploy sql database'
     inputs:
-      azureSubscription: ${{ azureSubscription }}
+      azureSubscription: ${{ parameters.azureSubscription }}
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
@@ -31,7 +31,7 @@ steps:
   - task: AzurePowerShell@5
     displayName: 'Grant azure ad app sql database access'
     inputs:
-      azureSubscription: ${{ azureSubscription }}
+      azureSubscription: ${{ parameters.azureSubscription }}
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
@@ -41,7 +41,7 @@ steps:
   - task: AzurePowerShell@5
     displayName: 'Deploy ARM template'
     inputs:
-      azureSubscription: ${{ azureSubscription }}
+      azureSubscription: ${{ parameters.azureSubscription }}
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
