@@ -53,6 +53,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Summary.Api", "Fusio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Summary.Functions", "Fusion.Summary.Functions\Fusion.Summary.Functions.csproj", "{B761C0DE-7D59-4AD1-82BB-368E15F152BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Functions.Common", "Fusion.Resources.Functions.Common\Fusion.Resources.Functions.Common.csproj", "{0F9CC682-2DD6-4422-A321-D7100780A739}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +145,10 @@ Global
 		{B761C0DE-7D59-4AD1-82BB-368E15F152BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B761C0DE-7D59-4AD1-82BB-368E15F152BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B761C0DE-7D59-4AD1-82BB-368E15F152BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F9CC682-2DD6-4422-A321-D7100780A739}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F9CC682-2DD6-4422-A321-D7100780A739}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F9CC682-2DD6-4422-A321-D7100780A739}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F9CC682-2DD6-4422-A321-D7100780A739}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -169,6 +175,7 @@ Global
 		{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{B761C0DE-7D59-4AD1-82BB-368E15F152BD} = {286E3C76-C860-4661-9AEF-817458D1231B}
+		{0F9CC682-2DD6-4422-A321-D7100780A739} = {286E3C76-C860-4661-9AEF-817458D1231B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F47D8FDB-3919-45C8-8C08-486405ECEC01}
