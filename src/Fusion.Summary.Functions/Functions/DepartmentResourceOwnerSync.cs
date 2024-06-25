@@ -38,7 +38,7 @@ public class DepartmentResourceOwnerSync
         foreach (var orgUnitsChunk in selectedDepartments.Chunk(10))
         {
             var chunkedResourceOwners =
-                await lineOrgApiClient.GetResourceOwnersFromFullDepartment(orgUnitsChunk.ToList());
+                await lineOrgApiClient.GetResourceOwnersFromFullDepartment(orgUnitsChunk);
             resourceOwners.AddRange(chunkedResourceOwners);
         }
 

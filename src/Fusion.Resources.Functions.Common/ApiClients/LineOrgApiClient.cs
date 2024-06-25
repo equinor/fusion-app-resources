@@ -24,7 +24,7 @@ public class LineOrgApiClient : ILineOrgApiClient
             .ToList();
     }
 
-    public async Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(List<OrgUnits> fullDepartments)
+    public async Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(ICollection<OrgUnits> fullDepartments)
     {
         var list = fullDepartments
             .Select(l => $"'{l.FullDepartment?.Replace("&", "%26")}'")

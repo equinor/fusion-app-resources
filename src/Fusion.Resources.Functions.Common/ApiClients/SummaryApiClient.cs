@@ -29,7 +29,7 @@ public class SummaryApiClient : ISummaryApiClient
         foreach (var requestData in departments)
         {
             var body = new JsonContent(JsonSerializer.Serialize(requestData));
-            var response =
+            using var response =
                 await summaryClient.PutAsync($"departments/{requestData.DepartmentSapId}", body, cancellationToken);
 
             if (!response.IsSuccessStatusCode)

@@ -5,5 +5,5 @@ namespace Fusion.Resources.Functions.Common.ApiClients;
 public interface ILineOrgApiClient
 {
     Task<IEnumerable<LineOrgApiClient.OrgUnits>> GetOrgUnitDepartmentsAsync();
-    Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(List<LineOrgApiClient.OrgUnits> fullDepartments);
+    Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(ICollection<LineOrgApiClient.OrgUnits> fullDepartments);
 }
