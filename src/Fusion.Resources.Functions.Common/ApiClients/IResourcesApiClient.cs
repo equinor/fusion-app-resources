@@ -1,11 +1,8 @@
 ﻿#nullable enable
-using Fusion.ApiClients.Org;
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+using Fusion.ApiClients.Org;
 
-namespace Fusion.Resources.Functions.ApiClients
+namespace Fusion.Resources.Functions.Common.ApiClients
 {
     public interface IResourcesApiClient
     {

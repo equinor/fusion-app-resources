@@ -3,6 +3,8 @@ using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Functions.Common.Integration.Authentication;
+using Fusion.Resources.Functions.Common.Integration.ServiceDiscovery;
 
 namespace Fusion.Resources.Functions.Common.Integration.Http.Handlers
 {

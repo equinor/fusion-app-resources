@@ -1,4 +1,4 @@
-﻿namespace Fusion.Resources.Functions
+﻿namespace Fusion.Resources.Functions.Common.Integration.Http
 {
     public static class HttpClientNames
     {

@@ -1,11 +1,9 @@
-using System;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using Fusion.Resources.Functions.ApiClients.ApiModels;
+using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
+using Fusion.Resources.Functions.Common.Integration.Http;
 using Newtonsoft.Json;
 
-namespace Fusion.Resources.Functions.ApiClients;
+namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public class NotificationApiClient : INotificationApiClient
 {

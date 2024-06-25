@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Fusion.Resources.Functions.Integration.Http
+﻿namespace Fusion.Resources.Functions.Common.Integration.Http
 {
 
     public class UrlUtility

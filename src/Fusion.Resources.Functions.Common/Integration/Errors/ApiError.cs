@@ -1,7 +1,6 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 
-namespace Fusion.Resources.Functions.Integration
+namespace Fusion.Resources.Functions.Common.Integration.Errors
 {
     public class ApiError : Exception
     {

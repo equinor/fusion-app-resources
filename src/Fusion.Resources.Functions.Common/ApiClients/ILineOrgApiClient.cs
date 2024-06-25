@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Fusion.Resources.Functions.ApiClients.ApiModels;
+﻿using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 
-namespace Fusion.Resources.Functions.ApiClients;
+namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public interface ILineOrgApiClient
 {

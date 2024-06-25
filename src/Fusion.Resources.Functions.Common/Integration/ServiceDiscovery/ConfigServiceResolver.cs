@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Threading.Tasks;
 
-namespace Fusion.Resources.Functions.Integration.ServiceDiscovery
+namespace Fusion.Resources.Functions.Common.Integration.ServiceDiscovery
 {
     public class ConfigServiceResolver : IServiceDiscovery
     {

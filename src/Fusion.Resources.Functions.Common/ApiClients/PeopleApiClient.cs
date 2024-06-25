@@ -1,9 +1,6 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Fusion.Resources.Functions.Integration;
+﻿using Fusion.Resources.Functions.Common.Integration.Http;
 
-namespace Fusion.Resources.Functions.ApiClients;
+namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public class PeopleApiClient : IPeopleApiClient
 {

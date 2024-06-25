@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 
-namespace Fusion.Resources.Functions.Integration.Authentication;
+namespace Fusion.Resources.Functions.Common.Integration.Authentication;
 
 internal class FunctionTokenProvider : ITokenProvider
 {

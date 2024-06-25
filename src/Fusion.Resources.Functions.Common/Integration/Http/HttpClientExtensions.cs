@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Fusion.Resources.Functions.Common.Integration.Errors;
 using Newtonsoft.Json;
-using System.Net.Http;
-using System.Threading.Tasks;
 
-namespace Fusion.Resources.Functions.Integration
+namespace Fusion.Resources.Functions.Common.Integration.Http
 {
     public static class HttpClientExtensions
     {

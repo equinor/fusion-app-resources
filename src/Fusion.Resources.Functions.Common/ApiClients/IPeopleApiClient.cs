@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Fusion.Resources.Functions.ApiClients;
+﻿namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public interface IPeopleApiClient
 {

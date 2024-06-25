@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Fusion.Resources.Functions.ApiClients.ApiModels;
+namespace Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 
 public class LineOrgPersonsResponse
 {

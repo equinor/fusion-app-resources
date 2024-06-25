@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Headers;
+using Fusion.Resources.Functions.Common.Integration.Authentication;
+using Fusion.Resources.Functions.Common.Integration.ServiceDiscovery;
+using Microsoft.Extensions.Logging;
 
-namespace Fusion.Resources.Functions.Integration.Http.Handlers
+namespace Fusion.Resources.Functions.Common.Integration.Http.Handlers
 {
     /// <summary>
     /// All http handlers should inherit from this one. That allows us to add general logging etc to all handlers.

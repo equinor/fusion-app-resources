@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Fusion.Resources.Functions
+﻿namespace Fusion.Resources.Functions.Common.Integration.ServiceDiscovery
 {
     public interface IServiceDiscovery
     {

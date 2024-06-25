@@ -1,10 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Fusion.Resources.Functions.Common.Integration.Authentication;
+using Fusion.Resources.Functions.Common.Integration.ServiceDiscovery;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Fusion.Resources.Functions.Integration.Http.Handlers
+namespace Fusion.Resources.Functions.Common.Integration.Http.Handlers
 {
     public class LineOrgHttpHandler : FunctionHttpMessageHandler
     {

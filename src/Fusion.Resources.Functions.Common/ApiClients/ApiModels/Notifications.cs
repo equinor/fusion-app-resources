@@ -1,8 +1,7 @@
-using System;
 using AdaptiveCards;
 using Newtonsoft.Json;
 
-namespace Fusion.Resources.Functions.ApiClients.ApiModels;
+namespace Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 
 public class SendNotificationsRequest
 {

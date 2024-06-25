@@ -1,14 +1,10 @@
-﻿using Fusion.Resources.Functions.Integration.Http.Handlers;
-using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using Fusion.Resources.Functions.Common.Integration.Http.Handlers;
+using Microsoft.Extensions.DependencyInjection;
+using Polly;
 
-namespace Fusion.Resources.Functions.Integration.Http
+namespace Fusion.Resources.Functions.Common.Integration.Http
 {
     public class HttpClientFactoryBuilder
     {

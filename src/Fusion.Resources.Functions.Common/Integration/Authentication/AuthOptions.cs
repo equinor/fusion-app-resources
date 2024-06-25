@@ -1,4 +1,4 @@
-﻿namespace Fusion.Resources.Functions.Integration.Authentication
+﻿namespace Fusion.Resources.Functions.Common.Integration.Authentication
 {
     public class AuthOptions
     {

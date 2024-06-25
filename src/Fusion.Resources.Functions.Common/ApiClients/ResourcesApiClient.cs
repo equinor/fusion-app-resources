@@ -1,16 +1,11 @@
 ﻿#nullable enable
-using Fusion.Resources.Functions.Integration;
+using System.Text;
+using Fusion.Resources.Functions.Common.Integration.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
+using static Fusion.Resources.Functions.Common.ApiClients.IResourcesApiClient;
 
-namespace Fusion.Resources.Functions.ApiClients
+namespace Fusion.Resources.Functions.Common.ApiClients
 {
     internal class ResourcesApiClient : IResourcesApiClient
     {

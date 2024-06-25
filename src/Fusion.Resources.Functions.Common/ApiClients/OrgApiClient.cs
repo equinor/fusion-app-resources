@@ -1,13 +1,7 @@
 ﻿#nullable enable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Fusion.Resources.Functions.ApiClients.ApiModels;
-using Fusion.Resources.Functions.Integration;
+using Fusion.Resources.Functions.Common.Integration.Http;
 
-namespace Fusion.Resources.Functions.ApiClients;
+namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public class OrgClient : IOrgClient
 {
