@@ -80,6 +80,21 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             return this;
         }
 
+        public HttpClientFactoryBuilder AddSummaryClient()
+        {
+            services.AddTransient<SummaryHttpHandler>();
+            // TODO: Should summary have its own application registration?
+            services.AddHttpClient(HttpClientNames.Application.Resources, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-org");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<SummaryHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
         public HttpClientFactoryBuilder AddLineOrgClient()
         {
             services.AddTransient<LineOrgHttpHandler>();

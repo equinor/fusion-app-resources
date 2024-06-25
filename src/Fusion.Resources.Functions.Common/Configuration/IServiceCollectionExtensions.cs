@@ -40,6 +40,9 @@ namespace Fusion.Resources.Functions.Common.Configuration
             builder.AddOrgClient();
             services.AddOrgApiClient(HttpClientNames.Application.Org);
 
+            builder.AddSummaryClient();
+            services.AddScoped<ISummaryApiClient, SummaryApiClient>();
+
             builder.AddPeopleClient();
             services.AddScoped<IPeopleApiClient, PeopleApiClient>();
 

@@ -7,6 +7,7 @@
             public const string Org = "App.Org";
             public const string People = "App.People";
             public const string Resources = "App.Resources";
+            public const string Summary = "App.Resources";
             public const string Notifications = "App.Notifications";
             public const string Context = "App.Context";
             public const string LineOrg = "App.LineOrg";

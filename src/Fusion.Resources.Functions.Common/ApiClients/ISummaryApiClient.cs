@@ -2,5 +2,5 @@
 
 public interface ISummaryApiClient
 {
-    public Task PutDepartmentsAsync(IEnumerable<LineOrgApiClient.OrgUnits> orgUnits, CancellationToken cancellationToken = default);
+    public Task PutDepartmentsAsync(IEnumerable<PutDepartmentRequest> departments, CancellationToken cancellationToken = default);
 }

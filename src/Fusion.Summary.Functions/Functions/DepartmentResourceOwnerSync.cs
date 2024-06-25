@@ -1,6 +1,10 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Functions.Common.ApiClients;
+using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 using Microsoft.Azure.WebJobs;
 
 namespace Fusion.Summary.Functions.Functions;
@@ -18,10 +22,36 @@ public class DepartmentResourceOwnerSync
 
     [FunctionName("department-resource-owner-sync")]
     public async Task RunAsync(
-        [TimerTrigger("0 05 00 * * *", RunOnStartup = false)] TimerInfo timerInfo, CancellationToken cancellationToken
+        [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
+        TimerInfo timerInfo, CancellationToken cancellationToken
     )
     {
-        var orgUnits = await lineOrgApiClient.GetOrgUnitDepartmentsAsync();
-        await summaryApiClient.PutDepartmentsAsync(orgUnits, cancellationToken);
+        var departments = await lineOrgApiClient.GetOrgUnitDepartmentsAsync();
+
+        var selectedDepartments = departments
+            .Where(d => d.FullDepartment != null).Distinct().ToList();
+
+        if (!selectedDepartments.Any())
+            throw new Exception("No departments found.");
+
+        var resourceOwners = new List<LineOrgPerson>();
+        foreach (var orgUnitsChunk in selectedDepartments.Chunk(10))
+        {
+            var chunkedResourceOwners =
+                await lineOrgApiClient.GetResourceOwnersFromFullDepartment(orgUnitsChunk.ToList());
+            resourceOwners.AddRange(chunkedResourceOwners);
+        }
+
+        if (!resourceOwners.Any())
+            throw new Exception("No resource-owners found.");
+
+        // TODO: Rename variable
+        var departmentRequests = resourceOwners
+            .Where(ro => ro.DepartmentSapId is not null && Guid.TryParse(ro.AzureUniqueId, out _))
+            .Select(resourceOwner => new
+                PutDepartmentRequest(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
+                    Guid.Parse(resourceOwner.AzureUniqueId)));
+
+        await summaryApiClient.PutDepartmentsAsync(departmentRequests, cancellationToken);
     }
 }
