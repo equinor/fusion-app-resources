@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Common.ApiClients;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
