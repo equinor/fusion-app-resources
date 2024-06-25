@@ -83,8 +83,7 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
         public HttpClientFactoryBuilder AddSummaryClient()
         {
             services.AddTransient<SummaryHttpHandler>();
-            // TODO: Should summary have its own application registration?
-            services.AddHttpClient(HttpClientNames.Application.Resources, client =>
+            services.AddHttpClient(HttpClientNames.Application.Summary, client =>
                 {
                     client.BaseAddress = new Uri("https://fusion-org");
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
