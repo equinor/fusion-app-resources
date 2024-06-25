@@ -1,0 +1,22 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AzureAd_TenantId": "3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
+    "AzureAd_ClientId": "5a842df8-3238-415d-b168-9f16a6a6031b",
+    "AzureAd_Secret": "[REPLACE WITH SECRET]",
+    "Endpoints_lineorg": "https://fusion-s-lineorg-ci.azurewebsites.net",
+    "Endpoints_people": "https://fusion-s-people-ci.azurewebsites.net",
+    "Endpoints_org": "https://fusion-s-org-ci.azurewebsites.net",
+    "Endpoints_resources": "https://resources-api.ci.fusion-dev.net/",
+    "Endpoints_context": "https://fusion-s-context-ci.azurewebsites.net",
+    "Endpoints_notifications": "https://fusion-s-notification-ci.azurewebsites.net",
+    "Endpoints_Resources_Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b",
+    "AzureWebJobs.profile-sync.Disabled": "true",
+    "AzureWebJobs.profile-sync-event.Disabled": "true",
+    "AzureWebJobs.provision-position-request.Disabled": "true",
+    "AzureWebJobs.sent-notifications-cleanup.Disabled": "true",
+    "AzureWebJobs.internal-requests-reassign-invalid-departments.Disabled": "true"
+  }
+}
