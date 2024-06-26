@@ -41,31 +41,31 @@ steps:
   #     ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
 
 # C:\source\git\fusion-app-resources\infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\bin\Release\Fusion.Infra.Cli.1.0.0.nupkg
-   - script: |
-          dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-          dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-          dotnet tool install --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
-        displayName: "Install fusion infra cli tool"
+  - script: |
+         dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
+         dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
+         dotnet tool install --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
+      displayName: "Install fusion infra cli tool"
 
   - task: AzurePowerShell@5
     displayName: Create database
     inputs:
-        azureSubscription: ${{ parameters.azureSubscription }}
-        ScriptType: FilePath
-        FailOnStandardError: true
-        azurePowerShellVersion: 'LatestVersion'
-        Inline: |
-          az account show
+      azureSubscription: ${{ parameters.azureSubscription }}
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      Inline: |
+        az account show
 
-          $currentUser = az account show --query id
-          $foken = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
-          
-          # finf database provision `
-          #   --url https://ci.infrasupport.api.fusion-dev.net/ `
-          #   -f ./src/backend/infrastructure/fusion-db-config.json `
-          #   -e "${{ parameters.environment }}" `
-          #   --sql-owner  `
-          #   --sql-contributor `
+        $currentUser = az account show --query id
+        $foken = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
+        
+        # finf database provision `
+        #   --url https://ci.infrasupport.api.fusion-dev.net/ `
+        #   -f ./src/backend/infrastructure/fusion-db-config.json `
+        #   -e "${{ parameters.environment }}" `
+        #   --sql-owner  `
+        #   --sql-contributor `
 
 
 
