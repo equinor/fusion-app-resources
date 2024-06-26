@@ -13,7 +13,7 @@ stages:
   displayName: CI Azure Infra
   jobs:
   - deployment: DeployInfra
-    environment: fusion-ci
+    environment: fra-ci
     variables:
       environmentName: ci
     strategy:
@@ -33,7 +33,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeployInfra
-    environment: fusion-pullrequests
+    environment: fra-pr
     variables:
       environmentName: pr
     strategy:
@@ -67,7 +67,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeployInfra
-    environment: fusion-fqa
+    environment: fra-fqa
     variables:
       environmentName: fqa
     strategy:
@@ -87,7 +87,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeployInfra
-    environment: fusion-tr
+    environment: fra-tr
     variables:
       environmentName: tr
     strategy:
@@ -107,7 +107,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeployInfra
-    environment: fusion-prod
+    environment: fra-fprd
     variables:
       environmentName: fprd
     strategy:

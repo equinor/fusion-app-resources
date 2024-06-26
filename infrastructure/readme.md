@@ -1,5 +1,9 @@
 # Infrastructure readme
 
+## Guidelines
+
+https://github.com/equinor/fusion-infrastructure/blob/main/docs/fusion_standardization_of_azure_resources.md
+
 ## Service principals
 
 There are two service principals responsible for doing IAC operations for the FRA solution. These are seggregated into non-production and production environments. 
