@@ -47,13 +47,12 @@ steps:
       dotnet tool install -g --add-source infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/nupkg fusion.infra.cli
     displayName: "Install fusion infra cli tool"
 
-  - task: AzurePowerShell@5
+  - task: AzureCLI@2
     displayName: Create database
     inputs:
       azureSubscription: ${{ parameters.azureSubscription }}
-      ScriptType: FilePath
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
+      scriptType: pscore
+      scriptLocation: inlineScript        
       Inline: |
         az account show
 
@@ -64,7 +63,7 @@ steps:
         #   --url https://ci.infrasupport.api.fusion-dev.net/ `
         #   -f ./src/backend/infrastructure/fusion-db-config.json `
         #   -e "${{ parameters.environment }}" `
-        #   --sql-owner  `
+        #   --sql-owner $currentUser `
         #   --sql-contributor `
 
 
