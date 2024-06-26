@@ -47,7 +47,7 @@ namespace Fusion.Infra.Cli.Commands.Database
         [Option("-rt <retryInterval>", LongName = "retry-in", Description = "Set custom retry interval")]
         public int? RetryIn { get; set; }
 
-        [Option("-t <retryInterval>", LongName = "timeout", Description = "Set custom timeout in seconds, for the wait. Default is 300 seconds.")]
+        [Option("--timeout <seconds>", Description = "Set custom timeout in seconds, for the wait. Default is 300 seconds.")]
         public int? TimeoutInSeconds { get; set; }
 
         public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader)
