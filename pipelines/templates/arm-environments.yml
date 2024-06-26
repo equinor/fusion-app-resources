@@ -53,7 +53,7 @@ steps:
       azureSubscription: ${{ parameters.azureSubscription }}
       scriptType: pscore
       scriptLocation: inlineScript        
-      Inline: |
+      inlineScript: |
         az account show
 
         $currentUser = az account show --query id
