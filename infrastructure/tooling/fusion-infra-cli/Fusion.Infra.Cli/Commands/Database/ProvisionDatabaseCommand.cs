@@ -66,6 +66,8 @@ namespace Fusion.Infra.Cli.Commands.Database
         {
             //app.ShowHelp();
             var client = httpClientFactory.CreateClient(Constants.InfraClientName);
+            if (!string.IsNullOrEmpty(InfraUrl))
+                client.BaseAddress = new Uri(InfraUrl);
 
             var config = LoadConfigFile();
 

@@ -2,6 +2,7 @@
 using Fusion.Infra.Cli.Commands;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.RegularExpressions;
 
 
 
@@ -14,7 +15,7 @@ try
 catch (Exception ex)
 {
     Console.WriteLine("Error executing command...");
-    Console.WriteLine("Command: " + Environment.CommandLine);
+    Console.WriteLine("Command: " + Regex.Replace(Environment.CommandLine, @"-t [^.]+\.[^.]+\.[^\s]+", "-t [hidden token]"));
     Console.WriteLine(ex.Message);
     Console.WriteLine(ex.ToString());
     
