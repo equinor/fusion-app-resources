@@ -14,11 +14,10 @@ try
 catch (Exception ex)
 {
     Console.WriteLine("Error executing command...");
+    Console.WriteLine("Command: " + Environment.CommandLine);
     Console.WriteLine(ex.Message);
     Console.WriteLine(ex.ToString());
-
-    Console.WriteLine("Command: " + string.Join(" ", args));
-    Console.WriteLine("Command: " + Environment.CommandLine);
+    
     // Ensure -1 is returned to caller
     throw;
 }
