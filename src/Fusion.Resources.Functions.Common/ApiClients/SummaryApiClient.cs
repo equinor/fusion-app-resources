@@ -3,11 +3,7 @@ using Fusion.Resources.Functions.Common.Integration.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
-// TODO: Decide where this should be placed.
-public record PutDepartmentRequest(
-    string DepartmentSapId,
-    string FullDepartmentName,
-    Guid ResourceOwnerAzureUniqueId);
+
 
 public class SummaryApiClient : ISummaryApiClient
 {
@@ -20,8 +16,7 @@ public class SummaryApiClient : ISummaryApiClient
     }
 
 
-
-    public async Task PutDepartmentsAsync(IEnumerable<PutDepartmentRequest> departments,
+    public async Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartments> departments,
         CancellationToken cancellationToken = default)
     {
         // TODO: Parallelize or change to list in controller input

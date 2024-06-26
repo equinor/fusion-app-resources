@@ -45,13 +45,12 @@ public class DepartmentResourceOwnerSync
         if (!resourceOwners.Any())
             throw new Exception("No resource-owners found.");
 
-        // TODO: Rename variable
-        var departmentRequests = resourceOwners
+        var resourceOwnerDepartments = resourceOwners
             .Where(ro => ro.DepartmentSapId is not null && Guid.TryParse(ro.AzureUniqueId, out _))
             .Select(resourceOwner => new
-                PutDepartmentRequest(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
+                ApiResourceOwnerDepartments(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
                     Guid.Parse(resourceOwner.AzureUniqueId)));
 
-        await summaryApiClient.PutDepartmentsAsync(departmentRequests, cancellationToken);
+        await summaryApiClient.PutDepartmentsAsync(resourceOwnerDepartments, cancellationToken);
     }
 }
