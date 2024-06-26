@@ -44,7 +44,7 @@ steps:
   - script: |
       dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
       dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-      dotnet tool install --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
+      dotnet tool install -g --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
     displayName: "Install fusion infra cli tool"
 
   - task: AzurePowerShell@5
