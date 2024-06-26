@@ -168,6 +168,12 @@ namespace Fusion.Infra.Cli.Commands.Database
         private async Task<string> StartOperationAsync(HttpClient client, ApiDatabaseRequestModel config)
         {
             var url = SqlProductionEnvironment ? "/sql-servers/production/databases?api-version=1.0" : "/sql-servers/non-production/databases?api-version=1.0";
+
+            Console.WriteLine($"Triggering provisioning to [{url}]");
+            Console.WriteLine("-- Payload --");
+            Console.WriteLine(JsonSerializer.Serialize(config, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
+            Console.WriteLine("-- / --");
+
             var resp = await client.PostAsJsonAsync(url, config);
 
             var respData = await EnsureSuccessfullResponseAsync(resp);

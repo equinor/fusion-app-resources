@@ -54,17 +54,19 @@ steps:
       scriptType: pscore
       scriptLocation: inlineScript        
       inlineScript: |
-        az account show
+        az ad signed-in-user show 
 
-        $currentUser = az account show --query id
+        $currentUser = az ad signed-in-user show --query id
         $foken = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
         
-        # finf database provision `
-        #   --url https://ci.infrasupport.api.fusion-dev.net/ `
-        #   -f ./src/backend/infrastructure/fusion-db-config.json `
-        #   -e "${{ parameters.environment }}" `
-        #   --sql-owner $currentUser `
-        #   --sql-contributor `
+        $appSpId = az ad sp show --id ${{ parameters.clientId }} --query id
+
+        finf database provision `
+          --url https://ci.infrasupport.api.fusion-dev.net/ `
+          -f ./src/backend/infrastructure/fusion-db-config.json `
+          -e "${{ parameters.environment }}" `
+          --sql-owner $currentUser `
+          --sql-contributor $appSpId 
 
 
 
