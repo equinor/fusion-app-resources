@@ -56,7 +56,7 @@ namespace Fusion.Infra.Cli.Tests
 
             var testCommand = new TestCommandBuilder();
 
-            var result = await testCommand.ExecuteCommand($"database provision -pr 123 --repo equinor/my-repo --copy-from ci --url https://localhost -f required");
+            var result = await testCommand.ExecuteCommand($"database provision -pr 123 --repo equinor/my-repo --copy-from ci --url https://localhost -f db-config.json");
 
             var request = result.Operations.First();
             request!.Request?.Environment.Should().Be("pr", "Should set pr as default env when not overridden");
@@ -64,5 +64,19 @@ namespace Fusion.Infra.Cli.Tests
             request!.Request?.PullRequest?.GithubRepo.Should().Be("equinor/my-repo");
             request!.Request?.PullRequest?.CopyFromEnvironment.Should().Be("ci");
         }
+
+        [Fact]
+        public async Task ProvisionCommand_ShouldTargetProduction()
+        {
+            var randomEnv = $"{Guid.NewGuid()}";
+
+            var testCommand = new TestCommandBuilder();
+
+            var result = await testCommand.ExecuteCommand($"database provision --production --url https://localhost -f required");
+
+            var request = result.Operations.First();
+            request!.ProductionEnvironment.Should().BeTrue();
+        }
+
     }
 }

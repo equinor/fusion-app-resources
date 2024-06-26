@@ -6,11 +6,12 @@ using System.Text.Json;
 namespace Fusion.Infra.Cli.Commands.Database
 {
     [Command("provision", Description = "Provision database")]
-    //[Subcommand()]
     internal partial class ProvisionDatabaseCommand : CommandBase
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFileLoader fileLoader;
+
+        public const int DefaultOperationWaitTimeout = 300;
 
         [Required]
         [Option("-u <infraUrl>", ShortName = "u", LongName = "url", Description = "Url to fusion infra support api")]
@@ -45,6 +46,9 @@ namespace Fusion.Infra.Cli.Commands.Database
 
         [Option("-rt <retryInterval>", LongName = "retry-in", Description = "Set custom retry interval")]
         public int? RetryIn { get; set; }
+
+        [Option("-t <retryInterval>", LongName = "timeout", Description = "Set custom timeout in seconds, for the wait. Default is 300 seconds.")]
+        public int? TimeoutInSeconds { get; set; }
 
         public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader)
         {
@@ -158,7 +162,7 @@ namespace Fusion.Infra.Cli.Commands.Database
 
         private async Task WaitForOperationAsync(HttpClient client, string location)
         {
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(300));
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutInSeconds.GetValueOrDefault(DefaultOperationWaitTimeout)));
 
             Console.CancelKeyPress += delegate {
                 timeout.Cancel();
