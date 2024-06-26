@@ -17,6 +17,8 @@ catch (Exception ex)
     Console.WriteLine(ex.Message);
     Console.WriteLine(ex.ToString());
 
+    Console.WriteLine("Command: " + string.Join(" ", args));
+    Console.WriteLine("Command: " + Environment.CommandLine);
     // Ensure -1 is returned to caller
     throw;
 }
