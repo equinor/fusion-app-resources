@@ -1,5 +1,4 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
-using System.Windows.Input;
 
 namespace Fusion.Infra.Cli.Commands
 {

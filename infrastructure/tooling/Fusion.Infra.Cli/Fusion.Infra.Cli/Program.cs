@@ -1,10 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Fusion.Infra.Cli;
 using Fusion.Infra.Cli.Commands;
 using McMaster.Extensions.CommandLineUtils;
-using McMaster.Extensions.CommandLineUtils.Conventions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Identity.Client;
 
 
 
@@ -35,17 +32,7 @@ public static class Setup
         var services = new ServiceCollection()
             .AddHttpClient()
             .AddSingleton<IFileLoader, DefaultFileLoader>()
-            //.AddNamedHttpClients()
-            //.AddSingleton(config)
-            //.AddSingleton<IConfiguration>(config)
-            //.AddSingleton(pca)
-            //.AddSingleton<ITokenProvider, TokenProvider>()
-            //.AddSingleton<GitHubCredentialCache>()
-            .AddSingleton(PhysicalConsole.Singleton)
-            //.AddSingleton<IUserAccessor, UserAccessor>()
-            //.AddSingleton<EntityCache>()
-            //.AddSingleton<Protector>()
-            ;
+            .AddSingleton(PhysicalConsole.Singleton);
 
         setup?.Invoke(services);
 
@@ -64,24 +51,5 @@ public static class Setup
             .UseDefaultHelpOption();
 
         return app;
-    }
-}
-
-public interface IFileLoader
-{
-    bool Exists(string path);
-    string GetContent(string path);
-}
-
-public class DefaultFileLoader : IFileLoader
-{
-    public bool Exists(string path)
-    {
-        return File.Exists(path);
-    }
-
-    public string GetContent(string path)
-    {
-        return File.ReadAllText(path);
     }
 }
