@@ -59,7 +59,7 @@ steps:
         $currentUser = az ad signed-in-user show --query id -o tsv
         $foken = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
         
-        az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default -o tsv
+        az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default
 
         $appSpId = az ad sp show --id ${{ parameters.clientId }} --query id -o tsv
         Write-Host "Found object id [$appSpId] for client id [${{ parameters.clientId }}]"
