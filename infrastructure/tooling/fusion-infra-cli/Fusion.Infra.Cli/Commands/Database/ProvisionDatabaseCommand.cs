@@ -68,6 +68,8 @@ namespace Fusion.Infra.Cli.Commands.Database
             var client = httpClientFactory.CreateClient(Constants.InfraClientName);
             if (!string.IsNullOrEmpty(InfraUrl))
                 client.BaseAddress = new Uri(InfraUrl);
+            if (!string.IsNullOrEmpty(AccessToken))
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", AccessToken);
 
             var config = LoadConfigFile();
 
@@ -229,8 +231,10 @@ namespace Fusion.Infra.Cli.Commands.Database
 
             if (!resp.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Failed request: {resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri}");
+                Console.WriteLine($"Failed request [{resp.StatusCode}]: {resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri}");
+                Console.WriteLine("-- Response payload --");
                 Console.WriteLine(respData);
+                Console.WriteLine("-- / --");
 
                 resp.EnsureSuccessStatusCode();
             }
