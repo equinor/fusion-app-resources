@@ -42,10 +42,10 @@ steps:
 
 # C:\source\git\fusion-app-resources\infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\bin\Release\Fusion.Infra.Cli.1.0.0.nupkg
   - script: |
-         dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-         dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-         dotnet tool install --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
-      displayName: "Install fusion infra cli tool"
+      dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
+      dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
+      dotnet tool install --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
+    displayName: "Install fusion infra cli tool"
 
   - task: AzurePowerShell@5
     displayName: Create database
