@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Fusion.Resources.Functions.Common.Integration.Http;
-using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
 
@@ -15,22 +14,22 @@ public class SummaryApiClient : ISummaryApiClient
         summaryClient.Timeout = TimeSpan.FromMinutes(2);
     }
 
-
     public async Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartments> departments,
         CancellationToken cancellationToken = default)
     {
-        // TODO: Parallelize or change to list in controller input
-
-        foreach (var requestData in departments)
+        var parallelOptions = new ParallelOptions()
         {
-            var body = new JsonContent(JsonSerializer.Serialize(requestData));
-            using var response =
-                await summaryClient.PutAsync($"departments/{requestData.DepartmentSapId}", body, cancellationToken);
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = 10,
+        };
 
-            if (!response.IsSuccessStatusCode)
-            {
-                // TODO: How to handle error
-            }
-        }
+        await Parallel.ForEachAsync(departments, parallelOptions, async (ownerDepartments, token) =>
+        {
+            var body = new JsonContent(JsonSerializer.Serialize(ownerDepartments));
+
+            // Error logging is handled by http middleware => FunctionHttpMessageHandler
+            using var _ = await summaryClient.PutAsync($"departments/{ownerDepartments.DepartmentSapId}", body,
+                cancellationToken);
+        });
     }
 }
