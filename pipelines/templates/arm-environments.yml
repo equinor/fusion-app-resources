@@ -18,34 +18,65 @@ steps:
       ScriptPath: src/backend/infrastructure/ensure-resourcegroup.ps1
       ScriptArguments: -environment ${{ parameters.environment }}
 
-  - task: AzurePowerShell@5
-    displayName: 'Deploy sql database'
-    inputs:
-      azureSubscription: ${{ parameters.azureSubscription }}
-      ScriptType: FilePath
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/deploy-database.ps1
-      ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
+ ## DATABASE SHOULD BE DEPLOYED BY API PIPELINE, NOT INFRA
+
+  # - task: AzurePowerShell@5
+  #   displayName: 'Deploy sql database'
+  #   inputs:
+  #     azureSubscription: ${{ parameters.azureSubscription }}
+  #     ScriptType: FilePath
+  #     FailOnStandardError: true
+  #     azurePowerShellVersion: 'LatestVersion'
+  #     ScriptPath: src/backend/infrastructure/deploy-database.ps1
+  #     ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
+
+  # - task: AzurePowerShell@5
+  #   displayName: 'Grant azure ad app sql database access'
+  #   inputs:
+  #     azureSubscription: ${{ parameters.azureSubscription }}
+  #     ScriptType: FilePath
+  #     FailOnStandardError: true
+  #     azurePowerShellVersion: 'LatestVersion'
+  #     ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
+  #     ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
+
+# C:\source\git\fusion-app-resources\infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\bin\Release\Fusion.Infra.Cli.1.0.0.nupkg
+   - script: |
+          dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
+          dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
+          dotnet tool install --add-source infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\nupkg fusion.infra.cli
+        displayName: "Install fusion infra cli tool"
 
   - task: AzurePowerShell@5
-    displayName: 'Grant azure ad app sql database access'
+    displayName: Create database
     inputs:
-      azureSubscription: ${{ parameters.azureSubscription }}
-      ScriptType: FilePath
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
-      ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
+        azureSubscription: ${{ parameters.azureSubscription }}
+        ScriptType: FilePath
+        FailOnStandardError: true
+        azurePowerShellVersion: 'LatestVersion'
+        Inline: |
+          az account show
 
-  - task: AzurePowerShell@5
-    displayName: 'Deploy ARM template'
-    inputs:
-      azureSubscription: ${{ parameters.azureSubscription }}
-      ScriptType: FilePath
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/deploy-resources.ps1
-      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
+          $currentUser = az account show --query id
+          $foken = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
+          
+          # finf database provision `
+          #   --url https://ci.infrasupport.api.fusion-dev.net/ `
+          #   -f ./src/backend/infrastructure/fusion-db-config.json `
+          #   -e "${{ parameters.environment }}" `
+          #   --sql-owner  `
+          #   --sql-contributor `
+
+
+
+  # - task: AzurePowerShell@5
+  #   displayName: 'Deploy ARM template'
+  #   inputs:
+  #     azureSubscription: ${{ parameters.azureSubscription }}
+  #     ScriptType: FilePath
+  #     FailOnStandardError: true
+  #     azurePowerShellVersion: 'LatestVersion'
+  #     ScriptPath: src/backend/infrastructure/deploy-resources.ps1
+  #     ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
       
   

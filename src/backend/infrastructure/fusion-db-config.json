@@ -1,0 +1,7 @@
+{
+    "name": "personnel-allocation",
+    "accessControl": {
+        "administratorGroupName": "acg-fra",
+        "developerGroupName": "acg-fra"
+    }
+}

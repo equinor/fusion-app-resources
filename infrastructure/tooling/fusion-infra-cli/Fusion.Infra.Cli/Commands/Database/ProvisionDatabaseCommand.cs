@@ -50,6 +50,12 @@ namespace Fusion.Infra.Cli.Commands.Database
         [Option("--timeout <seconds>", Description = "Set custom timeout in seconds, for the wait. Default is 300 seconds.")]
         public int? TimeoutInSeconds { get; set; }
 
+        [Option("--sql-owner <objectId>", CommandOptionType.MultipleValue, Description = "Define owners, multiples can be defined with --sql-owner GUID --sql-owner <string>")]
+        public List<string>? SqlOwners { get; set; }
+
+        [Option("--sql-contributor <objectId>", CommandOptionType.MultipleValue, Description = "Define contributors, given data reader/writer role. Multiples can be defined with --sql-contributor GUID --sql-contributor <string>")]
+        public List<string>? SqlContributor { get; set; }
+
         public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader)
         {
             this.httpClientFactory = httpClientFactory;
@@ -140,6 +146,22 @@ namespace Fusion.Infra.Cli.Commands.Database
                 }
 
                 config.PullRequest.CopyFromEnvironment = CopyFrom;
+            }
+
+            if (SqlOwners?.Count > 0)
+            {
+                if (config.SqlPermission is null)
+                    config.SqlPermission = new ApiDatabaseRequestModel.ApiSqlPermissions();
+
+                config.SqlPermission.Owners.AddRange(SqlOwners);
+            }
+
+            if (SqlContributor?.Count > 0)
+            {
+                if (config.SqlPermission is null)
+                    config.SqlPermission = new ApiDatabaseRequestModel.ApiSqlPermissions();
+
+                config.SqlPermission.Contributors.AddRange(SqlContributor);
             }
         }
 
