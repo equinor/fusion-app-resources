@@ -5,6 +5,7 @@ namespace Fusion.Infra.Cli.Tests
     public class TestCommandBuilder
     {
         public DefaultInfraApiMessageHandler MessageHandler { get; set; } = new DefaultInfraApiMessageHandler();
+        public DefaultInfraApiMessageHandler GraphMessageHandler { get; set; } = new DefaultInfraApiMessageHandler();
 
         public TestFileLoader FileContent { get; set; } = TestFileLoader.FromJson(Helper.GetValidBasicConfig());
         
@@ -14,6 +15,8 @@ namespace Fusion.Infra.Cli.Tests
             {
                 s.AddHttpClient(Constants.InfraClientName, c => { c.BaseAddress = new Uri("http://localhost"); })
                     .ConfigurePrimaryHttpMessageHandler(() => MessageHandler);
+                s.AddHttpClient(Constants.GraphClientName, c => { c.BaseAddress = new Uri("http://localhost"); })
+                    .ConfigurePrimaryHttpMessageHandler(c => GraphMessageHandler);
                 s.AddSingleton<IFileLoader>(FileContent);
             });
 

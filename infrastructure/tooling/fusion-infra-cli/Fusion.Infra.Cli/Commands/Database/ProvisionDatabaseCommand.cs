@@ -238,7 +238,7 @@ namespace Fusion.Infra.Cli.Commands.Database
 
                     if (servicePrincipal.HasValue)
                     {
-                        Console.WriteLine($"> Resolved '{item}' to the object id '{servicePrincipal}'");
+                        Console.WriteLine($"> Resolved sp '{item}' to the object id '{servicePrincipal}'");
                         processedList.Add($"{servicePrincipal}");
                     }
                     else
@@ -273,7 +273,7 @@ namespace Fusion.Infra.Cli.Commands.Database
                 var spId = await accountResolver.ResolveAppRegServicePrincipalAsync(clientId);
                 if (spId.HasValue)
                 {
-                    Console.WriteLine($"> Resolved '{clientId}' to the object id '{spId}'");
+                    Console.WriteLine($"> Resolved client id '{clientId}' to the object id '{spId}'");
                     appendTo.Add($"{spId}");
                 }
                 else

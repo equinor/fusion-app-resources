@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Azure.Core;
+using Newtonsoft.Json;
 
 namespace Fusion.Infra.Cli.Tests
 {
@@ -27,6 +28,11 @@ namespace Fusion.Infra.Cli.Tests
         }
     }
 
-
-    
+    public class TokenProvider : ITokenProvider
+    {
+        public Task<AccessToken> GetAccessToken(string resource)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

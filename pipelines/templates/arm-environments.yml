@@ -63,10 +63,8 @@ steps:
           --url https://ci.infrasupport.api.fusion-dev.net/ `
           -f ./src/backend/infrastructure/fusion-db-config.json `
           -e "${{ parameters.environment }}" `
-          --sql-owner 'DevOps SP - Fusion resource allocation - production' `
           --sql-contributor $appSpId `
-          --sql-contributor 9541e458-df92-4132-89bc-03d8c8067c3c `
-          --sql-contributor-client-id 97978493-9777-4d48-b38a-67b0b9cd88d2
+          --sql-contributor 9541e458-df92-4132-89bc-03d8c8067c3c
 
 
   # - task: AzurePowerShell@5

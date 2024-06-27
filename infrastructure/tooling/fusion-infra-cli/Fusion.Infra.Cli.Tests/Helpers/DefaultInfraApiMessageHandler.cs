@@ -100,5 +100,4 @@ namespace Fusion.Infra.Cli.Tests
     }
 
 
-    
 }
