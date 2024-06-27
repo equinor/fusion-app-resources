@@ -16,19 +16,23 @@
     },
     "requiredResourceAccess": [
 		{
+			// Statoil ProView Test
 			"resourceAppId": "5a842df8-3238-415d-b168-9f16a6a6031b",
 			"resourceAccess": [
 				{
+					// Fusion.Apps.Create
 					"id": "885260ee-8b4c-4841-863f-85f5289fcbfb",
 					"type": "Role"
 				}
 			]
 		},
 		{
+			// Fusion Infrastructure Support
 			"resourceAppId": "8ab89850-219a-4929-a726-5a7a496efac2",
 			"resourceAccess": [
 				{
-					"id": "1b31a3b0-f617-429f-aa0e-73b9c930fa5f",
+					// Fusion.Infrastructure.Database.Manage
+					"id": "345143e5-eecd-47ff-a6e5-d8b8f54cad5f",
 					"type": "Role"
 				}
 			]

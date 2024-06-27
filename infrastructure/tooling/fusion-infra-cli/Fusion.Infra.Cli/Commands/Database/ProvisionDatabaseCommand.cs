@@ -69,7 +69,10 @@ namespace Fusion.Infra.Cli.Commands.Database
             if (!string.IsNullOrEmpty(InfraUrl))
                 client.BaseAddress = new Uri(InfraUrl);
             if (!string.IsNullOrEmpty(AccessToken))
+            {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", AccessToken);
+                Utils.AnalyseToken(AccessToken);
+            }
 
             var config = LoadConfigFile();
 

@@ -14,6 +14,11 @@
 # - Owner on service principals connected to app registrations
 #
 # https://github.com/equinor/fusion-core-services/pull/969/files
+
+param(
+    [switch]$ServicePrincipals
+)
+
 function Configure-DevOps-AppRegistration($appReg, $owners) {
     Write-Host "Patching [$($appReg.name)]"
     Write-Host (ConvertTo-Json $appReg)
@@ -58,6 +63,10 @@ foreach  ($appReg in @($infraConfig.spAppRegs.nonProduction, $infraConfig.spAppR
     Configure-DevOps-AppRegistration `
         -appReg $appReg `
         -owners $infraConfig.appRegOwners
+}
+
+if ($ServicePrincipals.IsPresent) {
+    return
 }
 
 ##

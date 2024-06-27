@@ -33,3 +33,5 @@ The SP's are used by pipelines to:
 Updates to the service principals should be done by updating the `app-registrations/*.json` file. 
 
 New roles should be added to the `requiredResourceAccess` collection, by using the app reg client id as `resourceAppId` and the applicable role id.
+
+> Roles can be granted by using `az approle assignment add -s 'DevOps SP - Fusion resource allocation - non-production' -r '{Role name}' -a '{Api name}'` (Requires custom extension to az cli)
