@@ -18,9 +18,9 @@ catch (Exception ex)
     Console.WriteLine("Command: " + Regex.Replace(Environment.CommandLine, @"-t [^.]+\.[^.]+\.[^\s]+", "-t [hidden token]"));
     Console.WriteLine(ex.Message);
     Console.WriteLine(ex.ToString());
-    
+
     // Ensure -1 is returned to caller
-    throw;
+    System.Environment.Exit(-1);
 }
 
 
