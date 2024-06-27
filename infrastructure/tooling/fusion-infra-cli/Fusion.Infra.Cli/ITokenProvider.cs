@@ -58,14 +58,21 @@ public class AccountResolver : IAccountResolver
 
     public async Task<Guid?> ResolveAppRegServicePrincipalAsync(string identifier)
     {
-        var resp = await client.GetAsync($"/v1.0/servicePrincipals(appId='{identifier}'");
+        var resp = await client.GetAsync($"/v1.0/servicePrincipals(appId='{identifier}')");
 
         if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
             return null;
 
+        var content = await resp.Content.ReadAsStringAsync();
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → {resp.StatusCode}");
+            Console.WriteLine($"-- resp: {content}");
+        }
+
         resp.EnsureSuccessStatusCode();
 
-        var content = await resp.Content.ReadAsStringAsync();
         var data = JsonConvert.DeserializeAnonymousType(content, new {id = Guid.Empty});
         return data?.id;
 
