@@ -5,7 +5,8 @@ namespace Fusion.Infra.Cli.Commands
 {
     [Command("finf")]
     [Subcommand(
-        typeof(DatabaseCommand)
+        typeof(DatabaseCommand),
+        typeof(UnpackTokenCommand)
     )]
     public class MainCommand : CommandBase
     {
