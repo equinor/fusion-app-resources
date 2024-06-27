@@ -1,4 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using Fusion.Infra.Cli;
 using Fusion.Infra.Cli.Commands;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,9 @@ public static class Setup
     {
         var services = new ServiceCollection()
             .AddHttpClient()
+            .AddNamedHttpClients()
             .AddSingleton<IFileLoader, DefaultFileLoader>()
+            .AddSingleton<ITokenProvider, DefaultTokenProvider>()
             .AddSingleton(PhysicalConsole.Singleton);
 
         setup?.Invoke(services);
@@ -54,4 +57,17 @@ public static class Setup
 
         return app;
     }
+
+    public static IServiceCollection AddNamedHttpClients(this IServiceCollection services)
+    {
+        services.AddTransient<GraphTokenDelegateHandler>();
+        services.AddHttpClient(Constants.GraphClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0");
+        })
+            .AddHttpMessageHandler<GraphTokenDelegateHandler>();
+
+        return services;
+    }
+
 }

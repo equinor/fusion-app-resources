@@ -26,6 +26,14 @@ public class Utils
         }
     }
 
+    public static string? GetCurrentUserFromToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenContent = tokenHandler.ReadJwtToken(token);
+
+        return tokenContent.Claims.FirstOrDefault(c => c.Type == "oid")?.Value;
+    }
+
     public static void PrintToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -44,5 +52,5 @@ public class Utils
         }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
 
         Console.WriteLine(serializedContent);
-    }
+    }    
 }

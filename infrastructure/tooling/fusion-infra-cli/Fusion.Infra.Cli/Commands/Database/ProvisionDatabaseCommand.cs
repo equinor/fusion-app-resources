@@ -1,6 +1,7 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace Fusion.Infra.Cli.Commands.Database
@@ -10,7 +11,8 @@ namespace Fusion.Infra.Cli.Commands.Database
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFileLoader fileLoader;
-
+        private readonly ITokenProvider tokenProvider;
+        private readonly IAccountResolver accountResolver;
         public const int DefaultOperationWaitTimeout = 300;
 
         [Required]
@@ -56,10 +58,21 @@ namespace Fusion.Infra.Cli.Commands.Database
         [Option("--sql-contributor <objectId>", CommandOptionType.MultipleValue, Description = "Define contributors, given data reader/writer role. Multiples can be defined with --sql-contributor GUID --sql-contributor <string>")]
         public List<string>? SqlContributor { get; set; }
 
-        public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader)
+        [Option("--sql-contributor-client-id <appClientId>", CommandOptionType.MultipleValue, Description = "Define contributors, using the azure ad app registration client id")]
+        public List<string>? SqlContributorClientId { get; set; }
+
+        [Option("--sql-owner-client-id <appClientId>", CommandOptionType.MultipleValue, Description = "Define owners, using the azure ad app registration client id")]
+        public List<string>? SqlOwnerClientId { get; set; }
+
+        [Option("--ignore-resolve-errors", CommandOptionType.NoValue, Description = "Command will not fail if elements are not resolved. It will log and continue.")]
+        public bool IgnoreResolveErrors { get; set; }
+
+        public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader, ITokenProvider tokenProvider, IAccountResolver accountResolver)
         {
             this.httpClientFactory = httpClientFactory;
             this.fileLoader = fileLoader;
+            this.tokenProvider = tokenProvider;
+            this.accountResolver = accountResolver;
         }
 
         public override async Task OnExecuteAsync(CommandLineApplication app)
@@ -68,16 +81,14 @@ namespace Fusion.Infra.Cli.Commands.Database
             var client = httpClientFactory.CreateClient(Constants.InfraClientName);
             if (!string.IsNullOrEmpty(InfraUrl))
                 client.BaseAddress = new Uri(InfraUrl);
-            if (!string.IsNullOrEmpty(AccessToken))
-            {
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", AccessToken);
-                Utils.AnalyseToken(AccessToken);
-            }
+
+            await LoadAccessTokenAsync(client);
 
             var config = LoadConfigFile();
 
             LoadArgumentOverrides(config);
-           
+
+            await LoadSqlPermissionsAsync(config);
 
             var location = await StartOperationAsync(client, config);
 
@@ -110,6 +121,22 @@ namespace Fusion.Infra.Cli.Commands.Database
                 throw new ArgumentException("Could not deserialize config from file");
 
             return config;
+        }
+
+        private async Task LoadAccessTokenAsync(HttpClient client)
+        {
+            if (string.IsNullOrEmpty(AccessToken))
+            {
+                Console.WriteLine("No access token found, trying to get access token using default credentials... Use [-t <token>] to specify token.");
+                var token = await tokenProvider.GetAccessToken(Constants.RESOURCE_INFRA_API);
+                AccessToken = token.Token;
+            }
+
+            if (!string.IsNullOrEmpty(AccessToken))
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", AccessToken);
+                Utils.AnalyseToken(AccessToken);
+            }
         }
 
         private void LoadArgumentOverrides(ApiDatabaseRequestModel config)
@@ -169,6 +196,90 @@ namespace Fusion.Infra.Cli.Commands.Database
                     config.SqlPermission = new ApiDatabaseRequestModel.ApiSqlPermissions();
 
                 config.SqlPermission.Contributors.AddRange(SqlContributor);
+            }
+        }
+
+        private async Task LoadSqlPermissionsAsync(ApiDatabaseRequestModel config)
+        {
+            await ResolveClientIdsSqlPermissionsAsync(config);
+
+            // Only process if this is defined.
+            if (config.SqlPermission is null)
+                return;
+
+            config.SqlPermission.Contributors = await ResolveServicePrincipalsAsync(config.SqlPermission.Contributors);
+            config.SqlPermission.Owners = await ResolveServicePrincipalsAsync(config.SqlPermission.Owners);
+
+        }
+
+        private async Task<List<string>> ResolveServicePrincipalsAsync(List<string> items)
+        {
+            
+            var processedList = new List<string>();
+
+            foreach (var item in items)
+            {
+                if (Guid.TryParse(item, out _))
+                    processedList.Add(item);
+                else
+                {
+                    if (string.Equals(item, "[currentUser]"))
+                    {
+                        var userId = Utils.GetCurrentUserFromToken(AccessToken ?? "");
+                        if (!IgnoreResolveErrors && string.IsNullOrEmpty(userId))
+                            throw new ArgumentException("Could not resolve current user token using access token");
+
+                        if (!string.IsNullOrEmpty(userId))
+                            processedList.Add(userId);
+                    }
+
+                    // Not guid, must resolve to guid.
+                    var servicePrincipal = await accountResolver.ResolveAccountAsync(item, IgnoreResolveErrors);
+
+                    if (servicePrincipal.HasValue)
+                    {
+                        Console.WriteLine($"> Resolved '{item}' to the object id '{servicePrincipal}'");
+                        processedList.Add($"{servicePrincipal}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"# WARN: Could not resolve service principal using '{item}' as display name");
+                    }
+                }
+            }
+
+            return processedList;
+        }
+        
+        private async Task ResolveClientIdsSqlPermissionsAsync(ApiDatabaseRequestModel config)
+        {
+            if (SqlContributorClientId?.Count > 0 || SqlOwnerClientId?.Count > 0)
+            {
+                if (config.SqlPermission is null)
+                    config.SqlPermission = new ApiDatabaseRequestModel.ApiSqlPermissions();
+            }
+
+            await ResolveAndAppendClientIdsAsync(SqlContributorClientId, config.SqlPermission!.Contributors);
+            await ResolveAndAppendClientIdsAsync(SqlOwnerClientId, config.SqlPermission!.Owners);
+        }
+
+        private async Task ResolveAndAppendClientIdsAsync(List<string>? clientIds, List<string> appendTo)
+        {
+            if (clientIds is null)
+                return;
+
+            foreach (var clientId in clientIds)
+            {
+                var spId = await accountResolver.ResolveAppRegServicePrincipalAsync(clientId);
+                if (spId.HasValue)
+                {
+                    Console.WriteLine($"> Resolved '{clientId}' to the object id '{spId}'");
+                    appendTo.Add($"{spId}");
+                }
+                else
+                {
+                    Console.WriteLine($"# WARN: Could not resolve service principal using for app id '{clientId}'");
+                }
             }
         }
 

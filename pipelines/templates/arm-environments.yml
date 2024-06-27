@@ -54,10 +54,8 @@ steps:
       scriptType: pscore
       scriptLocation: inlineScript        
       inlineScript: |
-        $token = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
+        # $token = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
 
-        finf get-token -r 8ab89850-219a-4929-a726-5a7a496efac2/.default
-        
         $appSpId = az ad sp show --id ${{ parameters.clientId }} --query id -o tsv
         Write-Host "Found object id [$appSpId] for client id [${{ parameters.clientId }}]"
 
@@ -65,9 +63,10 @@ steps:
           --url https://ci.infrasupport.api.fusion-dev.net/ `
           -f ./src/backend/infrastructure/fusion-db-config.json `
           -e "${{ parameters.environment }}" `
+          --sql-owner 'DevOps SP - Fusion resource allocation - production' `
           --sql-contributor $appSpId `
           --sql-contributor 9541e458-df92-4132-89bc-03d8c8067c3c `
-          -t $token
+          --sql-contributor-client-id 97978493-9777-4d48-b38a-67b0b9cd88d2
 
 
   # - task: AzurePowerShell@5
