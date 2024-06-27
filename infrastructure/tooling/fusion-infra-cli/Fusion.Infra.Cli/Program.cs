@@ -37,6 +37,7 @@ public static class Setup
             .AddNamedHttpClients()
             .AddSingleton<IFileLoader, DefaultFileLoader>()
             .AddSingleton<ITokenProvider, DefaultTokenProvider>()
+            .AddSingleton<IAccountResolver, AccountResolver>()
             .AddSingleton(PhysicalConsole.Singleton);
 
         setup?.Invoke(services);
