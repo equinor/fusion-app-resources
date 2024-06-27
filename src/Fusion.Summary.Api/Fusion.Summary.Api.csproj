@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
+    <PackageReference Include="Fusion.AspNetCore" Version="7.0.1"/>
     <PackageReference Include="Fusion.AspNetCore.FluentAuthorization" Version="7.0.0" />
     <PackageReference Include="Fusion.Events.Client" Version="7.0.1" />
     <PackageReference Include="Fusion.Events.Server" Version="7.0.0" />

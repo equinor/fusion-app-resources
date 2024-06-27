@@ -10,6 +10,9 @@ public class ApiSummaryReport
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
     public required ApiSummaryReportPeriod PeriodType { get; set; }
+
+    // First day of the Period? So monday for a week. For month period type then first day of the month. UTC?
+    // TODO: Time
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
