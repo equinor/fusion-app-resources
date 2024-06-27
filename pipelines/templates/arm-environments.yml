@@ -64,7 +64,8 @@ steps:
           -f ./src/backend/infrastructure/fusion-db-config.json `
           -e "${{ parameters.environment }}" `
           --sql-contributor $appSpId `
-          --sql-contributor 9541e458-df92-4132-89bc-03d8c8067c3c
+          --sql-contributor 9541e458-df92-4132-89bc-03d8c8067c3c `
+          --sql-contributor-client-id f959b18c-9830-47e4-a17b-60c1986328c7
 
 
   # - task: AzurePowerShell@5
