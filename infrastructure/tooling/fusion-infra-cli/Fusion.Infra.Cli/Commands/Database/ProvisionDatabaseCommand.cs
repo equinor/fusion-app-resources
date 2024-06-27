@@ -225,7 +225,7 @@ namespace Fusion.Infra.Cli.Commands.Database
                     Console.WriteLine("Waiting for provisioning...");
                 }
 
-                await Task.Delay(RetryIn.GetValueOrDefault(20), timeout.Token);
+                await Task.Delay(TimeSpan.FromSeconds(RetryIn.GetValueOrDefault(20)), timeout.Token);
                 goto CheckOperation;
             }
             
