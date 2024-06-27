@@ -220,11 +220,6 @@ namespace Fusion.Infra.Cli.Commands.Database
 
             if (responsData?.GetStatus() == ApiOperationStatus.Pending)
             {
-                if (VerboseLogging)
-                {
-                    Console.WriteLine("Waiting for provisioning...");
-                }
-
                 await Task.Delay(TimeSpan.FromSeconds(RetryIn.GetValueOrDefault(20)), timeout.Token);
                 goto CheckOperation;
             }

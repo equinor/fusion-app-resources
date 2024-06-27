@@ -56,6 +56,8 @@ steps:
       inlineScript: |
         $token = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
 
+        finf get-token -r 8ab89850-219a-4929-a726-5a7a496efac2/.default
+        
         $appSpId = az ad sp show --id ${{ parameters.clientId }} --query id -o tsv
         Write-Host "Found object id [$appSpId] for client id [${{ parameters.clientId }}]"
 
@@ -64,6 +66,7 @@ steps:
           -f ./src/backend/infrastructure/fusion-db-config.json `
           -e "${{ parameters.environment }}" `
           --sql-contributor $appSpId `
+          --sql-contributor 9541e458-df92-4132-89bc-03d8c8067c3c `
           -t $token
 
 
