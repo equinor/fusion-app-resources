@@ -59,15 +59,12 @@ steps:
         $appSpId = az ad sp show --id ${{ parameters.clientId }} --query id -o tsv
         Write-Host "Found object id [$appSpId] for client id [${{ parameters.clientId }}]"
 
-        finf unpack-token -t $token
-
         finf database provision `
           --url https://ci.infrasupport.api.fusion-dev.net/ `
           -f ./src/backend/infrastructure/fusion-db-config.json `
           -e "${{ parameters.environment }}" `
           --sql-contributor $appSpId `
           -t $token
-
 
 
   # - task: AzurePowerShell@5

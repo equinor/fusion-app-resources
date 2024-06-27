@@ -216,11 +216,9 @@ namespace Fusion.Infra.Cli.Commands.Database
             var content = await EnsureSuccessfullResponseAsync(resp);
             Console.WriteLine($"-- resp: {content}");
 
-            var responsData = JsonSerializer.Deserialize<ApiOperationResponse>(content);
+            var responsData = JsonSerializer.Deserialize<ApiOperationResponse>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-
-            if (resp.StatusCode == System.Net.HttpStatusCode.Accepted 
-                || string.Equals(responsData?.Status, ApiOperationResponse.STATUS_NEW, StringComparison.OrdinalIgnoreCase))
+            if (responsData?.GetStatus() == ApiOperationStatus.Pending)
             {
                 if (VerboseLogging)
                 {
@@ -230,7 +228,7 @@ namespace Fusion.Infra.Cli.Commands.Database
                 await Task.Delay(RetryIn.GetValueOrDefault(20), timeout.Token);
                 goto CheckOperation;
             }
-
+            
             if (responsData is not null)
                 Console.WriteLine(JsonSerializer.Serialize<ApiOperationResponse>(responsData, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
         }
