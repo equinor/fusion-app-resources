@@ -31,6 +31,12 @@ public class AccountResolver : IAccountResolver
         var resp = await client.GetAsync($"/v1.0/servicePrincipals?$filter=displayName eq '{identifier}'");
         var content = await resp.Content.ReadAsStringAsync();
 
+        if (!resp.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → {resp.StatusCode}");
+            Console.WriteLine($"-- resp: {content}");
+        }
+        
         resp.EnsureSuccessStatusCode();
 
         var results = JsonConvert.DeserializeAnonymousType(content, new { value = new[] { new { id = Guid.Empty } } });
