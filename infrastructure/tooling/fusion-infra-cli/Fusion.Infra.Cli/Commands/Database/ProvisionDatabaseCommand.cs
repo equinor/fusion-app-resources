@@ -185,7 +185,11 @@ namespace Fusion.Infra.Cli.Commands.Database
 
             var respData = await EnsureSuccessfullResponseAsync(resp);
 
+            Console.WriteLine($"-- resp: {respData}");
+
             var locationHeader = resp.Headers.Location;
+
+            Console.WriteLine($"Operation location: {locationHeader}");
 
             if (locationHeader is null)
             {
@@ -208,7 +212,10 @@ namespace Fusion.Infra.Cli.Commands.Database
             timeout.Token.ThrowIfCancellationRequested();
 
             var resp = await client.GetAsync(location, timeout.Token);
+            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → [{resp.StatusCode}]");
             var content = await EnsureSuccessfullResponseAsync(resp);
+            Console.WriteLine($"-- resp: {content}");
+
             var responsData = JsonSerializer.Deserialize<ApiOperationResponse>(content);
 
 
@@ -232,9 +239,10 @@ namespace Fusion.Infra.Cli.Commands.Database
         {
             var respData = await resp.Content.ReadAsStringAsync();
 
+            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → [{resp.StatusCode}]");
+            
             if (!resp.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Failed request [{resp.StatusCode}]: {resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri}");
                 Console.WriteLine("-- Response payload --");
                 Console.WriteLine(respData);
                 Console.WriteLine("-- / --");
