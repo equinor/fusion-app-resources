@@ -67,6 +67,9 @@ namespace Fusion.Infra.Cli.Commands.Database
         [Option("--ignore-resolve-errors", CommandOptionType.NoValue, Description = "Command will not fail if elements are not resolved. It will log and continue.")]
         public bool IgnoreResolveErrors { get; set; }
 
+        [Option("-o <filePath>", ShortName = "o", LongName = "output", Description = "Dump final respons from the provisioning to a specific file")]
+        public string? OutputFile { get; set; }
+
         public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader, ITokenProvider tokenProvider, IAccountResolver accountResolver)
         {
             this.httpClientFactory = httpClientFactory;
@@ -98,7 +101,11 @@ namespace Fusion.Infra.Cli.Commands.Database
                 return;
             }
 
-            await WaitForOperationAsync(client, location);
+            var provisionResponse = await WaitForOperationAsync(client, location);
+            if (OutputFile != null)
+            {
+                File.WriteAllText(OutputFile, provisionResponse);
+            }
         }
 
         private ApiDatabaseRequestModel LoadConfigFile()
@@ -312,7 +319,7 @@ namespace Fusion.Infra.Cli.Commands.Database
             return locationHeader.ToString();
         }
 
-        private async Task WaitForOperationAsync(HttpClient client, string location)
+        private async Task<string> WaitForOperationAsync(HttpClient client, string location)
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutInSeconds.GetValueOrDefault(DefaultOperationWaitTimeout)));
 
@@ -339,6 +346,8 @@ namespace Fusion.Infra.Cli.Commands.Database
             
             if (responsData is not null)
                 Console.WriteLine(JsonSerializer.Serialize<ApiOperationResponse>(responsData, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
+
+            return content;
         }
 
         private async Task<string> EnsureSuccessfullResponseAsync(HttpResponseMessage resp) 
