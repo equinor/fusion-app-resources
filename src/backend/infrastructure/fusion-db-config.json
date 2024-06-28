@@ -1,14 +1,13 @@
 {
-    "identifier": "resources-api",
-
-    "name": "personnel-allocation-3",
+    "name": "fra-resources",
 
     "metadata": {
         "application": "Fusion Resource Allocation",
         "team": "FRA"
     },
+    
     "accessControl": {
-        "administratorGroupName": "acg-fra",
-        "developerGroupName": "acg-fra"
+        "administratorGroupName": "acg-fusion-resource-allocation",
+        "developerGroupName": "acg-fusion-resource-allocation"
     }
 }
