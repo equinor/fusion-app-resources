@@ -1,6 +1,9 @@
+using Fusion.Integration.LineOrg;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Domain.Commands;
+using Fusion.Summary.Api.Domain.Models;
+using Fusion.Summary.Api.Domain.Queries;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Tests;
@@ -20,7 +23,6 @@ public class DepartmentTests
 
         // Create a new instance of the DatabaseContext
         _context = new DatabaseContext(options);
-        // TODO: Add dispatching tests instead of service test
     }
 
     [TestCleanup]
@@ -29,7 +31,6 @@ public class DepartmentTests
         // Cleanup the in-memory database after each test run
         _context.Database.EnsureDeleted();
     }
-
 
     [TestMethod]
     public async Task CreateDepartment_ShouldCreateDepartment()
@@ -47,50 +48,62 @@ public class DepartmentTests
 
         Assert.IsNotNull(dbDepartment, "Department was not added to the database");
     }
-    /*
+
+
     [TestMethod]
     public async Task GetAllDepartments_ShouldReturnAllDepartments()
     {
         // Arrange
-        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
-        var departmentB = new DbDepartment { DepartmentSapId = "1002", FullDepartmentName = "Department B" };
-        await _departmentService.CreateDepartment(departmentA);
-        await _departmentService.CreateDepartment(departmentB);
+        var handler = new CreateDepartment.Handler(_context);
+        var queryHandler = new GetAllDepartments.Handler(_context);
+
+        var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = Guid.Empty };
+        var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = Guid.Empty };
+
+        await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.ResourceOwnerAzureUniqueId, departmentA.FullDepartmentName), CancellationToken.None);
+        await handler.Handle(new CreateDepartment(departmentB.SapDepartmentId, departmentB.ResourceOwnerAzureUniqueId, departmentB.FullDepartmentName), CancellationToken.None);
 
         // Act
-        var result = await _departmentService.GetAllDepartments();
+        var result = await queryHandler.Handle(new GetAllDepartments(), CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Count);
-        Assert.IsTrue(result.Contains(departmentA));
-        Assert.IsTrue(result.Contains(departmentB));
+        Assert.AreEqual(2, result.Count());
+        Assert.IsTrue(result.Count(x => x.SapDepartmentId == departmentA.SapDepartmentId) == 1);
+        Assert.IsTrue(result.Count(x => x.SapDepartmentId == departmentB.SapDepartmentId) == 1);
     }
 
     [TestMethod]
     public async Task GetDepartmentById_ExistingId_ShouldReturnDepartment()
     {
         // Arrange
-        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
-        var departmentB = new DbDepartment { DepartmentSapId = "1002", FullDepartmentName = "Department B" };
-        await _departmentService.CreateDepartment(departmentA);
-        await _departmentService.CreateDepartment(departmentB);
+        var handler = new CreateDepartment.Handler(_context);
+        var queryHandler = new GetDepartment.Handler(_context);
+
+        var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A" };
+        var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B" };
+
+        await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.ResourceOwnerAzureUniqueId, departmentA.FullDepartmentName), CancellationToken.None);
+        await handler.Handle(new CreateDepartment(departmentB.SapDepartmentId, departmentB.ResourceOwnerAzureUniqueId, departmentB.FullDepartmentName), CancellationToken.None);
 
         // Act
-        var result = await _departmentService.GetDepartmentById("1001");
+        var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(departmentA, result);
+        Assert.AreEqual(departmentA.SapDepartmentId, result.SapDepartmentId);
     }
 
     [TestMethod]
     public async Task GetDepartmentById_NonExistingId_ShouldReturnNull()
     {
         // Arrange
+        var queryHandler = new GetDepartment.Handler(_context);
+
+        var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A" };
 
         // Act
-        var result = await _departmentService.GetDepartmentById("1001");
+        var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
 
         // Assert
         Assert.IsNull(result);
@@ -100,17 +113,22 @@ public class DepartmentTests
     public async Task UpdateDepartment_ExistingId_ShouldUpdateDepartment()
     {
         // Arrange
+        var handler = new CreateDepartment.Handler(_context);
+        var updateHandler = new UpdateDepartment.Handler(_context);
+        var queryHandler = new GetDepartment.Handler(_context);
+
         var resourceOwner1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
         var resourceOwner2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
 
-        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
-        var departmentB = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner2 };
-        
-        await _departmentService.CreateDepartment(departmentA);
+        var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A" };
+        var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B" };
+
+        await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, resourceOwner1, departmentA.FullDepartmentName), CancellationToken.None);
 
         // Act
-        await _departmentService.UpdateDepartment("1001", departmentB);
-        var result = await _departmentService.GetDepartmentById("1001");
+        await updateHandler.Handle(new UpdateDepartment(departmentA.SapDepartmentId, resourceOwner2, departmentA.FullDepartmentName), CancellationToken.None);
+
+        var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(result);
@@ -121,21 +139,26 @@ public class DepartmentTests
     public async Task UpdateDepartment_NonExistingId_ShouldNotUpdateDepartment()
     {
         // Arrange
+        var handler = new CreateDepartment.Handler(_context);
+        var updateHandler = new UpdateDepartment.Handler(_context);
+        var queryHandler = new GetDepartment.Handler(_context);
+
         var resourceOwner1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
         var resourceOwner2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
 
-        var departmentA = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
-        var departmentB = new DbDepartment { DepartmentSapId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = resourceOwner2 };
-        
-        await _departmentService.CreateDepartment(departmentA);
+        var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
+        var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = resourceOwner2 };
+
+        await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.ResourceOwnerAzureUniqueId, departmentA.FullDepartmentName), CancellationToken.None);
 
         // Act
-        await _departmentService.UpdateDepartment("1002", departmentB);
-        var result = await _departmentService.GetDepartmentById("1001");
+        await updateHandler.Handle(new UpdateDepartment(departmentB.SapDepartmentId, resourceOwner2, departmentB.FullDepartmentName), CancellationToken.None);
+
+        var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
 
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(resourceOwner1, result.ResourceOwnerAzureUniqueId);
     }
-    */
+
 }
