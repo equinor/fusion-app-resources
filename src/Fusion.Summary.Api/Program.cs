@@ -1,4 +1,6 @@
+using Fusion.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,12 +12,23 @@ builder.Configuration
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
-builder.Services.AddSwaggerGen();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration)
     .EnableTokenAcquisitionToCallDownstreamApi()
     .AddInMemoryTokenCaches();
+
+
+builder.Services.AddApiVersioning(s =>
+{
+    s.ReportApiVersions = true;
+    s.AssumeDefaultVersionWhenUnspecified = true;
+    s.DefaultApiVersion = new ApiVersion(1, 0);
+    s.ApiVersionReader = new HeaderOrQueryVersionReader("api-version");
+});
+
+builder.Services.AddSwagger(builder.Configuration);
 
 builder.Services.AddFusionIntegration(f =>
 {
@@ -36,10 +49,11 @@ app.UseCors(opts => opts
     .AllowAnyMethod()
     .AllowAnyHeader()
     .WithExposedHeaders("Allow", "x-fusion-retriable"));
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseAuthentication();
+
+app.UseSummaryApiSwagger();
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireAuthorization();
 app.MapHealthChecks("/_health/liveness");

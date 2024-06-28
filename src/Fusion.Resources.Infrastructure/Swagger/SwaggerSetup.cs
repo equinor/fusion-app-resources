@@ -1,4 +1,6 @@
-﻿using Fusion.AspNetCore.OData;
+﻿using System.ComponentModel;
+using System.Reflection;
+using Fusion.AspNetCore.OData;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -7,12 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -66,7 +62,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
                 c.OperationFilter<SecurityRequirementsOperationFilter>();
                 c.OperationFilter<AddApiVersionParameter>();
-
+                c.SchemaFilter<PatchPropertySchemaFilter>();
+                c.SchemaFilter<EnumSchemaFilter>();
+                c.OperationFilter<ODataFilterParamSwaggerFilter>();
+                c.OperationFilter<ODataExpandParamSwaggerFilter>();
+                c.OperationFilter<ODataOrderByParamSwaggerFilter>();
+                c.OperationFilter<ODataTopParamSwaggerFilter>();
+                c.OperationFilter<ODataSkipParamSwaggerFilter>();
+                c.OperationFilter<ODataSearchParamSwaggerFilter>();
                 c.DocumentFilter<ODataQueryParamSwaggerFilter>();
 
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
@@ -97,7 +100,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 c.AddSecurityRequirement(securityRequirement);
 
-                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlFile = $"{Assembly.GetEntryAssembly()?.GetName().Name}.xml";
                 string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
