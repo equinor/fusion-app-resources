@@ -1,7 +1,7 @@
 ﻿using Azure.Core;
 using Newtonsoft.Json;
 
-namespace Fusion.Infra.Cli.Tests
+namespace Fusion.Infra.Cli.Mocks
 {
     public class TestFileLoader : IFileLoader
     {
@@ -9,7 +9,7 @@ namespace Fusion.Infra.Cli.Tests
 
         public TestFileLoader(string content)
         {
-            this.content = content; 
+            this.content = content;
         }
 
         public static TestFileLoader FromJson(object json)
@@ -25,14 +25,6 @@ namespace Fusion.Infra.Cli.Tests
         public string GetContent(string path)
         {
             return content;
-        }
-    }
-
-    public class TokenProvider : ITokenProvider
-    {
-        public Task<AccessToken> GetAccessToken(string resource)
-        {
-            throw new NotImplementedException();
         }
     }
 }

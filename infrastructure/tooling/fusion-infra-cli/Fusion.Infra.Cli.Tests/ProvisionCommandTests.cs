@@ -55,11 +55,13 @@ namespace Fusion.Infra.Cli.Tests
 
             var testCommand = new TestCommandBuilder();
 
-            var result = await testCommand.ExecuteCommand($"database provision --sql-owner 2020 --sql-owner 2021 --url https://localhost -f required");
+            var owners = ($"{Guid.NewGuid()}", $"{Guid.NewGuid()}");
+
+            var result = await testCommand.ExecuteCommand($"database provision --sql-owner {owners.Item1} --sql-owner {owners.Item2} --url https://localhost -f required");
 
             var request = result.Operations.First();
-            request!.Request?.SqlPermission?.Owners.Should().Contain("2020");
-            request!.Request?.SqlPermission?.Owners.Should().Contain("2021");
+            request!.Request?.SqlPermission?.Owners.Should().Contain(owners.Item1);
+            request!.Request?.SqlPermission?.Owners.Should().Contain(owners.Item2);
         }
 
         [Fact]
@@ -69,11 +71,13 @@ namespace Fusion.Infra.Cli.Tests
 
             var testCommand = new TestCommandBuilder();
 
-            var result = await testCommand.ExecuteCommand($"database provision --sql-contributor 3030 --sql-contributor 3031 --url https://localhost -f required");
+            var contributors = ($"{Guid.NewGuid()}", $"{Guid.NewGuid()}");
+
+            var result = await testCommand.ExecuteCommand($"database provision --sql-contributor {contributors.Item1} --sql-contributor {contributors.Item2} --url https://localhost -f required");
 
             var request = result.Operations.First();
-            request!.Request?.SqlPermission?.Contributors.Should().Contain("3030");
-            request!.Request?.SqlPermission?.Contributors.Should().Contain("3031");
+            request!.Request?.SqlPermission?.Contributors.Should().Contain(contributors.Item1);
+            request!.Request?.SqlPermission?.Contributors.Should().Contain(contributors.Item2);
         }
 
 
@@ -104,6 +108,37 @@ namespace Fusion.Infra.Cli.Tests
 
             var request = result.Operations.First();
             request!.ProductionEnvironment.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ProvisionCommand_ShouldResolveServicePrincipal_WhenDisplaynameProvided()
+        {
+            var randomEnv = $"{Guid.NewGuid()}";
+
+            var appRegDisplayName = $"My ServicePrincipal";
+
+            var testCommand = new TestCommandBuilder()
+                .WithAppRegistration(b => b.DisplayName = appRegDisplayName, out var sp);
+
+            var result = await testCommand.ExecuteCommand($"database provision --sql-contributor \"{appRegDisplayName}\" --url https://localhost -f required");
+
+            var request = result.Operations.First();
+            request!.Request?.SqlPermission?.Contributors.Should().Contain($"{sp.Id}");
+        }
+
+        [Fact]
+        public async Task ProvisionCommand_ShouldResolveServicePrincipal_WhenAppClientIdProvided()
+        {
+            var randomEnv = $"{Guid.NewGuid()}";
+
+            var appId = Guid.NewGuid();
+            var testCommand = new TestCommandBuilder()
+                .WithAppRegistration(b => b.AppId = appId, out var sp);
+
+            var result = await testCommand.ExecuteCommand($"database provision --sql-contributor-client-id {appId} --url https://localhost -f required");
+
+            var request = result.Operations.First();
+            request!.Request?.SqlPermission?.Contributors.Should().Contain($"{sp.Id}");
         }
 
     }

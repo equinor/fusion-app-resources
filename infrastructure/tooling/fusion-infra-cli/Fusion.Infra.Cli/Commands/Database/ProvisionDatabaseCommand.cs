@@ -259,8 +259,10 @@ namespace Fusion.Infra.Cli.Commands.Database
                     config.SqlPermission = new ApiDatabaseRequestModel.ApiSqlPermissions();
             }
 
-            await ResolveAndAppendClientIdsAsync(SqlContributorClientId, config.SqlPermission!.Contributors);
-            await ResolveAndAppendClientIdsAsync(SqlOwnerClientId, config.SqlPermission!.Owners);
+            if (SqlContributorClientId is not null)
+                await ResolveAndAppendClientIdsAsync(SqlContributorClientId, config.SqlPermission!.Contributors);
+            if (SqlOwnerClientId is not null)
+                await ResolveAndAppendClientIdsAsync(SqlOwnerClientId, config.SqlPermission!.Owners);
         }
 
         private async Task ResolveAndAppendClientIdsAsync(List<string>? clientIds, List<string> appendTo)

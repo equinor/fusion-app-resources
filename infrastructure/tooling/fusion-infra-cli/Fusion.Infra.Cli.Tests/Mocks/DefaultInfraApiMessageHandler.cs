@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using Fusion.Infra.Cli.Tests;
+using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
-namespace Fusion.Infra.Cli.Tests
+namespace Fusion.Infra.Cli.Mocks
 {
     public class DefaultInfraApiMessageHandler : HttpMessageHandler
     {

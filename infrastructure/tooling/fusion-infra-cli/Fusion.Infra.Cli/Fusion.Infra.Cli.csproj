@@ -23,6 +23,5 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.6.2" />
-		<PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
 	</ItemGroup>
 </Project>
