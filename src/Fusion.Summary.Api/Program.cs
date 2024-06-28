@@ -1,3 +1,4 @@
+using Fusion.AspNetCore.OData;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 
@@ -10,7 +11,17 @@ builder.Configuration
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.OperationFilter<ODataFilterParamSwaggerFilter>();
+    c.OperationFilter<ODataExpandParamSwaggerFilter>();
+    c.OperationFilter<ODataOrderByParamSwaggerFilter>();
+    c.OperationFilter<ODataTopParamSwaggerFilter>();
+    c.OperationFilter<ODataSkipParamSwaggerFilter>();
+    c.OperationFilter<ODataSearchParamSwaggerFilter>();
+    c.DocumentFilter<ODataQueryParamSwaggerFilter>();
+});
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration)
@@ -23,7 +34,7 @@ builder.Services.AddFusionIntegration(f =>
     f.UseDefaultEndpointResolver(builder.Configuration["FUSION_ENVIRONMENT"] ?? "ci");
     f.UseDefaultTokenProvider(opts =>
     {
-        opts.ClientId = builder.Configuration["AzureAd:ClientId"];
+        opts.ClientId = builder.Configuration["AzureAd:ClientId"]!;
         opts.ClientSecret = builder.Configuration["AzureAd:ClientSecret"];
     });
 });

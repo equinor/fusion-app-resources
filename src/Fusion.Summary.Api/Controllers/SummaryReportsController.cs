@@ -18,8 +18,11 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
     [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ODataFilter(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.PositionsEnding),
+        nameof(ApiSummaryReport.PersonnelMoreThan100PercentFTE), nameof(ApiSummaryReport.PeriodType))]
+
     public async Task<ActionResult<IEnumerable<ApiSummaryReport>>> GetSummaryReportsV1(
-        [FromRoute] string sapDepartmentId, [FromQuery] ODataQueryParams query)
+        [FromRoute] string sapDepartmentId, ODataQueryParams query)
     {
         #region Authorization
 
