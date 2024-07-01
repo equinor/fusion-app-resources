@@ -2,6 +2,7 @@ using Fusion.AspNetCore.Mvc.Versioning;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 
@@ -52,6 +53,11 @@ app.UseCors(opts => opts
     .AllowAnyHeader()
     .WithExposedHeaders("Allow", "x-fusion-retriable"));
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
 //app.UseMiddleware<RequestResponseLoggingMiddleware>();
 app.UseMiddleware<TraceMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
@@ -62,6 +68,18 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireAuthorization();
-app.MapHealthChecks("/_health/liveness");
-app.MapHealthChecks("/_health/readiness");
+
+#region Health probes
+
+app.UseHealthChecks("/_health/liveness", new HealthCheckOptions
+{
+    Predicate = r => r.Name.Contains("liveness")
+});
+app.UseHealthChecks("/_health/ready", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready")
+});
+
+#endregion Health probes
+
 app.Run();
