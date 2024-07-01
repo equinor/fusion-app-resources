@@ -53,7 +53,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Summary.Api", "Fusio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Summary.Functions", "Fusion.Summary.Functions\Fusion.Summary.Functions.csproj", "{B761C0DE-7D59-4AD1-82BB-368E15F152BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Infrastructure", "Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj", "{CC1EF38A-2741-4D92-A33A-3970E6F73797}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Infrastructure", "backend\Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj", "{CC1EF38A-2741-4D92-A33A-3970E6F73797}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{3C253096-BCFA-40D7-8C3F-F3F3B3BA4F1C}"
 EndProject
