@@ -1,4 +1,6 @@
 using Fusion.AspNetCore.Mvc.Versioning;
+using Fusion.Resources.Api.Middleware;
+using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
@@ -49,6 +51,10 @@ app.UseCors(opts => opts
     .AllowAnyMethod()
     .AllowAnyHeader()
     .WithExposedHeaders("Allow", "x-fusion-retriable"));
+
+//app.UseMiddleware<RequestResponseLoggingMiddleware>();
+app.UseMiddleware<TraceMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSummaryApiSwagger();
 
