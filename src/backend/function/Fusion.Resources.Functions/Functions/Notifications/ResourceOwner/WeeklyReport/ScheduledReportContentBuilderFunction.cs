@@ -48,6 +48,7 @@ public class ScheduledReportContentBuilderFunction
         _logger.LogInformation(
             $"{nameof(ScheduledReportContentBuilderFunction)} " +
             $"started with message: {message.Body}");
+
         try
         {
             var body = Encoding.UTF8.GetString(message.Body);
@@ -81,6 +82,7 @@ public class ScheduledReportContentBuilderFunction
     {
         //  Requests for department
         var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(fullDepartment)).ToList();
+
         // Personnel for the department
         var departmentPersonnel =
             (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();

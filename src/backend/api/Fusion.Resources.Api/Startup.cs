@@ -93,10 +93,20 @@ namespace Fusion.Resources.Api
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
 
+
+                /*
+                 * Add event handlers to line org. 
+                 * We need one persistant that can track changes and do internal updates. These we only want executed once across multiple instances. 
+                 * The transient handler will provide cache control on events, this will be executed across all instances as it updates in-memory objects.
+                 */
+                var LineOrgUnitEventType = new FusionEventType("lineorg.org-unit");
+                s.AddPersistentHandler<LineOrgSyncronizationHandler>(LineOrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
+                {
+                    e.OnlyTriggerOn(LineOrgUnitEventType);
+                });
                 s.AddTransientHandler<LineOrgOrgUnitHandler>(LineOrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
                 {
-                   var LineOrgUnit = new FusionEventType("lineorg.org-unit" );
-                    e.OnlyTriggerOn(LineOrgUnit);
+                    e.OnlyTriggerOn(LineOrgUnitEventType);
                 });
             });
             // Add custom claims provider, to sort delegated responsibilities

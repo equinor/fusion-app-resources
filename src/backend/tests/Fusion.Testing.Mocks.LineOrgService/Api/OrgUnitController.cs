@@ -1,7 +1,10 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration.LineOrg;
+using Fusion.Resources;
 using Fusion.Services.LineOrg.ApiModels;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Fusion.Testing.Mocks.LineOrgService.Api
@@ -10,21 +13,56 @@ namespace Fusion.Testing.Mocks.LineOrgService.Api
     [ApiController]
     public class OrgUnitController : ControllerBase
     {
-        [HttpGet("/org-units/")]
+        [HttpGet("/org-units")]
         public ActionResult<ApiPagedCollection<ApiOrgUnit>> GetOrgUnits([FromQuery] ODataQueryParams query)
         {
-            return new ApiPagedCollection<ApiOrgUnit>(LineOrgServiceMock.OrgUnits.ToArray().ToList(), LineOrgServiceMock.OrgUnits.Count());
+
+            // Take a copy of the items, so we do not update items managed by the test.
+            var itemsData = JsonConvert.SerializeObject(LineOrgServiceMock.OrgUnits.ToArray());
+            var itemsCopy = JsonConvert.DeserializeObject<List<ApiOrgUnit>>(itemsData);
+
+            // ensure expanded properties are added.
+            if (query.ShouldExpand("management"))
+            {
+                itemsCopy.ForEach(i =>
+                {
+                    if (i.Management is null)
+                    {
+                        i.Management = new ApiOrgUnitManagement()
+                        {
+                            Persons = new List<ApiPerson>()
+                        };
+                    }
+                });
+            }
+
+            return new ApiPagedCollection<ApiOrgUnit>(itemsCopy, itemsCopy.Count);
         }
 
         [HttpGet("/org-units/{orgUnitId}")]
         public ActionResult<ApiOrgUnit> GetOrgUnit([FromRoute] string orgUnitId, [FromQuery] ODataQueryParams query)
         {
-            var orgUnit = LineOrgServiceMock.OrgUnits.FirstOrDefault(o => string.Equals(o.SapId, orgUnitId, System.StringComparison.OrdinalIgnoreCase) || string.Equals(o.FullDepartment, orgUnitId, System.StringComparison.OrdinalIgnoreCase));
+            var orgUnit = LineOrgServiceMock.OrgUnits.FirstOrDefault(o => o.SapId.EqualsIgnCase(orgUnitId) || o.FullDepartment.EqualsIgnCase(orgUnitId));
 
             if (orgUnit is null)
                 return NotFound();
 
-            return Ok(orgUnit);
+            // Clone the response as we must add stuff
+            var responseObject = MockUtils.JsonClone<ApiOrgUnit>(orgUnit);
+            
+            // Populate parent node
+            if (responseObject.ParentSapId is not null)
+            {
+                responseObject.Parent = LineOrgServiceMock.OrgUnits.Where(o => o.SapId.EqualsIgnCase(orgUnit.ParentSapId)).Select(o => MockUtils.JsonClone<ApiOrgUnitRef>(o)).FirstOrDefault();
+            }
+
+            if (query.ShouldExpand("children"))
+            {
+                responseObject.Children = LineOrgServiceMock.OrgUnits.Where(o => o.ParentSapId.EqualsIgnCase(orgUnit.SapId)).Select(o => MockUtils.JsonClone<ApiOrgUnitRef>(o) ).ToList();
+            }
+
+
+            return Ok(responseObject);
 
             //var departmentId = DepartmentId.FromFullPath(orgUnitId);
             //var parts = orgUnitId.Split(' ');
@@ -49,5 +87,14 @@ namespace Fusion.Testing.Mocks.LineOrgService.Api
             //return Ok(orgUnit);
         }
 
+    }
+
+    internal static class MockUtils
+    {
+        public static T JsonClone<T>(object item)
+        {
+            var json = JsonConvert.SerializeObject(item);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
     }
 }

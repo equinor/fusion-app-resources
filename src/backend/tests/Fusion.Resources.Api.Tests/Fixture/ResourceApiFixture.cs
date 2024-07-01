@@ -101,24 +101,22 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
         internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null, int daysFrom = -1, int daysTo = 1)
         {
-            using var scope = ApiFactory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-
-
-
             LineOrgServiceMock.AddDepartment(departmentId);
 
             if (defactoResponsible is not null)
             {
-                db.DelegatedDepartmentResponsibles.Add(new Database.Entities.DbDelegatedDepartmentResponsible()
+                using (var dbScope = new DbScope(ApiFactory.Services))
                 {
-                    DateFrom = DateTime.Today.AddDays(daysFrom),
-                    DateTo = DateTime.Today.AddDays(daysTo),
-                    DepartmentId = departmentId,
-                    ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.GetValueOrDefault(),
-                    Reason = "Just for testing"
-                });
-                try { db.SaveChanges(); } catch (DBConcurrencyException) { }
+                    dbScope.DbContext.DelegatedDepartmentResponsibles.Add(new Database.Entities.DbDelegatedDepartmentResponsible()
+                    {
+                        DateFrom = DateTime.Today.AddDays(daysFrom),
+                        DateTo = DateTime.Today.AddDays(daysTo),
+                        DepartmentId = departmentId,
+                        ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.GetValueOrDefault(),
+                        Reason = "Just for testing"
+                    });
+                    try { dbScope.DbContext.SaveChanges(); } catch (DBConcurrencyException) { }
+                }
 
                 RolesClientMock.AddPersonRole(defactoResponsible.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
                 {

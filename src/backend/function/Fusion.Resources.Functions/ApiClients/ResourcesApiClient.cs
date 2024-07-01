@@ -2,6 +2,7 @@
 using Fusion.Resources.Functions.Integration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -40,19 +41,37 @@ namespace Fusion.Resources.Functions.ApiClients
         public async Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(
             string departmentIdentifier)
         {
-            var response = await resourcesClient.GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>(
-                $"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions&$top=2000");
+            try
+            {
+                var response = await resourcesClient.GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>(
+                    $"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions&$top=2000");
 
-            return response.Value.ToList();
+                return response.Value.ToList();
+            }
+            catch(Exception ex)
+            {
+                log.LogError($"Error getting requests for department '{departmentIdentifier}'", ex);
+
+                throw;
+            }
         }
 
         public async Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(
             string departmentIdentifier)
         {
-            var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
-       $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
+            try
+            {
+                var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
+           $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
 
-            return response.Value.ToList();
+                return response.Value.ToList();
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Error getting personnel for department '{departmentIdentifier}'", ex);
+
+                throw;
+            }
         }
 
         public async Task<IEnumerable<ApiPersonAbsence>> GetLeaveForPersonnel(string personId)

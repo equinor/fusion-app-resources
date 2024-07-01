@@ -118,6 +118,58 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ListDepartments_Should_PopulateSapId()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments?$search=MY TEST", new[] { new { sapId = string.Empty }});
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.Should().Contain(i => i.sapId.EqualsIgnCase(testOrgUnit.SapId));
+        }
+
+        [Fact]
+        public async Task GetDepartment_Should_PopulateSapId_WhenDepartmentStringProvided()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT 2");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testOrgUnit.FullDepartment}", new { sapId = string.Empty });
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.sapId.Should().Be(testOrgUnit.SapId);
+        }
+
+        [Fact]
+        public async Task GetDepartment_Should_ReturnOrgUnit_WhenUsingSapId()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT 3");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testOrgUnit.SapId}", new { sapId = string.Empty });
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.sapId.Should().Be(testOrgUnit.SapId);
+        }
+
+        [Fact]
+        public async Task GetDepartment_Should_ReturnOrgUnit_WhenUsingFullDepartment()
+        {
+            var testOrgUnit = LineOrgServiceMock.AddOrgUnit("MY TEST UNIT 4");
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testOrgUnit.FullDepartment}", new { sapId = string.Empty });
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.sapId.Should().Be(testOrgUnit.SapId);
+        }
+
+        [Fact]
         public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
         {
             var source = $"Department.Test";
@@ -268,6 +320,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 result.Should().BeSuccessfull();
             else
                 result.Should().BeUnauthorized();
+        }
+
+        [Fact]
+        public async Task PostDepartmentResponsible_Should_PersistFullDepartment_WhenSapIdProvided()
+        {
+            var testOrgUnit = fixture.AddOrgUnit("DEP RESP 1");
+
+            using var adminScope = fixture.AdminScope();
+
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            var result = await Client.TestClientPostAsync($"/departments/{testOrgUnit.SapId}/delegated-resource-owners", new
+            {
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
+                ResponsibleAzureUniqueId = delegatedResourceOwner.AzureUniqueId
+            });
+
+            result.Should().BeSuccessfull();
+
+            using (var dbScope = fixture.DbScope())
+            {
+                var item = dbScope.DbContext.DelegatedDepartmentResponsibles.FirstOrDefault(i => i.ResponsibleAzureObjectId == delegatedResourceOwner.AzureUniqueId && i.DepartmentId == testOrgUnit.FullDepartment);
+                item.Should().NotBeNull();
+            }
         }
 
 
@@ -439,7 +516,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 fixture.EnsureDepartment(child);
             }
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
             LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
@@ -468,12 +545,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            //foreach (var sibling in siblings)
+            //    fixture.EnsureDepartment(sibling);
+            //foreach (var child in children)
+            //    fixture.EnsureDepartment(child);
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -530,12 +607,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
@@ -559,12 +631,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var children = new[] { routedDepartment, "PDP TST ABC ASD" };
 
             LineOrgServiceMock.AddDepartment(department, children);
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-
-            foreach (var sibling in siblings)
-                fixture.EnsureDepartment(sibling);
-            foreach (var child in children)
-                fixture.EnsureDepartment(child);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
