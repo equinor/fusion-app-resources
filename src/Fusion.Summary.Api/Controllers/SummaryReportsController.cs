@@ -10,8 +10,6 @@ namespace Fusion.Summary.Api.Controllers;
 // TODO: Add ApiVersion
 public class SummaryReportsController : ControllerBase // TODO: Replace with custom base controller
 {
-    // TODO: Do we need more precise route?
-    // OData params to filter out needed?
     [HttpGet("summary-reports/{sapDepartmentId}")]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status200OK)]
