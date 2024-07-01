@@ -30,7 +30,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj"/>
+    <ProjectReference Include="..\backend\Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj"/>
   </ItemGroup>
 
 </Project>
