@@ -22,7 +22,7 @@ public class LineOrgApiClient : ILineOrgApiClient
     public async Task<IEnumerable<OrgUnits>> GetOrgUnitDepartmentsAsync()
     {
         var data =
-            await lineOrgClient.GetAsJsonAsync<InternalCollection<OrgUnits>>($"/org-units?$top={int.MaxValue}");
+            await lineOrgClient.GetAsJsonAsync<InternalCollection<OrgUnits>>($"/org-units?$top={int.MaxValue}&$expand=management");
 
         return data.Value
             .Where(x => !string.IsNullOrEmpty(x.FullDepartment))
@@ -49,6 +49,17 @@ public class LineOrgApiClient : ILineOrgApiClient
     {
         public string? FullDepartment { get; set; }
         public string? SapId { get; set; }
+        public Management management { get; set; }
+    }
+
+    public class Management
+    {
+        public Person[] Persons { get; set; }
+    }
+
+    public class Person
+    {
+        public string AzureUniqueId { get; set; }
     }
 
     internal class InternalCollection<T>
@@ -60,4 +71,5 @@ public class LineOrgApiClient : ILineOrgApiClient
 
         public IEnumerable<T> Value { get; set; }
     }
+
 }
