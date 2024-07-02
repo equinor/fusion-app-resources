@@ -80,6 +80,7 @@ public class ScheduledReportTimerTriggerFunction
     {
         try
         {
+            // Query departments from LineOrg
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
                 .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
                 .Where(x => x.management?.Persons.Length > 0);            // Exclude departments with no receivers
@@ -96,7 +97,7 @@ public class ScheduledReportTimerTriggerFunction
                     return new OrgUnits
                     {
                         FullDepartment = group.Key,
-                        SapId = group.First().SapId, // You might want to handle this differently if SapId can vary within the group
+                        SapId = group.First().SapId,
                         management = new Management { Persons = allPersons }
                     };
                 })
@@ -129,34 +130,6 @@ public class ScheduledReportTimerTriggerFunction
                         $"item failed with exception when sending message: {e.Message}");
                 }
             }
-
-            /*
-            foreach (var resourceOwner in resourceOwnersToSendNotifications)
-            {
-                var timeDelayInMinutes = resourceOwnerMessageSent * batchTimeInMinutes;
-
-                try
-                {
-                    if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
-                        throw new Exception("Resource-owner azureUniqueId is empty.");
-
-                    await SendDtoToQueue(sender, new ScheduledNotificationQueueDto()
-                    {
-                        AzureUniqueId = resourceOwner.AzureUniqueId,
-                        FullDepartment = resourceOwner.FullDepartment,
-                        DepartmentSapId = resourceOwner.DepartmentSapId
-                    }, timeDelayInMinutes);
-
-                    resourceOwnerMessageSent++;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        $"ServiceBus queue '{_queueName}' " +
-                        $"item failed with exception when sending message: {e.Message}");
-                }
-            }
-            */
         }
         catch (Exception e)
         {
