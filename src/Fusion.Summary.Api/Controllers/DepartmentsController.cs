@@ -22,13 +22,6 @@ public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAz
 [ApiController]
 public class DepartmentsController : BaseController
 {
-    private readonly IDepartmentService _departmentService;
-
-    public DepartmentsController(IDepartmentService departmentService)
-    {
-        _departmentService = departmentService;
-    }
-
     /// <summary>
     /// TODO: Add summary
     /// <returns></returns>
@@ -125,7 +118,7 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
-        var department = await _departmentService.GetDepartmentById(request.DepartmentSapId);
+        var department = await DispatchAsync(new GetDepartment(request.DepartmentSapId));
 
         // Check if department exist
         if (department == null)

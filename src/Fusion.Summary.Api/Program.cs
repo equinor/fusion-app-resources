@@ -1,6 +1,5 @@
 using System.Reflection;
 using Fusion.Summary.Api.Database;
-using Fusion.Summary.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -37,7 +36,6 @@ builder.Services.AddFusionIntegration(f =>
 });
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
-builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var app = builder.Build();
