@@ -18,7 +18,6 @@ public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAz
 /// </summary>
 [ApiVersion("1.0")]
 [Authorize]
-[AllowAnonymous]
 [ApiController]
 public class DepartmentsController : BaseController
 {
