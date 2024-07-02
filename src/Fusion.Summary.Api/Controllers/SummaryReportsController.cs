@@ -19,6 +19,7 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
 {
     [HttpGet("summary-reports/{sapDepartmentId}")]
     [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ODataFilter(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.PositionsEnding),
         nameof(ApiSummaryReport.PersonnelMoreThan100PercentFTE), nameof(ApiSummaryReport.PeriodType))]
