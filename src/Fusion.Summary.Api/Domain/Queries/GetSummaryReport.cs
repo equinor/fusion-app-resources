@@ -45,7 +45,7 @@ public class GetSummaryReport
             {
                 m.MapField(nameof(ApiSummaryReport.Id), r => r.Id);
                 m.MapField(nameof(ApiSummaryReport.Period), r => r.Period);
-            }, q => q.OrderBy(p => p.Period).ThenBy(p => p.Id));
+            }, q => q.OrderByDescending(p => p.Period).ThenBy(p => p.Id));
 
             var totalCount = await getReportQuery.CountAsync(cancellationToken: cancellationToken);
 
