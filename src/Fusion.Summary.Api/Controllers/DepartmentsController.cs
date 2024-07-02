@@ -65,7 +65,6 @@ public class DepartmentsController : BaseController
             foreach (var d in departments) ret.Add(ApiDepartment.FromQueryDepartment(d));
         }
 
-        // Return val
         return Ok(ret);
     }
 
