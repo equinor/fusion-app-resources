@@ -49,7 +49,6 @@ public class ApiSummaryReport
             PositionsEnding = querySummaryReport.PositionsEnding
                 .Select(pe => new ApiEndingPosition()
                 {
-                    Id = pe.Id,
                     FullName = pe.FullName,
                     EndDate = pe.EndDate
                 })
@@ -57,7 +56,6 @@ public class ApiSummaryReport
             PersonnelMoreThan100PercentFTE = querySummaryReport.PersonnelMoreThan100PercentFTE
                 .Select(pe => new ApiPersonnelMoreThan100PercentFTE()
                 {
-                    Id = pe.Id,
                     FullName = pe.FullName,
                     FTE = pe.FTE
                 })

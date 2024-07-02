@@ -66,7 +66,7 @@ public class SetSummaryReport
                 PositionsEnding = request.SummaryReport.PositionsEnding
                     .Select(pe => new DbEndingPosition()
                     {
-                        Id = pe.Id,
+                        Id = Guid.NewGuid(),
                         FullName = pe.FullName,
                         EndDate = pe.EndDate
                     })
@@ -74,7 +74,7 @@ public class SetSummaryReport
                 PersonnelMoreThan100PercentFTE = request.SummaryReport.PersonnelMoreThan100PercentFTE
                     .Select(pm => new DbPersonnelMoreThan100PercentFTE()
                     {
-                        Id = pm.Id,
+                        Id = Guid.NewGuid(),
                         FullName = pm.FullName,
                         FTE = pm.FTE
                     })
