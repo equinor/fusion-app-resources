@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Fusion.Events;
@@ -212,6 +213,7 @@ namespace Fusion.Resources.Api
             });
 
             #endregion Health probes
+            Console.WriteLine("TEST");
         }
     }
 }
