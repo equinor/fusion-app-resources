@@ -16,6 +16,7 @@
 		<PackageReference Include="Fusion.Events.Client" Version="7.0.1" />
 		<PackageReference Include="Fusion.Events.Server" Version="7.0.0" />
 		<PackageReference Include="Fusion.Integration" Version="7.0.4" />
+		<PackageReference Include="Fusion.Integration.Authorization" Version="7.0.4" />
 		<PackageReference Include="MediatR" Version="12.1.1" />
 		<PackageReference Include="Microsoft.ApplicationInsights" Version="2.22.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.9" />

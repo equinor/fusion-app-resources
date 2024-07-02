@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
 using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
@@ -41,7 +42,15 @@ public class DepartmentsController : BaseController
     {
 
         #region Authorization
-        // Add authorization
+
+        var authResult = await Request.RequireAuthorizationAsync(r =>
+        {
+            r.AlwaysAccessWhen().BeTrustedApplication();
+        });
+
+        if (authResult.Unauthorized)
+            return authResult.CreateForbiddenResponse();
+
         #endregion Authorization
 
         var ret = new List<ApiDepartment>();
@@ -72,7 +81,15 @@ public class DepartmentsController : BaseController
     public async Task<IActionResult> GetDepartmentV1(string sapDepartmentId)
     {
         #region Authorization
-        // Add authorization
+
+        var authResult = await Request.RequireAuthorizationAsync(r =>
+        {
+            r.AlwaysAccessWhen().BeTrustedApplication();
+        });
+
+        if (authResult.Unauthorized)
+            return authResult.CreateForbiddenResponse();
+
         #endregion Authorization
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
@@ -98,7 +115,15 @@ public class DepartmentsController : BaseController
     public async Task<IActionResult> PutV1(PutDepartmentRquest request)
     {
         #region Authorization
-        // Add authorization
+
+        var authResult = await Request.RequireAuthorizationAsync(r =>
+        {
+            r.AlwaysAccessWhen().BeTrustedApplication();
+        });
+
+        if (authResult.Unauthorized)
+            return authResult.CreateForbiddenResponse();
+
         #endregion Authorization
 
         var department = await _departmentService.GetDepartmentById(request.DepartmentSapId);
