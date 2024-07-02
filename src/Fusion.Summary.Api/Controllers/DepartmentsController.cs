@@ -106,7 +106,7 @@ public class DepartmentsController : BaseController
         // Check if department exist
         if (department == null)
         {
-            await DispatchCommandAsync(
+            await DispatchAsync(
                 new CreateDepartment(
                     request.DepartmentSapId, 
                     request.ResourceOwnerAzureUniqueId, 
@@ -117,7 +117,7 @@ public class DepartmentsController : BaseController
         // Check if department owner has changed
         else if (department.ResourceOwnerAzureUniqueId != request.ResourceOwnerAzureUniqueId)
         {
-            await DispatchCommandAsync(
+            await DispatchAsync(
                 new UpdateDepartment(
                     request.DepartmentSapId,
                     request.ResourceOwnerAzureUniqueId,

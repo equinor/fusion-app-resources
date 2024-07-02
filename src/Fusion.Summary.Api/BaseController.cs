@@ -5,7 +5,7 @@ namespace Fusion.Summary.Api;
 
 public class BaseController : ControllerBase
 {
-    protected Task DispatchCommandAsync(IRequest command)
+    protected Task DispatchAsync(IRequest command)
     {
         var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
 
