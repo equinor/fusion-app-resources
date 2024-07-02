@@ -32,7 +32,7 @@ public class BaseController : ControllerBase
     {
         var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
 
-        return mediator.Send(command);
+        return mediator.Send(command, HttpContext.RequestAborted);
     }
 }
 
