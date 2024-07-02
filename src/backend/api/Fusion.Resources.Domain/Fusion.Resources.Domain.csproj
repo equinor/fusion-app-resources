@@ -9,7 +9,7 @@
     <PackageReference Include="AdaptiveCards" Version="3.0.0" />
     <PackageReference Include="Fusion.Integration.LineOrg" Version="8.0.0" />
     <PackageReference Include="Fusion.Integration.LineOrg.Abstractions" Version="8.0.0" />
-    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="MediatR" Version="12.3.0" />
     <PackageReference Include="Fusion.AspNetCore" Version="7.0.1" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="7.0.0" />
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.0.0" />
