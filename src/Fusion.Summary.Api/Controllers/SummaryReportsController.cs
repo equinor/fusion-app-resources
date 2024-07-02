@@ -1,8 +1,14 @@
 ﻿using System.Net.Mime;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
+using Fusion.Summary.Api.Authorization.Extensions;
 using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Requests;
+using Fusion.Summary.Api.Domain.Commands;
+using Fusion.Summary.Api.Domain.Models;
+using Fusion.Summary.Api.Domain.Queries;
+using Fusion.Summary.Api.Domain.Queries.Base;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Summary.Api.Controllers;
@@ -16,23 +22,33 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ODataFilter(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.PositionsEnding),
         nameof(ApiSummaryReport.PersonnelMoreThan100PercentFTE), nameof(ApiSummaryReport.PeriodType))]
-
-    public async Task<ActionResult<IEnumerable<ApiSummaryReport>>> GetSummaryReportsV1(
+    [ODataOrderBy(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.Id))]
+    [ODataTop(1000), ODataSkip]
+    public async Task<ActionResult<ApiCollection<ApiSummaryReport>>> GetSummaryReportsV1(
         [FromRoute] string sapDepartmentId, ODataQueryParams query)
     {
         #region Authorization
 
         // TODO:
-        var authResult = await Request.RequireAuthorizationAsync(r => { r.AnyOf(or => { }); });
+        var authResult =
+            await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or => { or.BeTrustedApplication(); });
+            });
 
         if (authResult.Unauthorized)
             return authResult.CreateForbiddenResponse();
 
         #endregion
 
-        // TODO: Query
+        var queryRequest = new GetSummaryReport(sapDepartmentId, query);
 
-        throw new NotImplementedException();
+        // TODO: Dispatch query
+
+        QueryCollection<QuerySummaryReport> queryReports = null!;
+
+        return Ok(new ApiCollection<QuerySummaryReport>(queryReports));
     }
 
     [HttpPut("summary-reports/{sapDepartmentId}")]
@@ -46,7 +62,12 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
         #region Authorization
 
         // TODO:
-        var authResult = await Request.RequireAuthorizationAsync(r => { r.AnyOf(or => { }); });
+        var authResult =
+            await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or => { or.BeTrustedApplication(); });
+            });
 
         if (authResult.Unauthorized)
             return authResult.CreateForbiddenResponse();
@@ -55,6 +76,10 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
 
         // TODO: Command
 
-        throw new NotImplementedException();
+        var command = new SetSummaryReport(sapDepartmentId, request);
+
+        // TODO: Dispatch command
+
+        return NoContent();
     }
 }

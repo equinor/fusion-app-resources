@@ -18,8 +18,8 @@ public class QuerySummaryReport
     public required string AllocationChangesAwaitingTaskOwnerAction { get; set; }
     public required string ProjectChangesAffectingNextThreeMonths { get; set; }
 
-    public required EndingPosition[] PositionsEnding { get; set; }
-    public required PersonnelMoreThan100PercentFTE[] PersonnelMoreThan100PercentFTE { get; set; }
+    public required List<EndingPosition> PositionsEnding { get; set; }
+    public required List<PersonnelMoreThan100PercentFTE> PersonnelMoreThan100PercentFTE { get; set; }
 
 
     public static QuerySummaryReport FromDbSummaryReport(DbSummaryReport dbSummaryReport)
@@ -48,14 +48,53 @@ public class QuerySummaryReport
                     FullName = pe.FullName,
                     EndDate = pe.EndDate
                 })
-                .ToArray(),
+                .ToList(),
             PersonnelMoreThan100PercentFTE = dbSummaryReport.PersonnelMoreThan100PercentFTE
                 .Select(pm => new PersonnelMoreThan100PercentFTE()
                 {
                     Id = pm.Id,
                     FullName = pm.FullName,
                     FTE = pm.FTE
-                }).ToArray()
+                })
+                .ToList()
+        };
+    }
+
+    public DbSummaryReport ToDbSummaryReport()
+    {
+        return new DbSummaryReport()
+        {
+            Id = Id,
+            DepartmentSapId = DepartmentSapId,
+            PeriodType = Enum.Parse<DbSummaryReportPeriod>(PeriodType.ToString()),
+            Period = Period,
+            NumberOfPersonnel = NumberOfPersonnel,
+            CapacityInUse = CapacityInUse,
+            NumberOfRequestsLastPeriod = NumberOfRequestsLastPeriod,
+            NumberOfOpenRequests = NumberOfOpenRequests,
+            NumberOfRequestsStartingInLessThanThreeMonths =
+                NumberOfRequestsStartingInLessThanThreeMonths,
+            NumberOfRequestsStartingInMoreThanThreeMonths =
+                NumberOfRequestsStartingInMoreThanThreeMonths,
+            AverageTimeToHandleRequests = AverageTimeToHandleRequests,
+            AllocationChangesAwaitingTaskOwnerAction = AllocationChangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = ProjectChangesAffectingNextThreeMonths,
+            PositionsEnding = PositionsEnding
+                .Select(pe => new DbEndingPosition()
+                {
+                    Id = pe.Id,
+                    FullName = pe.FullName,
+                    EndDate = pe.EndDate
+                })
+                .ToList(),
+            PersonnelMoreThan100PercentFTE = PersonnelMoreThan100PercentFTE
+                .Select(pm => new DbPersonnelMoreThan100PercentFTE()
+                {
+                    Id = pm.Id,
+                    FullName = pm.FullName,
+                    FTE = pm.FTE
+                })
+                .ToList()
         };
     }
 }
