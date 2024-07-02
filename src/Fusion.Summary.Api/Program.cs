@@ -1,10 +1,9 @@
+using System.Reflection;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +31,7 @@ builder.Services.AddFusionIntegration(f =>
     f.UseDefaultEndpointResolver(fusionEnvironment ?? "ci");
     f.UseDefaultTokenProvider(opts =>
     {
-        opts.ClientId = azureAdClientId;
+        opts.ClientId = azureAdClientId ?? throw new InvalidOperationException("Missing AzureAd:ClientId");
         opts.ClientSecret = azureAdClientSecret;
     });
 });
