@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
+        <PackageReference Include="Fusion.Infrastructure.MediatR" Version="7.0.0" />
+        <PackageReference Include="Fusion.Integration" Version="7.0.4" />
+        <PackageReference Include="Fusion.Events.Client" Version="7.0.1" />
+        <PackageReference Include="Fusion.Events.Server" Version="7.0.0" />
+        <PackageReference Include="Fusion.Integration.Authorization" Version="7.0.4" />
+        <PackageReference Include="Fusion.Integration.Org" Version="7.0.4" />
+        <PackageReference Include="Fusion.Integration.Roles" Version="7.0.4" />
+        <PackageReference Include="Fusion.Integration.Notification" Version="7.0.4" />
+        <PackageReference Include="Fusion.ApiClients.Org" Version="7.0.0" />
+        <PackageReference Include="Fusion.AspNetCore" Version="7.0.1" />
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.12" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.11" />
+        <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
+        <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
+        <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.5.0" />
+        <PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="7.0.12" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.12" />
+    </ItemGroup>
+    
+
+</Project>

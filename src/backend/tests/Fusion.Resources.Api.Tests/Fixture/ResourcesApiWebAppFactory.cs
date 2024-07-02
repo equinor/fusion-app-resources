@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Infrastructure.MediatR.Distributed;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -143,8 +144,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
                     return clientFactoryMock.Object;
                 });
-                services.AddSingletonIfFound<Infrastructure.MediatR.Distributed.IDistributedNotificationChannel, FakeDistributedNotificationChannel>();
-                services.AddSingletonIfFound<Infrastructure.MediatR.Distributed.IDistributedNotificationReceiver, FakeDistributedNotificationReceiver>();
+                services.AddSingletonIfFound<IDistributedNotificationChannel, FakeDistributedNotificationChannel>();
+                services.AddSingletonIfFound<IDistributedNotificationReceiver, FakeDistributedNotificationReceiver>();
             });
         }
     }
