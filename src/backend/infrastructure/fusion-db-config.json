@@ -1,0 +1,13 @@
+{
+    "name": "fra-resources",
+
+    "metadata": {
+        "application": "Fusion Resource Allocation",
+        "team": "FRA"
+    },
+    
+    "accessControl": {
+        "administratorGroupName": "acg-fusion-resource-allocation",
+        "developerGroupName": "acg-fusion-resource-allocation"
+    }
+}
