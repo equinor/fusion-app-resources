@@ -32,4 +32,29 @@ public class SummaryApiClient : ISummaryApiClient
                 cancellationToken);
         });
     }
+
+    public async Task<ICollection<ApiResourceOwnerDepartments>> GetDepartmentsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await summaryClient.GetAsync("departments", cancellationToken);
+
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return await JsonSerializer.DeserializeAsync<ICollection<ApiResourceOwnerDepartments>>(contentStream,
+                   cancellationToken: cancellationToken)
+               ?? Array.Empty<ApiResourceOwnerDepartments>();
+    }
+
+    public async Task<ApiSummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
+        CancellationToken cancellationToken = default)
+    {
+        var queryString = $"summary-reports/{departmentSapId}?$filter=PeriodType eq 'Weekly'&$top=1";
+
+        using var response = await summaryClient.GetAsync(queryString, cancellationToken);
+
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return (await JsonSerializer.DeserializeAsync<ICollection<ApiSummaryReport>>(contentStream,
+            cancellationToken: cancellationToken))?.FirstOrDefault();
+    }
 }
