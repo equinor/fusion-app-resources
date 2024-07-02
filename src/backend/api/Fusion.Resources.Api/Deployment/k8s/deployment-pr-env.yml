@@ -49,7 +49,7 @@ spec:
         image: {{fusionAcr}}/{{imageName}}
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         volumeMounts:
         - name: env-secrets-volumes
           mountPath: "/app/secrets" 
@@ -74,7 +74,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /_health/liveness
-            port: 80
+            port: 8080
           failureThreshold: 10
           timeoutSeconds: 30
           initialDelaySeconds: 60
@@ -83,7 +83,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /_health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           timeoutSeconds: 30
           periodSeconds: 30
@@ -101,7 +101,7 @@ spec:
     app: resources-api-pr-{{prNumber}}
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
 
 ---
 apiVersion: networking.k8s.io/v1
