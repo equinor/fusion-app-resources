@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Fusion.Resources.Functions.Common.Configuration;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Common.ApiClients;
 
 namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 

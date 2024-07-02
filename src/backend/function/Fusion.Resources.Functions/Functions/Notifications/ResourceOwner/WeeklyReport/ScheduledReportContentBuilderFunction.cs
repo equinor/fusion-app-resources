@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
-using Fusion.Resources.Functions.ApiClients;
-using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
@@ -15,8 +13,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using static Fusion.Resources.Functions.Functions.Notifications.AdaptiveCardBuilder;
-using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
 using Fusion.Integration.Profile;
+using Fusion.Resources.Functions.Common.ApiClients;
+using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
+using static Fusion.Resources.Functions.Common.ApiClients.IResourcesApiClient;
 
 namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
