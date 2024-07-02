@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using static Fusion.Resources.Functions.ApiClients.LineOrgApiClient;
 
 namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
@@ -49,7 +50,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 10 0 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 10 0 * * MON", RunOnStartup = true)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -79,44 +80,48 @@ public class ScheduledReportTimerTriggerFunction
     {
         try
         {
-            var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
+            // Query departments from LineOrg
+            var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
+                .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
+                .Where(x => x.management?.Persons.Length > 0);            // Exclude departments with no receivers
 
-            if (departments == null || !departments.Any())
-                throw new Exception("No departments found.");
+            // Group OrgUnits by FullDepartment and join the Person arrays together
+            var groupedDepartments = departments
+                .GroupBy(orgUnit => orgUnit.FullDepartment)
+                .Select(group =>
+                {
+                    // Combine the Person arrays of all OrgUnits in the group into a single array
+                    var allPersons = group.SelectMany(orgUnit => orgUnit.management.Persons).ToArray();
 
-            var selectedDepartments = departments
-                .Where(d => d.FullDepartment != null).Distinct().ToList();
+                    // Create a new OrgUnits object with the FullDepartment, SapId, and combined Person array
+                    return new OrgUnits
+                    {
+                        FullDepartment = group.Key,
+                        SapId = group.First().SapId,
+                        management = new Management { Persons = allPersons }
+                    };
+                })
+                .ToList();
 
-            var resourceOwners = await GetLineOrgPersonsFromDepartmentsChunked(selectedDepartments);
+            // Calculate batch time based of total number of departments and the allowed run time
+            var batchTimeInMinutes = CalculateBatchTime(totalBatchTimeInMinutes, groupedDepartments.Count);
 
-            if (resourceOwners == null || !resourceOwners.Any())
-                throw new Exception("No resource-owners found.");
-
-            var resourceOwnersToSendNotifications = resourceOwners.DistinctBy(ro => ro.AzureUniqueId).ToList();
-
-            var batchTimeInMinutes = totalBatchTimeInMinutes * 1f / resourceOwnersToSendNotifications.Count;
-
-            _logger.LogInformation($"Batching time is calculated to {batchTimeInMinutes.ToString("F2")} minutes ({(60 * batchTimeInMinutes).ToString("F2")} sec)");
+            // Send the queue for processing
 
             var resourceOwnerMessageSent = 0;
 
-            foreach (var resourceOwner in resourceOwnersToSendNotifications)
+            foreach (var dep in groupedDepartments)
             {
                 var timeDelayInMinutes = resourceOwnerMessageSent * batchTimeInMinutes;
 
                 try
                 {
-                    if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
-                        throw new Exception("Resource-owner azureUniqueId is empty.");
-
-                    await SendDtoToQueue(sender, new ScheduledNotificationQueueDto()
+                    await SendDtoToQueue(sender, new ScheduledNotificationQueueDto
                     {
-                        AzureUniqueId = resourceOwner.AzureUniqueId,
-                        FullDepartment = resourceOwner.FullDepartment,
-                        DepartmentSapId = resourceOwner.DepartmentSapId
+                        AzureUniqueId = dep.management.Persons.Select(x => x.AzureUniqueId),
+                        FullDepartment = dep.FullDepartment,
+                        DepartmentSapId = dep.SapId
                     }, timeDelayInMinutes);
-
-                    resourceOwnerMessageSent++;
                 }
                 catch (Exception e)
                 {
@@ -140,12 +145,16 @@ public class ScheduledReportTimerTriggerFunction
         List<LineOrgApiClient.OrgUnits> selectedDepartments)
     {
         var resourceOwners = new List<LineOrgPerson>();
+
         const int chuckSize = 10;
+
         for (var i = 0; i < selectedDepartments.Count; i += chuckSize)
         {
             var chunk = selectedDepartments.Skip(i).Take(chuckSize).ToList();
+
             var chunkedResourceOwners =
                 await _lineOrgClient.GetResourceOwnersFromFullDepartment(chunk);
+
             resourceOwners.AddRange(chunkedResourceOwners);
         }
 
@@ -155,10 +164,21 @@ public class ScheduledReportTimerTriggerFunction
     private async Task SendDtoToQueue(ServiceBusSender sender, ScheduledNotificationQueueDto dto, double delayInMinutes)
     {
         var serializedDto = JsonConvert.SerializeObject(dto);
+
         var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto))
         {
             ScheduledEnqueueTime = DateTime.UtcNow.AddMinutes(delayInMinutes)
         };
+
         await sender.SendMessageAsync(message);
+    }
+
+    private float CalculateBatchTime(int totalBatchTimeInMinutes, int departmentCount)
+    {
+        var batchTimeInMinutes = totalBatchTimeInMinutes * 1f / departmentCount;
+
+        _logger.LogInformation($"Batching time is calculated to {batchTimeInMinutes.ToString("F2")} minutes ({(60 * batchTimeInMinutes).ToString("F2")} sec)");
+
+        return batchTimeInMinutes;
     }
 }
