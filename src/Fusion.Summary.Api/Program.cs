@@ -13,7 +13,7 @@ builder.Configuration
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
-var databaseConnectionString = builder.Configuration.GetConnectionString("DatabaseContext");
+var databaseConnectionString = builder.Configuration.GetConnectionString("SummaryDbContext");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

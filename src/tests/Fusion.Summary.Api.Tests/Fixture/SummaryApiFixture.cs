@@ -12,6 +12,8 @@ public class SummaryApiFixture : IDisposable
 
     public TestUser ResourcesFullControlUser { get; }
 
+    public TestUser CoreAppUser { get; }
+
     public SummaryApiFixture()
     {
         Fusion = new FusionTestFixture();
@@ -19,6 +21,9 @@ public class SummaryApiFixture : IDisposable
 
         ResourcesFullControlUser = Fusion.CreateUser()
             .WithGlobalRole("Fusion.Resources.FullControl");
+
+        CoreAppUser = Fusion.CreateUser()
+            .AsApplication(Guid.Parse(TestConstants.APP_CLIENT_ID));
     }
 
     public void Dispose()
