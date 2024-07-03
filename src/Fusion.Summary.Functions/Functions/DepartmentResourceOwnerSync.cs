@@ -29,7 +29,7 @@ public class DepartmentResourceOwnerSync
         var departments = await lineOrgApiClient.GetOrgUnitDepartmentsAsync();
 
         var selectedDepartments = departments
-            .Where(d => d.FullDepartment != null).Distinct().ToList();
+            .Where(d => d.FullDepartment != null).DistinctBy(d => d.SapId).ToList();
 
         if (!selectedDepartments.Any())
             throw new Exception("No departments found.");
