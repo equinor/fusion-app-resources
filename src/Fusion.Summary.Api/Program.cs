@@ -1,6 +1,6 @@
 using System.Reflection;
-using Fusion.Summary.Api.Database;
 using Fusion.AspNetCore.OData;
+using Fusion.Summary.Api.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,7 +50,7 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
+builder.Services.AddDbContext<SummaryDbContext>(options => options.UseSqlServer(databaseConnectionString));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var app = builder.Build();
@@ -68,3 +68,10 @@ app.MapControllers().RequireAuthorization();
 app.MapHealthChecks("/_health/liveness");
 app.MapHealthChecks("/_health/readiness");
 app.Run();
+
+/// <summary>
+///     For testing
+/// </summary>
+public partial class Program
+{
+}

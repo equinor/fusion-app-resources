@@ -4,9 +4,8 @@ using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Models;
 using Fusion.Summary.Api.Domain.Queries;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
-namespace Fusion.Summary.Api.Tests
+namespace Fusion.Summary.Api.Tests.HandlerTests
 {
     public class DepartmentTests : IAsyncLifetime
     {

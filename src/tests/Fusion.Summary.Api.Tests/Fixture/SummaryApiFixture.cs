@@ -1,0 +1,49 @@
+﻿using Fusion.Summary.Api.Database;
+using Fusion.Testing;
+using Fusion.Testing.Models;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Fusion.Summary.Api.Tests.Fixture;
+
+public class SummaryApiFixture : IDisposable
+{
+    public readonly SummaryWebAppFactory ApiFactory;
+    public FusionTestFixture Fusion { get; }
+
+    public TestUser ResourcesFullControlUser { get; }
+
+    public SummaryApiFixture()
+    {
+        Fusion = new FusionTestFixture();
+        ApiFactory = new SummaryWebAppFactory(Fusion);
+
+        ResourcesFullControlUser = Fusion.CreateUser()
+            .WithGlobalRole("Fusion.Resources.FullControl");
+    }
+
+    public void Dispose()
+    {
+        using var scope = ApiFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SummaryDbContext>();
+        db.Database.EnsureDeleted();
+    }
+
+    internal DbScope DbScope() => new DbScope(ApiFactory.Services);
+}
+
+public sealed class DbScope : IDisposable
+{
+    private readonly IServiceScope scope;
+    public SummaryDbContext DbContext { get; }
+
+    public DbScope(IServiceProvider apiServices)
+    {
+        scope = apiServices.CreateScope();
+        DbContext = scope.ServiceProvider.GetRequiredService<SummaryDbContext>();
+    }
+
+    public void Dispose()
+    {
+        scope.Dispose();
+    }
+}
