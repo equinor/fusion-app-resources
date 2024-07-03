@@ -1,10 +1,9 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using Asp.Versioning;
+using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
-using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
 using Fusion.Summary.Api.Models;
-using Fusion.Summary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

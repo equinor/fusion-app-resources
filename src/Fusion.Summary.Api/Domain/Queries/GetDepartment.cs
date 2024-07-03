@@ -1,7 +1,5 @@
 ﻿using Fusion.Summary.Api.Database;
-using Fusion.Summary.Api.Database.Models;
 using Fusion.Summary.Api.Domain.Models;
-using Fusion.Summary.Api.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
