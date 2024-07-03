@@ -45,7 +45,7 @@ public class SummaryReportsController : BaseController
 
         #endregion
 
-        var queryReports = await DispatchAsync(new GetSummaryReport(sapDepartmentId, query));
+        var queryReports = await DispatchAsync(new GetSummaryReports(sapDepartmentId, query));
 
         return Ok(new ApiCollection<QuerySummaryReport>(queryReports));
     }
@@ -74,7 +74,7 @@ public class SummaryReportsController : BaseController
         #endregion
 
 
-        var command = new SetSummaryReport(sapDepartmentId, request);
+        var command = new PutSummaryReport(sapDepartmentId, request);
 
         await DispatchAsync(command);
 

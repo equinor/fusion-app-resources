@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Queries;
 
-public class GetSummaryReport : IRequest<QueryCollection<QuerySummaryReport>>
+public class GetSummaryReports : IRequest<QueryCollection<QuerySummaryReport>>
 {
-    public GetSummaryReport(string sapDepartmentId, ODataQueryParams query)
+    public GetSummaryReports(string sapDepartmentId, ODataQueryParams query)
     {
         Query = query;
         SapDepartmentId = sapDepartmentId;
@@ -20,7 +20,7 @@ public class GetSummaryReport : IRequest<QueryCollection<QuerySummaryReport>>
     public ODataQueryParams Query { get; private set; }
 
 
-    public class Handler : IRequestHandler<GetSummaryReport, QueryCollection<QuerySummaryReport>>
+    public class Handler : IRequestHandler<GetSummaryReports, QueryCollection<QuerySummaryReport>>
     {
         private readonly DatabaseContext _dbcontext;
 
@@ -29,7 +29,7 @@ public class GetSummaryReport : IRequest<QueryCollection<QuerySummaryReport>>
             _dbcontext = dbcontext;
         }
 
-        public async Task<QueryCollection<QuerySummaryReport>> Handle(GetSummaryReport request,
+        public async Task<QueryCollection<QuerySummaryReport>> Handle(GetSummaryReports request,
             CancellationToken cancellationToken)
         {
             var getReportQuery = _dbcontext.SummaryReports.Where(r => r.DepartmentSapId == request.SapDepartmentId);

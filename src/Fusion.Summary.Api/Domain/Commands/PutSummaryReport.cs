@@ -6,21 +6,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Commands;
 
-public class SetSummaryReport : IRequest
+public class PutSummaryReport : IRequest
 {
     public string SapDepartmentId { get; private set; }
 
     // Using api model to reduce repetitive code
     public PutSummaryReportRequest SummaryReport { get; private set; }
 
-    public SetSummaryReport(string sapDepartmentId, PutSummaryReportRequest summaryReport)
+    public PutSummaryReport(string sapDepartmentId, PutSummaryReportRequest summaryReport)
     {
         SapDepartmentId = sapDepartmentId;
         SummaryReport = summaryReport;
     }
 
 
-    public class Handler : IRequestHandler<SetSummaryReport>
+    public class Handler : IRequestHandler<PutSummaryReport>
     {
         private readonly DatabaseContext _dbContext;
 
@@ -29,7 +29,7 @@ public class SetSummaryReport : IRequest
             _dbContext = dbContext;
         }
 
-        public async Task Handle(SetSummaryReport request, CancellationToken cancellationToken)
+        public async Task Handle(PutSummaryReport request, CancellationToken cancellationToken)
         {
             if (await _dbContext.Departments.AnyAsync(d => d.DepartmentSapId == request.SapDepartmentId,
                     cancellationToken: cancellationToken))
