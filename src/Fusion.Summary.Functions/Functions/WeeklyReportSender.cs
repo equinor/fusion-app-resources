@@ -53,6 +53,14 @@ public class WeeklyReportSender
                 return;
             }
 
+            if (summaryReport.PeriodType != "Weekly")
+            {
+                logger.LogWarning(
+                    "Summary report for department {@Department} is not a weekly report. Skipping notification",
+                    department);
+                return;
+            }
+
             var notification = CreateNotification(summaryReport, department);
 
             await notificationApiClient.SendNotification(notification, department.ResourceOwnerAzureUniqueId);
