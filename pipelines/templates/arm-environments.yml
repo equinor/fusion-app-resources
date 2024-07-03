@@ -4,6 +4,7 @@ parameters:
   sqlServer: ''
   clientSecretName: 'ClientSecret-Resources-Test'
   azureSubscription: 'FRA Automation Non-Prod'
+  coreAzureSubscription: ''
   
 steps:
   - checkout: self
@@ -19,28 +20,28 @@ steps:
       ScriptArguments: -environment ${{ parameters.environment }}
 
  ## DATABASE SHOULD BE DEPLOYED BY API PIPELINE, NOT INFRA
+ ## TODO - Move provisioning of db to api pipeline
 
-  # - task: AzurePowerShell@5
-  #   displayName: 'Deploy sql database'
-  #   inputs:
-  #     azureSubscription: ${{ parameters.azureSubscription }}
-  #     ScriptType: FilePath
-  #     FailOnStandardError: true
-  #     azurePowerShellVersion: 'LatestVersion'
-  #     ScriptPath: src/backend/infrastructure/deploy-database.ps1
-  #     ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
+  - task: AzurePowerShell@5
+    displayName: 'Deploy sql database'
+    inputs:
+      azureSubscription: ${{ parameters.coreAzureSubscription }}
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: src/backend/infrastructure/deploy-database.ps1
+      ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
 
-  # - task: AzurePowerShell@5
-  #   displayName: 'Grant azure ad app sql database access'
-  #   inputs:
-  #     azureSubscription: ${{ parameters.azureSubscription }}
-  #     ScriptType: FilePath
-  #     FailOnStandardError: true
-  #     azurePowerShellVersion: 'LatestVersion'
-  #     ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
-  #     ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
+  - task: AzurePowerShell@5
+    displayName: 'Grant azure ad app sql database access'
+    inputs:
+      azureSubscription: ${{ parameters.coreAzureSubscription }}
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
+      ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
 
-# C:\source\git\fusion-app-resources\infrastructure\tooling\fusion-infra-cli\Fusion.Infra.Cli\bin\Release\Fusion.Infra.Cli.1.0.0.nupkg
   - script: |
       dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
       dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
@@ -61,14 +62,14 @@ steps:
           --sql-contributor-client-id ${{ parameters.clientId }}
 
 
-  # - task: AzurePowerShell@5
-  #   displayName: 'Deploy ARM template'
-  #   inputs:
-  #     azureSubscription: ${{ parameters.azureSubscription }}
-  #     ScriptType: FilePath
-  #     FailOnStandardError: true
-  #     azurePowerShellVersion: 'LatestVersion'
-  #     ScriptPath: src/backend/infrastructure/deploy-resources.ps1
-  #     ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
+  - task: AzurePowerShell@5
+    displayName: 'Deploy ARM template'
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: src/backend/infrastructure/deploy-resources.ps1
+      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
       
   
