@@ -23,22 +23,22 @@ public class PutSummaryReportRequest
 
     // may be a json with the list of several users - Propertybag?
     public required ApiPersonnelMoreThan100PercentFTE[] PersonnelMoreThan100PercentFTE { get; set; }
-}
 
-public class Validator : AbstractValidator<PutSummaryReportRequest>
-{
-    public Validator()
+    public class Validator : AbstractValidator<PutSummaryReportRequest>
     {
-        RuleFor(x => x.PeriodType).IsInEnum();
-        RuleFor(x => x.Period).Must((input, value, context) =>
+        public Validator()
         {
-            return input.PeriodType switch
+            RuleFor(x => x.PeriodType).IsInEnum();
+            RuleFor(x => x.Period).Must((input, value, context) =>
             {
-                ApiSummaryReportPeriod.Weekly => value.DayOfWeek == DayOfWeek.Monday,
-                // Monthly first day of the month
-                // Yearly first day of the year
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }).WithMessage("Period must be first day of the period type");
+                return input.PeriodType switch
+                {
+                    ApiSummaryReportPeriod.Weekly => value.DayOfWeek == DayOfWeek.Monday,
+                    // Monthly first day of the month
+                    // Yearly first day of the year
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }).WithMessage("Period must be first day of the period type");
+        }
     }
 }

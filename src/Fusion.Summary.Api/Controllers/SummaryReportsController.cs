@@ -45,6 +45,12 @@ public class SummaryReportsController : BaseController
 
         #endregion
 
+        if (string.IsNullOrWhiteSpace(sapDepartmentId))
+            return BadRequest("SapDepartmentId route parameter is required");
+
+        if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
+            return NotFound();
+
         var queryReports = await DispatchAsync(new GetSummaryReports(sapDepartmentId, query));
 
         return Ok(new ApiCollection<QuerySummaryReport>(queryReports));
@@ -52,7 +58,7 @@ public class SummaryReportsController : BaseController
 
     [HttpPut("summary-reports/{sapDepartmentId}")]
     [Produces(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ApiVersion("1.0")]
@@ -73,6 +79,11 @@ public class SummaryReportsController : BaseController
 
         #endregion
 
+        if (string.IsNullOrWhiteSpace(sapDepartmentId))
+            return BadRequest("SapDepartmentId route parameter is required");
+
+        if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
+            return NotFound();
 
         var command = new PutSummaryReport(sapDepartmentId, request);
 

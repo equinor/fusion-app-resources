@@ -3,6 +3,7 @@ using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
 using Fusion.Summary.Api.Authorization.Extensions;
 using Fusion.Summary.Api.Controllers.ApiModels;
+using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ public class DepartmentsController : BaseController
     /// <returns></returns>
     [HttpGet("departments")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiDepartment[]), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -81,6 +82,9 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
+        if (string.IsNullOrWhiteSpace(sapDepartmentId))
+            return BadRequest("SapDepartmentId route parameter is required");
+
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department is null
@@ -98,6 +102,7 @@ public class DepartmentsController : BaseController
     [HttpPut("departments/{sapDepartmentId}")]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -115,6 +120,9 @@ public class DepartmentsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion Authorization
+
+        if (string.IsNullOrWhiteSpace(sapDepartmentId))
+            return BadRequest("SapDepartmentId route parameter is required");
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
