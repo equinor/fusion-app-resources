@@ -51,7 +51,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.LineOr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Summary.Api", "Fusion.Summary.Api\Fusion.Summary.Api.csproj", "{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Summary.Functions", "Fusion.Summary.Functions\Fusion.Summary.Functions.csproj", "{B761C0DE-7D59-4AD1-82BB-368E15F152BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Summary.Functions", "Fusion.Summary.Functions\Fusion.Summary.Functions.csproj", "{B761C0DE-7D59-4AD1-82BB-368E15F152BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Summary.Api.Tests", "tests\Fusion.Summary.Api.Tests\Fusion.Summary.Api.Tests.csproj", "{53F9FAF1-EFA4-4951-9693-1E350F6428A8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Infrastructure", "backend\Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj", "{CC1EF38A-2741-4D92-A33A-3970E6F73797}"
 EndProject
@@ -151,6 +153,10 @@ Global
 		{CC1EF38A-2741-4D92-A33A-3970E6F73797}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC1EF38A-2741-4D92-A33A-3970E6F73797}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC1EF38A-2741-4D92-A33A-3970E6F73797}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,6 +183,7 @@ Global
 		{815E36FB-4E1C-4938-8FA8-07C9EB3F5D8A} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 		{0BD4FF87-D6E9-4831-BFD0-F9CA637AAD36} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{B761C0DE-7D59-4AD1-82BB-368E15F152BD} = {286E3C76-C860-4661-9AEF-817458D1231B}
+		{53F9FAF1-EFA4-4951-9693-1E350F6428A8} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 		{3C253096-BCFA-40D7-8C3F-F3F3B3BA4F1C} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{CC1EF38A-2741-4D92-A33A-3970E6F73797} = {3C253096-BCFA-40D7-8C3F-F3F3B3BA4F1C}
 	EndGlobalSection

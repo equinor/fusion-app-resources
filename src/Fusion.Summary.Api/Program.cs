@@ -1,10 +1,12 @@
 using Fusion.AspNetCore.Mvc.Versioning;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api.Middleware;
+using System.Reflection;
+using Fusion.Summary.Api.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Web;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,15 +14,26 @@ builder.Configuration
     .AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true)
     .AddJsonFile("/app/static/config/env.json", optional: true, reloadOnChange: true);
 
+var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
+var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
+var databaseConnectionString = builder.Configuration.GetConnectionString("DatabaseContext");
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
+builder.Services.AddSwaggerGen();
+
+var foo = builder.Configuration["AzureAd:ClientId"];
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration)
-    .EnableTokenAcquisitionToCallDownstreamApi()
-    .AddInMemoryTokenCaches();
+    .AddJwtBearer(options =>
+    {
+        options.Audience = builder.Configuration["AzureAd:ClientId"];
+        options.Authority = "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0";
+        options.SaveToken = true;
+    });
 
 
 builder.Services.AddApiVersioning(s =>
@@ -36,15 +49,17 @@ builder.Services.AddSwagger(builder.Configuration);
 builder.Services.AddFusionIntegration(f =>
 {
     f.UseServiceInformation("Fusion.Summary.Api", "Dev");
-    f.UseDefaultEndpointResolver(builder.Configuration["FUSION_ENVIRONMENT"] ?? "ci");
+    f.UseDefaultEndpointResolver(fusionEnvironment ?? "ci");
     f.UseDefaultTokenProvider(opts =>
     {
-        opts.ClientId = builder.Configuration["AzureAd:ClientId"];
-        opts.ClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+        opts.ClientId = azureAdClientId ?? throw new InvalidOperationException("Missing AzureAd:ClientId");
+        opts.ClientSecret = azureAdClientSecret;
     });
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var app = builder.Build();
 app.UseCors(opts => opts
