@@ -34,7 +34,8 @@ public class ApiResourceOwnerDepartment
 
 public record ApiSummaryReport
 {
-    const string MissingValue = "-";
+    private const string MissingValue = "-";
+
     public Guid Id { get; set; }
     public string DepartmentSapId { get; set; } = MissingValue;
     public string PeriodType { get; set; } = MissingValue;
@@ -50,10 +51,8 @@ public record ApiSummaryReport
 
     public string ProjectChangesAffectingNextThreeMonths { get; set; } = MissingValue;
 
-    // may n with the list of several users (positions) - Propertybag?
     public ApiEndingPosition[] PositionsEnding { get; set; } = Array.Empty<ApiEndingPosition>();
 
-    // may n with the list of several users - Propertybag?
     public ApiPersonnelMoreThan100PercentFTE[] PersonnelMoreThan100PercentFTE { get; set; } =
         Array.Empty<ApiPersonnelMoreThan100PercentFTE>();
 }
