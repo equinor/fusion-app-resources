@@ -16,7 +16,7 @@ public class AccountResolver : IAccountResolver
 
     public async Task<Guid?> ResolveAccountAsync(string identifier, bool returnNullOnAmbigiousMatch)
     {
-        logger.BeginScope("Resolve account [{Identifier}]", identifier);
+        using var logScope = logger.BeginScope("Resolve account [{Identifier}]", identifier);
 
         var resp = await client.GetAsync($"/v1.0/servicePrincipals?$filter=displayName eq '{identifier}'");
         var content = await resp.Content.ReadAsStringAsync();
@@ -48,7 +48,7 @@ public class AccountResolver : IAccountResolver
 
     public async Task<Guid?> ResolveAppRegServicePrincipalAsync(string identifier)
     {
-        logger.BeginScope("Resolve app reg SP, client id: [{Identifier}]", identifier);
+        using var logScope = logger.BeginScope("Resolve app reg SP, client id: [{Identifier}]", identifier);
 
         var resp = await client.GetAsync($"/v1.0/servicePrincipals(appId='{identifier}')");
 
