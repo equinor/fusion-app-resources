@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Database.Models;
 
 public class DbSummaryReport
 {
-    [Key] public required Guid Id { get; set; }
+    public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
     public required DbSummaryReportPeriod PeriodType { get; set; }
     public required DateTime Period { get; set; }
@@ -26,17 +25,35 @@ public class DbSummaryReport
     {
         modelBuilder.Entity<DbSummaryReport>(report =>
         {
-            report.HasIndex(r => r.DepartmentSapId);
+            report.ToTable("SummaryReports");
+            report.HasKey(r => r.Id);
 
-            report.HasIndex(r => r.PeriodType);
             report.Property(r => r.PeriodType)
                 .HasConversion<string>()
                 .HasMaxLength(20);
 
-            report.HasIndex(r => r.Period);
+            report.Property(r => r.Period)
+                // Strip time from date and retrieve as UTC
+                .HasConversion(d => d.Date,
+                    d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
 
-            report.OwnsMany(r => r.PositionsEnding);
-            report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE);
+
+            report.HasIndex(r => new { r.DepartmentSapId, r.PeriodType, r.Period })
+                .IsUnique();
+
+            report.OwnsMany(r => r.PositionsEnding, pe =>
+            {
+                pe.WithOwner().HasForeignKey("SummaryReportId");
+                pe.HasKey("Id");
+                pe.ToTable("PersonnelMoreThan100PercentFTEs");
+            });
+
+            report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE, pm =>
+            {
+                pm.WithOwner().HasForeignKey("SummaryReportId");
+                pm.HasKey("Id");
+                pm.ToTable("EndingPositions");
+            });
         });
     }
 }
