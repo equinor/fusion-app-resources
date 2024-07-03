@@ -24,8 +24,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
 builder.Services.AddSwaggerGen();
 
-var foo = builder.Configuration["AzureAd:ClientId"];
-
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
