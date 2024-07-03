@@ -34,6 +34,7 @@ public class DepartmentResourceOwnerSync
         if (!selectedDepartments.Any())
             throw new Exception("No departments found.");
 
+        // TODO: Retrieving resource-owners wil be refactored later
         var resourceOwners = new List<LineOrgPerson>();
         foreach (var orgUnitsChunk in selectedDepartments.Chunk(10))
         {
