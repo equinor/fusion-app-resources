@@ -14,7 +14,7 @@ public class SummaryApiClient : ISummaryApiClient
         summaryClient.Timeout = TimeSpan.FromMinutes(2);
     }
 
-    public async Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartments> departments,
+    public async Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartment> departments,
         CancellationToken cancellationToken = default)
     {
         var parallelOptions = new ParallelOptions()
@@ -33,16 +33,16 @@ public class SummaryApiClient : ISummaryApiClient
         });
     }
 
-    public async Task<ICollection<ApiResourceOwnerDepartments>> GetDepartmentsAsync(
+    public async Task<ICollection<ApiResourceOwnerDepartment>> GetDepartmentsAsync(
         CancellationToken cancellationToken = default)
     {
         using var response = await summaryClient.GetAsync("departments", cancellationToken);
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        return await JsonSerializer.DeserializeAsync<ICollection<ApiResourceOwnerDepartments>>(contentStream,
+        return await JsonSerializer.DeserializeAsync<ICollection<ApiResourceOwnerDepartment>>(contentStream,
                    cancellationToken: cancellationToken)
-               ?? Array.Empty<ApiResourceOwnerDepartments>();
+               ?? Array.Empty<ApiResourceOwnerDepartment>();
     }
 
     public async Task<ApiSummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,

@@ -59,7 +59,7 @@ public class WeeklyReportSender
     }
 
 
-    private SendNotificationsRequest CreateNotification(ApiSummaryReport report, ApiResourceOwnerDepartments department)
+    private SendNotificationsRequest CreateNotification(ApiSummaryReport report, ApiResourceOwnerDepartment department)
     {
         var personnelAllocationUri = $"{PortalUri()}apps/personnel-allocation/{department.DepartmentSapId}";
         var endingPositionsObjectList = report.PositionsEnding
