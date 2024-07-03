@@ -48,7 +48,7 @@ public class WeeklyReportSender
             if (summaryReport is null)
             {
                 logger.LogCritical(
-                    "No summary report found for departmentSapId {@Department}. Unable to send report notification",
+                    "No summary report found for department {@Department}. Unable to send report notification",
                     department);
                 return;
             }
