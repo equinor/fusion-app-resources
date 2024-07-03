@@ -48,7 +48,7 @@ public class DepartmentResourceOwnerSync
         var resourceOwnerDepartments = resourceOwners
             .Where(ro => ro.DepartmentSapId is not null && Guid.TryParse(ro.AzureUniqueId, out _))
             .Select(resourceOwner => new
-                ApiResourceOwnerDepartments(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
+                ApiResourceOwnerDepartment(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
                     Guid.Parse(resourceOwner.AzureUniqueId)));
 
         await summaryApiClient.PutDepartmentsAsync(resourceOwnerDepartments, cancellationToken);

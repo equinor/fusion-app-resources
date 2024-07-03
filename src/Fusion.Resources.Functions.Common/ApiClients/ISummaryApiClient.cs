@@ -2,10 +2,10 @@
 
 public interface ISummaryApiClient
 {
-    public Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartments> departments,
+    public Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartment> departments,
         CancellationToken cancellationToken = default);
 
-    public Task<ICollection<ApiResourceOwnerDepartments>> GetDepartmentsAsync(
+    public Task<ICollection<ApiResourceOwnerDepartment>> GetDepartmentsAsync(
         CancellationToken cancellationToken = default);
 
     public Task<ApiSummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
@@ -17,9 +17,9 @@ public interface ISummaryApiClient
 // TODO: Move to shared project
 // Fusion.Resources.Integration.Models ?
 
-public class ApiResourceOwnerDepartments
+public class ApiResourceOwnerDepartment
 {
-    public ApiResourceOwnerDepartments(string departmentSapId, string fullDepartmentName,
+    public ApiResourceOwnerDepartment(string departmentSapId, string fullDepartmentName,
         Guid resourceOwnerAzureUniqueId)
     {
         DepartmentSapId = departmentSapId;
