@@ -1,6 +1,4 @@
 ﻿using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.Extensions.DependencyInjection
