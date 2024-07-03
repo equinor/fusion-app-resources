@@ -26,7 +26,7 @@ public class GetDepartment : IRequest<QueryDepartment?>
         public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
         {
             // Filter
-            var dbDepartment = await _context.Departments.FirstOrDefaultAsync(x=>x.DepartmentSapId == request.SapDepartmentId);
+            var dbDepartment = await _context.Departments.FirstOrDefaultAsync(x=>x.DepartmentSapId == request.SapDepartmentId, cancellationToken: cancellationToken);
 
             // Nullcheck
             if (dbDepartment == null) return null;

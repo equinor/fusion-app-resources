@@ -39,10 +39,9 @@ public class PutSummaryReport : IRequest
             // As this is a put operation, replace existing one if it exists
             var existingReport = await _dbContext.SummaryReports.FirstOrDefaultAsync(r =>
                 r.DepartmentSapId == request.SapDepartmentId &&
-                r.PeriodType.ToString() ==
-                request.SummaryReport.PeriodType.ToString() &&
-                r.Period.Date == request.SummaryReport.Period
-                    .Date, cancellationToken: cancellationToken);
+                r.PeriodType.ToString() == request.SummaryReport.PeriodType.ToString() &&
+                r.Period.Date == request.SummaryReport.Period.Date,
+                cancellationToken: cancellationToken);
 
 
             if (existingReport is not null)
