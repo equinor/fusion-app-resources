@@ -83,7 +83,7 @@ public class ScheduledReportTimerTriggerFunction
             // Query departments from LineOrg
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
                 .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
-                .Where(x => x.management?.Persons.Length > 0);            // Exclude departments with no receivers
+                .Where(x => x.Management?.Persons.Length > 0);            // Exclude departments with no receivers
 
             // Group OrgUnits by FullDepartment and join the Person arrays together
             var groupedDepartments = departments
@@ -91,14 +91,14 @@ public class ScheduledReportTimerTriggerFunction
                 .Select(group =>
                 {
                     // Combine the Person arrays of all OrgUnits in the group into a single array
-                    var allPersons = group.SelectMany(orgUnit => orgUnit.management.Persons).ToArray();
+                    var allPersons = group.SelectMany(orgUnit => orgUnit.Management.Persons).ToArray();
 
                     // Create a new OrgUnits object with the FullDepartment, SapId, and combined Person array
                     return new OrgUnits
                     {
                         FullDepartment = group.Key,
                         SapId = group.First().SapId,
-                        management = new Management { Persons = allPersons }
+                        Management = new Management { Persons = allPersons }
                     };
                 })
                 .ToList();
@@ -118,7 +118,7 @@ public class ScheduledReportTimerTriggerFunction
                 {
                     await SendDtoToQueue(sender, new ScheduledNotificationQueueDto
                     {
-                        AzureUniqueId = dep.management.Persons.Select(x => x.AzureUniqueId),
+                        AzureUniqueId = dep.Management.Persons.Select(x => x.AzureUniqueId),
                         FullDepartment = dep.FullDepartment,
                         DepartmentSapId = dep.SapId
                     }, timeDelayInMinutes);
