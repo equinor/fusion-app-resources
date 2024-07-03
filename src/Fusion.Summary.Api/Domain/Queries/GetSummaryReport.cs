@@ -1,13 +1,14 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Summary.Api.Controllers.ApiModels;
-using Fusion.Summary.Api.Database.Models;
+using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Domain.Models;
 using Fusion.Summary.Api.Domain.Queries.Base;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Queries;
 
-public class GetSummaryReport
+public class GetSummaryReport : IRequest<QueryCollection<QuerySummaryReport>>
 {
     public GetSummaryReport(string sapDepartmentId, ODataQueryParams query)
     {
@@ -19,15 +20,19 @@ public class GetSummaryReport
     public ODataQueryParams Query { get; private set; }
 
 
-    public class Handler
+    public class Handler : IRequestHandler<GetSummaryReport, QueryCollection<QuerySummaryReport>>
     {
+        private readonly DatabaseContext _dbcontext;
+
+        public Handler(DatabaseContext dbcontext)
+        {
+            _dbcontext = dbcontext;
+        }
+
         public async Task<QueryCollection<QuerySummaryReport>> Handle(GetSummaryReport request,
             CancellationToken cancellationToken)
         {
-            // TODO:
-            DbSet<DbSummaryReport> dbSet = null!;
-
-            var getReportQuery = dbSet.Where(r => r.DepartmentSapId == request.SapDepartmentId);
+            var getReportQuery = _dbcontext.SummaryReports.Where(r => r.DepartmentSapId == request.SapDepartmentId);
 
             if (request.Query.HasFilter)
             {

@@ -1,9 +1,10 @@
 ﻿using Asp.Versioning;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Summary.Api.Authorization.Extensions;
+using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
-using Fusion.Summary.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +38,8 @@ public class DepartmentsController : BaseController
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
         {
-            r.AlwaysAccessWhen().BeTrustedApplication();
+            r.AlwaysAccessWhen().ResourcesFullControl();
+            r.AnyOf(or => { or.BeTrustedApplication(); });
         });
 
         if (authResult.Unauthorized)
@@ -75,7 +77,8 @@ public class DepartmentsController : BaseController
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
         {
-            r.AlwaysAccessWhen().BeTrustedApplication();
+            r.AlwaysAccessWhen().ResourcesFullControl();
+            r.AnyOf(or => { or.BeTrustedApplication(); });
         });
 
         if (authResult.Unauthorized)
@@ -109,7 +112,8 @@ public class DepartmentsController : BaseController
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
         {
-            r.AlwaysAccessWhen().BeTrustedApplication();
+            r.AlwaysAccessWhen().ResourcesFullControl();
+            r.AnyOf(or => { or.BeTrustedApplication(); });
         });
 
         if (authResult.Unauthorized)

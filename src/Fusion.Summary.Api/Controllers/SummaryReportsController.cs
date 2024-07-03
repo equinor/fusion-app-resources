@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using Asp.Versioning;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
@@ -8,14 +9,15 @@ using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Models;
 using Fusion.Summary.Api.Domain.Queries;
-using Fusion.Summary.Api.Domain.Queries.Base;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Summary.Api.Controllers;
 
+[Authorize]
 [ApiController]
-// TODO: Add ApiVersion
-public class SummaryReportsController : ControllerBase // TODO: Replace with custom base controller
+[ApiVersion("1.0")]
+public class SummaryReportsController : BaseController
 {
     [HttpGet("summary-reports/{sapDepartmentId}")]
     [Produces(MediaTypeNames.Application.Json)]
@@ -25,16 +27,16 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
         nameof(ApiSummaryReport.PersonnelMoreThan100PercentFTE), nameof(ApiSummaryReport.PeriodType))]
     [ODataOrderBy(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.Id))]
     [ODataTop(1000), ODataSkip]
+    [ApiVersion("1.0")]
     public async Task<ActionResult<ApiCollection<ApiSummaryReport>>> GetSummaryReportsV1(
         [FromRoute] string sapDepartmentId, ODataQueryParams query)
     {
         #region Authorization
 
-        // TODO:
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().ResourcesFullControl();
                 r.AnyOf(or => { or.BeTrustedApplication(); });
             });
 
@@ -43,11 +45,7 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
 
         #endregion
 
-        var queryRequest = new GetSummaryReport(sapDepartmentId, query);
-
-        // TODO: Dispatch query
-
-        QueryCollection<QuerySummaryReport> queryReports = null!;
+        var queryReports = await DispatchAsync(new GetSummaryReport(sapDepartmentId, query));
 
         return Ok(new ApiCollection<QuerySummaryReport>(queryReports));
     }
@@ -57,16 +55,16 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ApiVersion("1.0")]
     public async Task<IActionResult> PutSummaryReportsV1([FromRoute] string sapDepartmentId,
         [FromBody] PutSummaryReportRequest request)
     {
         #region Authorization
 
-        // TODO:
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().ResourcesFullControl();
                 r.AnyOf(or => { or.BeTrustedApplication(); });
             });
 
@@ -75,11 +73,10 @@ public class SummaryReportsController : ControllerBase // TODO: Replace with cus
 
         #endregion
 
-        // TODO: Command
 
         var command = new SetSummaryReport(sapDepartmentId, request);
 
-        // TODO: Dispatch command
+        await DispatchAsync(command);
 
         return NoContent();
     }

@@ -1,11 +1,10 @@
 ﻿using Fusion.Summary.Api.Domain.Models;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Database.Models;
 
 public class DbDepartment
 {
-    [Key]
     public string DepartmentSapId { get; set; } = string.Empty;
     public Guid ResourceOwnerAzureUniqueId { get; set; }
     public string FullDepartmentName { get; set; } = string.Empty;
@@ -18,5 +17,14 @@ public class DbDepartment
             ResourceOwnerAzureUniqueId = queryDepartment.ResourceOwnerAzureUniqueId,
             FullDepartmentName = queryDepartment.FullDepartmentName
         };
+    }
+
+    internal static void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DbDepartment>(department =>
+        {
+            department.ToTable("Departments");
+            department.HasKey(d => d.DepartmentSapId);
+        });
     }
 }

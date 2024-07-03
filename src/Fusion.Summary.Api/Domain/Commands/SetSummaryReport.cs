@@ -1,10 +1,12 @@
 ﻿using Fusion.Summary.Api.Controllers.Requests;
+using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Database.Models;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Commands;
 
-public class SetSummaryReport
+public class SetSummaryReport : IRequest
 {
     public string SapDepartmentId { get; private set; }
 
@@ -18,32 +20,33 @@ public class SetSummaryReport
     }
 
 
-    public class Handler
+    public class Handler : IRequestHandler<SetSummaryReport>
     {
-        private readonly DbContext _context;
+        private readonly DatabaseContext _dbContext;
 
-        public Handler(DbContext context)
+        public Handler(DatabaseContext dbContext)
         {
-            _context = context;
+            _dbContext = dbContext;
         }
 
         public async Task Handle(SetSummaryReport request, CancellationToken cancellationToken)
         {
-            // SapDepartmentId exists check
-            // TODO:
-
-            DbSet<DbSummaryReport> dbSet = null!;
+            if (await _dbContext.Departments.AnyAsync(d => d.DepartmentSapId == request.SapDepartmentId,
+                    cancellationToken: cancellationToken))
+                throw new InvalidOperationException("Department does not exist");
 
 
             // As this is a put operation, replace existing one if it exists
-            var existingReport = await dbSet.FirstOrDefaultAsync(r => r.DepartmentSapId == request.SapDepartmentId &&
-                                                                      r.PeriodType.ToString() ==
-                                                                      request.SummaryReport.PeriodType.ToString() &&
-                                                                      r.Period.Date == request.SummaryReport.Period
-                                                                          .Date, cancellationToken: cancellationToken);
+            var existingReport = await _dbContext.SummaryReports.FirstOrDefaultAsync(r =>
+                r.DepartmentSapId == request.SapDepartmentId &&
+                r.PeriodType.ToString() ==
+                request.SummaryReport.PeriodType.ToString() &&
+                r.Period.Date == request.SummaryReport.Period
+                    .Date, cancellationToken: cancellationToken);
+
 
             if (existingReport is not null)
-                dbSet.Remove(existingReport);
+                _dbContext.SummaryReports.Remove(existingReport);
 
             var dbSummaryReport = new DbSummaryReport()
             {
@@ -81,11 +84,9 @@ public class SetSummaryReport
                     .ToList()
             };
 
-            // TODO:
-            dbSet.Add(dbSummaryReport);
+            _dbContext.SummaryReports.Add(dbSummaryReport);
 
-            // TODO:
-            await _context.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

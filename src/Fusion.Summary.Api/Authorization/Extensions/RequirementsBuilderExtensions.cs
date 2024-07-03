@@ -5,7 +5,7 @@ namespace Fusion.Summary.Api.Authorization.Extensions;
 
 public static class RequirementsBuilderExtensions
 {
-    public static IAuthorizationRequirementRule FullControl(this IAuthorizationRequirementRule builder)
+    public static IAuthorizationRequirementRule ResourcesFullControl(this IAuthorizationRequirementRule builder)
     {
         var policy = new AuthorizationPolicyBuilder()
             .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.FullControl"))
