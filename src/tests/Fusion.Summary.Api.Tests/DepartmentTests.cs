@@ -8,18 +8,30 @@ using Xunit;
 
 namespace Fusion.Summary.Api.Tests
 {
-    public class DepartmentTests
+    public class DepartmentTests : IAsyncLifetime
     {
-        private DatabaseContext _context;
+        private DatabaseContext _context = null!;
+
+        private readonly DbContextOptions<DatabaseContext> _dbContextOptions = new DbContextOptionsBuilder<DatabaseContext>().UseInMemoryDatabase(databaseName: "test_db").Options;
 
         public DepartmentTests()
         {
-            // Use InMemory database instead
-            var options = new DbContextOptionsBuilder<DatabaseContext>()
-                .UseInMemoryDatabase(databaseName: "test_db").Options;
-
             // Create a new instance of the DatabaseContext
-            _context = new DatabaseContext(options);
+            _context = new DatabaseContext(_dbContextOptions);
+        }        
+
+        public Task InitializeAsync()
+        {
+            _context = new DatabaseContext(_dbContextOptions);
+            _context.Database.EnsureCreated();
+            return Task.CompletedTask;
+        }
+
+        public Task DisposeAsync()
+        {
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+            return Task.CompletedTask;
         }
 
         [Fact]
