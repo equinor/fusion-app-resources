@@ -16,7 +16,7 @@ steps:
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/ensure-resourcegroup.ps1
+      ScriptPath: infrastructure/scripts/ensure-resourcegroup.ps1
       ScriptArguments: -environment ${{ parameters.environment }}
 
  ## DATABASE SHOULD BE DEPLOYED BY API PIPELINE, NOT INFRA
@@ -29,7 +29,7 @@ steps:
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/deploy-database.ps1
+      ScriptPath: infrastructure/scripts/deploy-database.ps1
       ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
 
   - task: AzurePowerShell@5
@@ -39,7 +39,7 @@ steps:
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
+      ScriptPath: infrastructure/scripts/grant-adapp-sql-access.ps1
       ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
 
   - script: |
@@ -69,7 +69,7 @@ steps:
       ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
-      ScriptPath: src/backend/infrastructure/deploy-resources.ps1
+      ScriptPath: infrastructure/scripts/deploy-resources.ps1
       ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
       
   

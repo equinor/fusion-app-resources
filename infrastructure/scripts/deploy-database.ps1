@@ -26,7 +26,7 @@ if ($ePools.Length -gt 1) {
     $pool = $ePools | Select-Object -First 1
 }
 
-New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database-$environment" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/src/backend/infrastructure/arm-templates/database.template.json" `
+New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database-$environment" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/infrastructure/arm/database.template.json" `
     -env-name $environment `
     -sqlserver_name $server.Name `
     -sql-elastic-pool-id $pool.ResourceId
