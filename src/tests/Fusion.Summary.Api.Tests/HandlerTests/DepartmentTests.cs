@@ -15,7 +15,7 @@ namespace Fusion.Summary.Api.Tests.HandlerTests
 
         public DepartmentTests()
         {
-            // Create a new instance of the DatabaseContext
+            // Create a new instance of the SummaryDbContext
             _context = new SummaryDbContext(_dbContextOptions);
         }
 

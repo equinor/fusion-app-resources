@@ -32,6 +32,9 @@ public class SummaryWebAppFactory : WebApplicationFactory<Program>
         // Must set the config mode so the sql token generator does not try to refresh the access token, which kills the test run.
         Environment.SetEnvironmentVariable("Database__ConnectionMode", "Default");
 
+        // For some reason the connection string is always null, this line seems to fix it
+        Environment.SetEnvironmentVariable($"ConnectionStrings__{nameof(SummaryDbContext)}", dbConnectionString);
+
         EnsureDatabaseCreated();
     }
 

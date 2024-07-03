@@ -6,16 +6,12 @@ namespace Fusion.Summary.Api.Tests.IntegrationTests;
 public class SummaryReportTests
 {
     private readonly SummaryApiFixture _fixture;
+    private HttpClient _client;
 
     public SummaryReportTests(SummaryApiFixture fixture)
     {
         _fixture = fixture;
+        _client = _fixture.GetClient();
     }
 
-
-    [Fact]
-    public async Task GetSummaryReport_ReturnsSummaryReport()
-    {
-        Assert.True(true);
-    }
 }

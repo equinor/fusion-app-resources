@@ -10,10 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Summary.Api.Controllers;
 
-public record PutDepartmentRquest(string DepartmentSapId, string FullDepartmentName, Guid ResourceOwnerAzureUniqueId);
-
-public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAzureUniqueId, string fullDepartmentName);
-
 /// <summary>
 /// TODO: Add summary
 /// </summary>
@@ -33,7 +29,6 @@ public class DepartmentsController : BaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDepartmentsV1()
     {
-
         #region Authorization
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -50,9 +45,9 @@ public class DepartmentsController : BaseController
         var ret = new List<ApiDepartment>();
 
         // Query
-        var departments = await DispatchAsync(new GetAllDepartments());
+        var departments = (await DispatchAsync(new GetAllDepartments())).ToArray();
 
-        if (departments.Count() == 0)
+        if (departments.Length == 0)
             return NotFound();
         else
         {
@@ -67,7 +62,7 @@ public class DepartmentsController : BaseController
     /// <returns></returns>
     [HttpGet("departments/{sapDepartmentId}")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiDepartment), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -94,7 +89,7 @@ public class DepartmentsController : BaseController
             return NotFound();
         }
 
-        return Ok(department);
+        return Ok(ApiDepartment.FromQueryDepartment(department));
     }
 
     /// <summary>
@@ -106,7 +101,7 @@ public class DepartmentsController : BaseController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PutV1(PutDepartmentRquest request)
+    public async Task<IActionResult> PutV1(string sapDepartmentId, [FromBody] PutDepartmentRequest request)
     {
         #region Authorization
 
@@ -121,15 +116,15 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
-        var department = await DispatchAsync(new GetDepartment(request.DepartmentSapId));
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department exist
         if (department == null)
         {
             await DispatchAsync(
                 new CreateDepartment(
-                    request.DepartmentSapId, 
-                    request.ResourceOwnerAzureUniqueId, 
+                    sapDepartmentId,
+                    request.ResourceOwnerAzureUniqueId,
                     request.FullDepartmentName));
 
             return Created();
@@ -139,7 +134,7 @@ public class DepartmentsController : BaseController
         {
             await DispatchAsync(
                 new UpdateDepartment(
-                    request.DepartmentSapId,
+                    sapDepartmentId,
                     request.ResourceOwnerAzureUniqueId,
                     request.FullDepartmentName));
 

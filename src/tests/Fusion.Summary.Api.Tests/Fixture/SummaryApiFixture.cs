@@ -14,6 +14,10 @@ public class SummaryApiFixture : IDisposable
 
     public TestUser CoreAppUser { get; }
 
+    public TestClientScope AdminScope() => new(ResourcesFullControlUser);
+
+    public TestClientScope UserScope(TestUser profile) => new(profile);
+
     public SummaryApiFixture()
     {
         Fusion = new FusionTestFixture();
@@ -24,6 +28,22 @@ public class SummaryApiFixture : IDisposable
 
         CoreAppUser = Fusion.CreateUser()
             .AsApplication(Guid.Parse(TestConstants.APP_CLIENT_ID));
+    }
+
+
+    private HttpClient? _client { get; set; }
+
+    /// <summary>
+    ///     Get a clean http client.
+    /// </summary>
+    public HttpClient GetClient()
+    {
+        if (_client is not null)
+            return _client;
+
+        _client = ApiFactory.CreateClient();
+
+        return _client;
     }
 
     public void Dispose()

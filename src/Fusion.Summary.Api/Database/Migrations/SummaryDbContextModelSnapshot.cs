@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Summary.Api.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    partial class SummaryDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
