@@ -1,25 +1,30 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Fusion.Infra.Cli;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 public class AccountResolver : IAccountResolver
 {
+    private readonly ILogger<AccountResolver> logger;
     private HttpClient client;
 
-    public AccountResolver(IHttpClientFactory httpClientFactory)
+    public AccountResolver(ILogger<AccountResolver> logger, IHttpClientFactory httpClientFactory)
     {
         client = httpClientFactory.CreateClient(Constants.GraphClientName);
+        this.logger = logger;
     }
 
     public async Task<Guid?> ResolveAccountAsync(string identifier, bool returnNullOnAmbigiousMatch)
     {
+        logger.BeginScope("Resolve account [{Identifier}]", identifier);
+
         var resp = await client.GetAsync($"/v1.0/servicePrincipals?$filter=displayName eq '{identifier}'");
         var content = await resp.Content.ReadAsStringAsync();
 
         if (!resp.IsSuccessStatusCode)
         {
-            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → {resp.StatusCode}");
-            Console.WriteLine($"-- resp: {content}");
+            logger.LogWarning($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → {resp.StatusCode}");
+            logger.LogWarning($"-- resp: {content}");
         }
         
         resp.EnsureSuccessStatusCode();
@@ -30,7 +35,7 @@ public class AccountResolver : IAccountResolver
             return results.value.First().id;
         else if (results?.value.Length > 1)
         {
-            Console.WriteLine($"# WARN - Located multiple service principals using the name '{identifier}': {string.Join(", ", results.value.Select(i => $"{i}"))}");
+            logger.LogWarning($"Located multiple service principals using the name '{identifier}': {string.Join(", ", results.value.Select(i => $"{i}"))}");
 
             if (returnNullOnAmbigiousMatch == true)
                 return null;
@@ -43,6 +48,8 @@ public class AccountResolver : IAccountResolver
 
     public async Task<Guid?> ResolveAppRegServicePrincipalAsync(string identifier)
     {
+        logger.BeginScope("Resolve app reg SP, client id: [{Identifier}]", identifier);
+
         var resp = await client.GetAsync($"/v1.0/servicePrincipals(appId='{identifier}')");
 
         if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -52,8 +59,8 @@ public class AccountResolver : IAccountResolver
 
         if (!resp.IsSuccessStatusCode)
         {
-            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → {resp.StatusCode}");
-            Console.WriteLine($"-- resp: {content}");
+            logger.LogError($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → {resp.StatusCode}");
+            logger.LogError($"-- resp: {content}");
         }
 
         resp.EnsureSuccessStatusCode();

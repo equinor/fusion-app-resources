@@ -1,4 +1,5 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
 using System.Runtime.InteropServices;
@@ -9,6 +10,7 @@ namespace Fusion.Infra.Cli.Commands.Database
     [Command("provision", Description = "Provision database")]
     internal partial class ProvisionDatabaseCommand : CommandBase
     {
+        private readonly ILogger<ProvisionDatabaseCommand> logger;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFileLoader fileLoader;
         private readonly ITokenProvider tokenProvider;
@@ -70,8 +72,9 @@ namespace Fusion.Infra.Cli.Commands.Database
         [Option("-o <filePath>", ShortName = "o", LongName = "output", Description = "Dump final respons from the provisioning to a specific file")]
         public string? OutputFile { get; set; }
 
-        public ProvisionDatabaseCommand(IHttpClientFactory httpClientFactory, IFileLoader fileLoader, ITokenProvider tokenProvider, IAccountResolver accountResolver)
+        public ProvisionDatabaseCommand(ILogger<ProvisionDatabaseCommand> logger, IHttpClientFactory httpClientFactory, IFileLoader fileLoader, ITokenProvider tokenProvider, IAccountResolver accountResolver)
         {
+            this.logger = logger;
             this.httpClientFactory = httpClientFactory;
             this.fileLoader = fileLoader;
             this.tokenProvider = tokenProvider;
@@ -80,6 +83,8 @@ namespace Fusion.Infra.Cli.Commands.Database
 
         public override async Task OnExecuteAsync(CommandLineApplication app)
         {
+            logger.LogInformation("Starting db provisioning using template file {File}", ConfigPath);
+
             //app.ShowHelp();
             var client = httpClientFactory.CreateClient(Constants.InfraClientName);
             if (!string.IsNullOrEmpty(InfraUrl))
@@ -97,7 +102,7 @@ namespace Fusion.Infra.Cli.Commands.Database
 
             if (NoWait)
             {
-                Console.WriteLine("Operation started @ " + location);
+                logger.LogInformation("Operation started @ {Location}", location);
                 return;
             }
 
@@ -134,9 +139,17 @@ namespace Fusion.Infra.Cli.Commands.Database
         {
             if (string.IsNullOrEmpty(AccessToken))
             {
-                Console.WriteLine("No access token found, trying to get access token using default credentials... Use [-t <token>] to specify token.");
-                var token = await tokenProvider.GetAccessToken(Constants.RESOURCE_INFRA_API);
-                AccessToken = token.Token;
+                logger.LogInformation("No access token found, trying to get access token using default credentials... Use [-t <token>] to specify token.");
+                
+                try
+                {
+                    var token = await tokenProvider.GetAccessToken(Constants.RESOURCE_INFRA_API);
+                    AccessToken = token.Token;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError("Could not aquire token by using MSAL DefaultAzureCredentials. {ErrorMessage}", ex.Message);
+                }
             }
 
             if (!string.IsNullOrEmpty(AccessToken))
@@ -237,7 +250,10 @@ namespace Fusion.Infra.Cli.Commands.Database
                             throw new ArgumentException("Could not resolve current user token using access token");
 
                         if (!string.IsNullOrEmpty(userId))
+                        {
+                            logger.LogInformation($"Replaced [currentUser] with object id in token [{userId}]", userId);
                             processedList.Add(userId);
+                        }
                     }
 
                     // Not guid, must resolve to guid.
@@ -245,12 +261,12 @@ namespace Fusion.Infra.Cli.Commands.Database
 
                     if (servicePrincipal.HasValue)
                     {
-                        Console.WriteLine($"> Resolved sp '{item}' to the object id '{servicePrincipal}'");
+                        logger.LogInformation($"Resolved sp '{item}' to the object id '{servicePrincipal}'");
                         processedList.Add($"{servicePrincipal}");
                     }
                     else
                     {
-                        Console.WriteLine($"# WARN: Could not resolve service principal using '{item}' as display name");
+                        logger.LogWarning($"Could not resolve service principal using '{item}' as display name");
                     }
                 }
             }
@@ -282,12 +298,12 @@ namespace Fusion.Infra.Cli.Commands.Database
                 var spId = await accountResolver.ResolveAppRegServicePrincipalAsync(clientId);
                 if (spId.HasValue)
                 {
-                    Console.WriteLine($"> Resolved client id '{clientId}' to the object id '{spId}'");
+                    logger.LogInformation($"Resolved client id '{clientId}' to the object id '{spId}'");
                     appendTo.Add($"{spId}");
                 }
                 else
                 {
-                    Console.WriteLine($"# WARN: Could not resolve service principal using for app id '{clientId}'");
+                    logger.LogWarning($"Could not resolve service principal using for app id '{clientId}'");
                 }
             }
         }
@@ -296,20 +312,20 @@ namespace Fusion.Infra.Cli.Commands.Database
         {
             var url = SqlProductionEnvironment ? "/sql-servers/production/databases?api-version=1.0" : "/sql-servers/non-production/databases?api-version=1.0";
 
-            Console.WriteLine($"Triggering provisioning to [{url}]");
-            Console.WriteLine("-- Payload --");
-            Console.WriteLine(JsonSerializer.Serialize(config, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
-            Console.WriteLine("-- / --");
+            logger.LogInformation($"Triggering provisioning to [{url}]");
+            logger.LogInformation("-- Payload --");
+            logger.LogInformation(JsonSerializer.Serialize(config, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
+            logger.LogInformation("-- / --");
 
             var resp = await client.PostAsJsonAsync(url, config);
 
             var respData = await EnsureSuccessfullResponseAsync(resp);
 
-            Console.WriteLine($"-- resp: {respData}");
+            logger.LogInformation($"-- resp: {respData}");
 
             var locationHeader = resp.Headers.Location;
 
-            Console.WriteLine($"Operation location: {locationHeader}");
+            logger.LogInformation($"Operation location: {locationHeader}");
 
             if (locationHeader is null)
             {
@@ -332,9 +348,8 @@ namespace Fusion.Infra.Cli.Commands.Database
             timeout.Token.ThrowIfCancellationRequested();
 
             var resp = await client.GetAsync(location, timeout.Token);
-            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → [{resp.StatusCode}]");
             var content = await EnsureSuccessfullResponseAsync(resp);
-            Console.WriteLine($"-- resp: {content}");
+            logger.LogInformation($"-- resp: {content}");
 
             var responsData = JsonSerializer.Deserialize<ApiOperationResponse>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
@@ -345,7 +360,7 @@ namespace Fusion.Infra.Cli.Commands.Database
             }
             
             if (responsData is not null)
-                Console.WriteLine(JsonSerializer.Serialize<ApiOperationResponse>(responsData, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
+                logger.LogInformation(JsonSerializer.Serialize<ApiOperationResponse>(responsData, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
 
             return content;
         }
@@ -354,13 +369,13 @@ namespace Fusion.Infra.Cli.Commands.Database
         {
             var respData = await resp.Content.ReadAsStringAsync();
 
-            Console.WriteLine($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → [{resp.StatusCode}]");
+            logger.LogInformation($"{resp.RequestMessage?.Method} {resp.RequestMessage?.RequestUri} → [{resp.StatusCode}]");
             
             if (!resp.IsSuccessStatusCode)
             {
-                Console.WriteLine("-- Response payload --");
-                Console.WriteLine(respData);
-                Console.WriteLine("-- / --");
+                logger.LogError("-- Response payload --");
+                logger.LogError(respData);
+                logger.LogError("-- / --");
 
                 resp.EnsureSuccessStatusCode();
             }

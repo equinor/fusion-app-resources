@@ -3,6 +3,7 @@ using Fusion.Infra.Cli;
 using Fusion.Infra.Cli.Commands;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
 
@@ -34,6 +35,16 @@ public static class Setup
     {
         var services = new ServiceCollection()
             .AddHttpClient()
+            .AddLogging(c =>
+            {
+                c.AddSimpleConsole(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.SingleLine = true;
+                    options.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Enabled;
+                    options.TimestampFormat = "HH:mm:ss ";
+                });
+            })
             .AddNamedHttpClients()
             .AddSingleton<IFileLoader, DefaultFileLoader>()
             .AddSingleton<ITokenProvider, DefaultTokenProvider>()
