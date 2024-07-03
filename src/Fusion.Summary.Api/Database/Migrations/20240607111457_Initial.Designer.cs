@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Summary.Api.Migrations
 {
-    [DbContext(typeof(DatabaseContext))]
+    [DbContext(typeof(SummaryDbContext))]
     [Migration("20240607111457_Initial")]
     partial class Initial
     {

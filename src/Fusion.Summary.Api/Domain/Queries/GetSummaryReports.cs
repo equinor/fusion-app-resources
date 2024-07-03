@@ -22,9 +22,9 @@ public class GetSummaryReports : IRequest<QueryCollection<QuerySummaryReport>>
 
     public class Handler : IRequestHandler<GetSummaryReports, QueryCollection<QuerySummaryReport>>
     {
-        private readonly DatabaseContext _dbcontext;
+        private readonly SummaryDbContext _dbcontext;
 
-        public Handler(DatabaseContext dbcontext)
+        public Handler(SummaryDbContext dbcontext)
         {
             _dbcontext = dbcontext;
         }

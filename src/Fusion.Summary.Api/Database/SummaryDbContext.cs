@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Database;
 
-public class DatabaseContext : DbContext
+public class SummaryDbContext : DbContext
 {
     public DbSet<DbDepartment> Departments { get; set; }
     public DbSet<DbSummaryReport> SummaryReports { get; set; }
 
 
-    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
+    public SummaryDbContext(DbContextOptions<SummaryDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Summary.Api.Database.Migrations
 {
-    [DbContext(typeof(DatabaseContext))]
+    [DbContext(typeof(SummaryDbContext))]
     [Migration("20240703113355_SummaryReport")]
     partial class SummaryReport
     {

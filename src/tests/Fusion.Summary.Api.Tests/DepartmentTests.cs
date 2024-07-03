@@ -10,19 +10,19 @@ namespace Fusion.Summary.Api.Tests
 {
     public class DepartmentTests : IAsyncLifetime
     {
-        private DatabaseContext _context = null!;
+        private SummaryDbContext _context = null!;
 
-        private readonly DbContextOptions<DatabaseContext> _dbContextOptions = new DbContextOptionsBuilder<DatabaseContext>().UseInMemoryDatabase(databaseName: "test_db").Options;
+        private readonly DbContextOptions<SummaryDbContext> _dbContextOptions = new DbContextOptionsBuilder<SummaryDbContext>().UseInMemoryDatabase(databaseName: "test_db").Options;
 
         public DepartmentTests()
         {
             // Create a new instance of the DatabaseContext
-            _context = new DatabaseContext(_dbContextOptions);
-        }        
+            _context = new SummaryDbContext(_dbContextOptions);
+        }
 
         public Task InitializeAsync()
         {
-            _context = new DatabaseContext(_dbContextOptions);
+            _context = new SummaryDbContext(_dbContextOptions);
             _context.Database.EnsureCreated();
             return Task.CompletedTask;
         }
