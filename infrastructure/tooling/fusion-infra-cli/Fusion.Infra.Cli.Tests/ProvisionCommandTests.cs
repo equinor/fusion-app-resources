@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Client;
 using Moq;
 
 namespace Fusion.Infra.Cli.Tests
@@ -141,6 +142,50 @@ namespace Fusion.Infra.Cli.Tests
 
             var request = result.Operations.First();
             request!.Request?.SqlPermission?.Contributors.Should().Contain($"{sp.Id}");
+        }
+
+        [Fact]
+        public async Task ProvisionCommand_ShouldIncludeVersionAnnotations_Always()
+        {
+            var randomEnv = $"{Guid.NewGuid()}";
+
+            var testCommand = new TestCommandBuilder();
+
+            var result = await testCommand.ExecuteCommand($"database provision --url https://localhost -f required");
+
+            var request = result.Operations.First();
+            request!.Request!.Annotations.Should().ContainKeys("finf-version");
+            request.Request.Annotations["finf-version"].Should().NotBeEmpty();
+        }
+
+        [Fact]
+        public async Task ProvisionCommand_ShouldIncludeAnnotations_WhenDevopsEnvironment()
+        {
+            var randomEnv = $"{Guid.NewGuid()}";
+
+            Environment.SetEnvironmentVariable("AGENT_ROOTDIRECTORY", "tests"); // Marker variable
+
+            Environment.SetEnvironmentVariable("BUILD_BUILDID", "123");
+            Environment.SetEnvironmentVariable("BUILD_DEFINITIONNAME", "Pipeline name");
+            Environment.SetEnvironmentVariable("BUILD_REPOSITORY_ID", "org/repo-id");
+            Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCHNAME", "feat/test");
+            Environment.SetEnvironmentVariable("SYSTEM_JOBID", $"{Guid.NewGuid()}");
+            Environment.SetEnvironmentVariable("SYSTEM_TASKINSTANCEID", $"{Guid.NewGuid()}");
+            Environment.SetEnvironmentVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI", "https://dev.azure.com/");
+            Environment.SetEnvironmentVariable("SYSTEM_TEAMPROJECT", "Test Project");
+
+
+            var testCommand = new TestCommandBuilder();
+                
+            var result = await testCommand.ExecuteCommand($"database provision --url https://localhost -f required");
+
+            var request = result.Operations.First();
+            request!.Request!.Annotations.Should().ContainKeys("repo-id", "job-link", "job-name", "job-id", "automation-provider");
+            request.Request.Annotations["repo-id"].Should().Be("org/repo-id");
+            request.Request.Annotations["job-link"].Should().StartWith("https://dev.azure.com/Test Project/_build/results?buildId=123");
+            request.Request.Annotations["job-name"].Should().Be("Pipeline name");
+            request.Request.Annotations["job-id"].Should().Be("123");
+            request.Request.Annotations["automation-provider"].Should().Be("AzureDevOps");
         }
 
         [Fact]

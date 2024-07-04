@@ -11,6 +11,8 @@
 
         public ApiPullRequestInfo? PullRequest { get; set; }
 
+        public Dictionary<string, string> Annotations { get; set; } = new Dictionary<string, string>();
+
         public class ApiPullRequestInfo
         {
             public string PrNumber { get; set; } = null!;

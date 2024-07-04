@@ -19,6 +19,11 @@ namespace Fusion.Infra.Cli.Commands.Database
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public ApiPullRequestInfo? PullRequest { get; set; }
 
+            public ApiMetadata? Metadata { get; set; }
+
+            public Dictionary<string, string> Annotations { get; set; } = new Dictionary<string, string>();
+
+
             public class ApiPullRequestInfo
             {
                 public string PrNumber { get; set; } = null!;
@@ -37,6 +42,12 @@ namespace Fusion.Infra.Cli.Commands.Database
             {
                 public string? AdministratorGroupName { get; set; }
                 public string? DeveloperGroupName { get; set; }
+            }
+
+            public class ApiMetadata
+            {
+                public string? Team { get; set; }
+                public string? Application { get; set; }
             }
         }
 

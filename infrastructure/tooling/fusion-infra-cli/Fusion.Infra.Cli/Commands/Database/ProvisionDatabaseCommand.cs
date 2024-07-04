@@ -15,6 +15,7 @@ namespace Fusion.Infra.Cli.Commands.Database
         private readonly IFileLoader fileLoader;
         private readonly ITokenProvider tokenProvider;
         private readonly IAccountResolver accountResolver;
+        private readonly IUtils utils;
         public const int DefaultOperationWaitTimeout = 300;
 
         [Required]
@@ -72,13 +73,17 @@ namespace Fusion.Infra.Cli.Commands.Database
         [Option("-o <filePath>", ShortName = "o", LongName = "output", Description = "Dump final respons from the provisioning to a specific file")]
         public string? OutputFile { get; set; }
 
-        public ProvisionDatabaseCommand(ILogger<ProvisionDatabaseCommand> logger, IHttpClientFactory httpClientFactory, IFileLoader fileLoader, ITokenProvider tokenProvider, IAccountResolver accountResolver)
+        [Option("-a <key>=<value>", CommandOptionType.MultipleValue, ShortName = "a", LongName = "annotation", Description = "Add one or more annoations. Use multiple instances to add multiple values")]
+        public List<string> Annotations { get; set; } = new List<string>();
+
+        public ProvisionDatabaseCommand(ILogger<ProvisionDatabaseCommand> logger, IHttpClientFactory httpClientFactory, IFileLoader fileLoader, ITokenProvider tokenProvider, IAccountResolver accountResolver, IUtils utils)
         {
             this.logger = logger;
             this.httpClientFactory = httpClientFactory;
             this.fileLoader = fileLoader;
             this.tokenProvider = tokenProvider;
             this.accountResolver = accountResolver;
+            this.utils = utils;
         }
 
         public override async Task OnExecuteAsync(CommandLineApplication app)
@@ -95,6 +100,8 @@ namespace Fusion.Infra.Cli.Commands.Database
             var config = LoadConfigFile();
 
             LoadArgumentOverrides(config);
+            AddDefaultAnnotations(config);
+            AddProvidedAnnotations(config);
 
             await LoadSqlPermissionsAsync(config);
 
@@ -216,6 +223,57 @@ namespace Fusion.Infra.Cli.Commands.Database
                     config.SqlPermission = new ApiDatabaseRequestModel.ApiSqlPermissions();
 
                 config.SqlPermission.Contributors.AddRange(SqlContributor);
+            }
+        }
+
+        public void AddDefaultAnnotations(ApiDatabaseRequestModel config)
+        {
+            var version = utils.GetCliVersion();
+            if (version != null) 
+            {
+                config.Annotations["finf-version"] = version.ToString();
+            }
+
+            var runtime = utils.ResolvePipelineFromEnvironment();
+
+            if (runtime is not null)
+            {
+                config.Annotations["repo-id"] = runtime.Value.Repository ?? string.Empty;
+                config.Annotations["job-link"] = runtime.Value.RunLink ?? string.Empty;
+                config.Annotations["job-name"] = runtime.Value.JobName ?? string.Empty;
+                config.Annotations["job-id"] = runtime.Value.RunId ?? string.Empty;
+                config.Annotations["automation-provider"] = runtime.Value.PipelineEnvironment switch { 
+                    PipelineEnvironment.DevOps => "AzureDevOps", 
+                    PipelineEnvironment.GitHub => "GitHubActions", 
+                    _ => "Unknown" 
+                };
+            }
+        }
+
+        public void AddProvidedAnnotations(ApiDatabaseRequestModel config)
+        {
+            if (Annotations is null)
+                return;
+
+            foreach (var token in Annotations)
+            {
+                if (string.IsNullOrEmpty(token))
+                    continue;
+                
+                var tokens = token.Split("=", 1);
+
+                try
+                {
+                    config.Annotations[tokens[0]] = tokens[1];
+                } 
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Could not add annotation [{Key}]=[{Value}]: {Message}", tokens.FirstOrDefault(), tokens.Skip(1).FirstOrDefault(), ex.Message);
+                    
+                    // User can adjust command when invalid input is provided. 
+                    // This could cause issue if a pipeline run suddenly provided unsupported values.. But, it could also silently fail...
+                    throw;
+                }
             }
         }
 

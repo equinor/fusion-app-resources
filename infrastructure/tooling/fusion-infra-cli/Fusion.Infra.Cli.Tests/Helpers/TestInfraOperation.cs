@@ -10,7 +10,4 @@
         public string Id { get; set; }
         public int Checks { get; set; }
     }
-
-
-    
 }

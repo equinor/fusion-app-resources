@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Fusion.Infra.Cli.Tests
 {
-    public class TestCommandBuilder
+    public class TestCommandBuilder 
     {
         public DefaultInfraApiMessageHandler MessageHandler { get; set; } = new DefaultInfraApiMessageHandler();
         public GraphApiMessageHandler GraphMessageHandler { get; set; } = new GraphApiMessageHandler();

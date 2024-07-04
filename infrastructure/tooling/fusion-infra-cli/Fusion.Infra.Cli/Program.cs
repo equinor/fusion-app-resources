@@ -49,6 +49,7 @@ public static class Setup
             .AddSingleton<IFileLoader, DefaultFileLoader>()
             .AddSingleton<ITokenProvider, DefaultTokenProvider>()
             .AddSingleton<IAccountResolver, AccountResolver>()
+            .AddSingleton<IUtils, DefaultUtils>()
             .AddSingleton(PhysicalConsole.Singleton);
 
         setup?.Invoke(services);
