@@ -56,8 +56,9 @@ steps:
       scriptType: pscore
       scriptLocation: inlineScript        
       inlineScript: |
-        Get-ChildItem Env: | Select-Object Name, Value
-        
+        $items = Get-ChildItem Env: | Select-Object Name, Value
+        ConvertTo-Json $items
+
         finf database provision `
           --url https://ci.infrasupport.api.fusion-dev.net/ `
           -f ./src/backend/infrastructure/fusion-db-config.json `
