@@ -5,7 +5,7 @@ public interface ISummaryApiClient
     public Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartment> departments,
         CancellationToken cancellationToken = default);
 
-    public Task<ICollection<ApiResourceOwnerDepartment>> GetDepartmentsAsync(
+    public Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -31,8 +31,14 @@ public class ApiResourceOwnerDepartment
         ResourceOwnerAzureUniqueId = resourceOwnerAzureUniqueId;
     }
 
-    public string DepartmentSapId { get; init; }
-    public string FullDepartmentName { get; init; }
+    public ApiResourceOwnerDepartment()
+    {
+    }
+
+    public string DepartmentSapId { get; init; } = string.Empty;
+
+    public string FullDepartmentName { get; init; } = string.Empty;
+
     public Guid ResourceOwnerAzureUniqueId { get; init; }
 }
 

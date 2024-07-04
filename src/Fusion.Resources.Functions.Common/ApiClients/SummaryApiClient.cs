@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json;
 using Fusion.Resources.Functions.Common.Integration.Http;
 
@@ -8,6 +7,11 @@ namespace Fusion.Resources.Functions.Common.ApiClients;
 public class SummaryApiClient : ISummaryApiClient
 {
     private readonly HttpClient summaryClient;
+
+    private readonly JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public SummaryApiClient(IHttpClientFactory httpClientFactory)
     {
@@ -26,7 +30,7 @@ public class SummaryApiClient : ISummaryApiClient
 
         await Parallel.ForEachAsync(departments, parallelOptions, async (ownerDepartments, token) =>
         {
-            var body = new JsonContent(JsonSerializer.Serialize(ownerDepartments));
+            var body = new JsonContent(JsonSerializer.Serialize(ownerDepartments, jsonSerializerOptions));
 
             // Error logging is handled by http middleware => FunctionHttpMessageHandler
             using var _ = await summaryClient.PutAsync($"departments/{ownerDepartments.DepartmentSapId}", body,
@@ -34,14 +38,18 @@ public class SummaryApiClient : ISummaryApiClient
         });
     }
 
-    public async Task<ICollection<ApiResourceOwnerDepartment>> GetDepartmentsAsync(
+    public async Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
         CancellationToken cancellationToken = default)
     {
         using var response = await summaryClient.GetAsync("departments", cancellationToken);
 
+        if (!response.IsSuccessStatusCode)
+            return null;
+        
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
         return await JsonSerializer.DeserializeAsync<ICollection<ApiResourceOwnerDepartment>>(contentStream,
+                   jsonSerializerOptions,
                    cancellationToken: cancellationToken)
                ?? Array.Empty<ApiResourceOwnerDepartment>();
     }
@@ -58,13 +66,16 @@ public class SummaryApiClient : ISummaryApiClient
         var lastSunday = GetLastSunday(DateTime.UtcNow);
 
         var queryString =
-            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastSunday.Date.ToString(CultureInfo.InvariantCulture)}'&$top=1";
+            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastSunday.Date:O}'&$top=1";
 
         using var response = await summaryClient.GetAsync(queryString, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            return null;
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
         return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklySummaryReport>>(contentStream,
-            cancellationToken: cancellationToken))?.Items.FirstOrDefault();
+            jsonSerializerOptions,
+            cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
     }
 }

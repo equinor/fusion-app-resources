@@ -35,6 +35,11 @@ public class WeeklyReportSender
     {
         var departments = await summaryApiClient.GetDepartmentsAsync();
 
+        if (departments is null)
+        {
+            logger.LogCritical("No departments found. Exiting");
+            return;
+        }
 
         var options = new ParallelOptions()
         {
