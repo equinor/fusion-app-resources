@@ -11,12 +11,12 @@ public class PutWeeklySummaryReport : IRequest
     public string SapDepartmentId { get; private set; }
 
     // Using api model to reduce repetitive code
-    public PutSummaryReportRequest SummaryReport { get; private set; }
+    public PutWeeklySummaryReportRequest WeeklySummaryReport { get; private set; }
 
-    public PutWeeklySummaryReport(string sapDepartmentId, PutSummaryReportRequest summaryReport)
+    public PutWeeklySummaryReport(string sapDepartmentId, PutWeeklySummaryReportRequest weeklySummaryReport)
     {
         SapDepartmentId = sapDepartmentId;
-        SummaryReport = summaryReport;
+        WeeklySummaryReport = weeklySummaryReport;
     }
 
 
@@ -31,7 +31,7 @@ public class PutWeeklySummaryReport : IRequest
 
         public async Task Handle(PutWeeklySummaryReport request, CancellationToken cancellationToken)
         {
-            if (await _dbContext.Departments.AnyAsync(d => d.DepartmentSapId == request.SapDepartmentId,
+            if (!await _dbContext.Departments.AnyAsync(d => d.DepartmentSapId == request.SapDepartmentId,
                     cancellationToken: cancellationToken))
                 throw new InvalidOperationException("Department does not exist");
 
@@ -39,7 +39,7 @@ public class PutWeeklySummaryReport : IRequest
             // As this is a put operation, replace existing one if it exists
             var existingReport = await _dbContext.WeeklySummaryReports.FirstOrDefaultAsync(r =>
                 r.DepartmentSapId == request.SapDepartmentId &&
-                r.Period.Date == request.SummaryReport.Period.Date,
+                r.Period.Date == request.WeeklySummaryReport.Period.Date,
                 cancellationToken: cancellationToken);
 
 
@@ -50,20 +50,21 @@ public class PutWeeklySummaryReport : IRequest
             {
                 Id = existingReport?.Id ?? Guid.NewGuid(),
                 DepartmentSapId = request.SapDepartmentId,
-                Period = request.SummaryReport.Period.Date,
-                NumberOfPersonnel = request.SummaryReport.NumberOfPersonnel,
-                CapacityInUse = request.SummaryReport.CapacityInUse,
-                NumberOfRequestsLastPeriod = request.SummaryReport.NumberOfRequestsLastPeriod,
-                NumberOfOpenRequests = request.SummaryReport.NumberOfOpenRequests,
+                Period = request.WeeklySummaryReport.Period.Date,
+                NumberOfPersonnel = request.WeeklySummaryReport.NumberOfPersonnel,
+                CapacityInUse = request.WeeklySummaryReport.CapacityInUse,
+                NumberOfRequestsLastPeriod = request.WeeklySummaryReport.NumberOfRequestsLastPeriod,
+                NumberOfOpenRequests = request.WeeklySummaryReport.NumberOfOpenRequests,
                 NumberOfRequestsStartingInLessThanThreeMonths =
-                    request.SummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
+                    request.WeeklySummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
                 NumberOfRequestsStartingInMoreThanThreeMonths =
-                    request.SummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
-                AverageTimeToHandleRequests = request.SummaryReport.AverageTimeToHandleRequests,
+                    request.WeeklySummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
+                AverageTimeToHandleRequests = request.WeeklySummaryReport.AverageTimeToHandleRequests,
                 AllocationChangesAwaitingTaskOwnerAction =
-                    request.SummaryReport.AllocationChangesAwaitingTaskOwnerAction,
-                ProjectChangesAffectingNextThreeMonths = request.SummaryReport.ProjectChangesAffectingNextThreeMonths,
-                PositionsEnding = request.SummaryReport.PositionsEnding
+                    request.WeeklySummaryReport.AllocationChangesAwaitingTaskOwnerAction,
+                ProjectChangesAffectingNextThreeMonths =
+                    request.WeeklySummaryReport.ProjectChangesAffectingNextThreeMonths,
+                PositionsEnding = request.WeeklySummaryReport.PositionsEnding
                     .Select(pe => new DbEndingPosition()
                     {
                         Id = Guid.NewGuid(),
@@ -71,7 +72,7 @@ public class PutWeeklySummaryReport : IRequest
                         EndDate = pe.EndDate
                     })
                     .ToList(),
-                PersonnelMoreThan100PercentFTE = request.SummaryReport.PersonnelMoreThan100PercentFTE
+                PersonnelMoreThan100PercentFTE = request.WeeklySummaryReport.PersonnelMoreThan100PercentFTE
                     .Select(pm => new DbPersonnelMoreThan100PercentFTE()
                     {
                         Id = Guid.NewGuid(),

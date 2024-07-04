@@ -7,6 +7,11 @@ namespace Fusion.Summary.Api;
 
 public class BaseController : ControllerBase
 {
+    // TODO: Transition to ProblemDetails
+    protected NotFoundObjectResult DepartmentNotFound(string sapDepartmentId) =>
+        NotFound(new { message = $"Department with id '{sapDepartmentId}' was not found" });
+
+
     protected Task DispatchAsync(IRequest command)
     {
         var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();

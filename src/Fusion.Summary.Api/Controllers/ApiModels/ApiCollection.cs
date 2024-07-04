@@ -5,14 +5,19 @@ namespace Fusion.Summary.Api.Controllers.ApiModels;
 
 public class ApiCollection<T>
 {
+    public ApiCollection()
+    {
+        Items = Array.Empty<T>();
+    }
+
     public ApiCollection(IEnumerable<T> items)
     {
-        Value = items.ToArray();
+        Items = items.ToArray();
     }
 
     public ApiCollection(QueryCollection<T> queryCollection)
     {
-        Value = queryCollection.ToArray();
+        Items = queryCollection.ToArray();
         Top = queryCollection.Top;
         Skip = queryCollection.Skip;
         TotalCount = queryCollection.TotalCount;
@@ -32,5 +37,5 @@ public class ApiCollection<T>
         ? TotalCount > Skip + Top
         : null;
 
-    public ICollection<T> Value { get; set; }
+    public ICollection<T> Items { get; set; }
 }

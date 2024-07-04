@@ -89,9 +89,7 @@ public class DepartmentsController : BaseController
 
         // Check if department is null
         if (department == null)
-        {
-            return NotFound();
-        }
+            return DepartmentNotFound(sapDepartmentId);
 
         return Ok(ApiDepartment.FromQueryDepartment(department));
     }

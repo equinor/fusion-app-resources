@@ -7,7 +7,6 @@ using Fusion.Summary.Api.Authorization.Extensions;
 using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
-using Fusion.Summary.Api.Domain.Models;
 using Fusion.Summary.Api.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,11 +49,12 @@ public class SummaryReportsController : BaseController
             return BadRequest("SapDepartmentId route parameter is required");
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
-            return NotFound();
+            return DepartmentNotFound(sapDepartmentId);
 
         var queryReports = await DispatchAsync(new GetWeeklySummaryReports(sapDepartmentId, query));
 
-        return Ok(new ApiCollection<QueryWeeklySummaryReport>(queryReports));
+        return Ok(new ApiCollection<ApiWeeklySummaryReport>(
+            queryReports.Select(ApiWeeklySummaryReport.FromQuerySummaryReport)));
     }
 
     [HttpPut("summary-reports/{sapDepartmentId}/weekly")]
@@ -64,7 +64,7 @@ public class SummaryReportsController : BaseController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ApiVersion("1.0")]
     public async Task<IActionResult> PutWeeklySummaryReportV1([FromRoute] string sapDepartmentId,
-        [FromBody] PutSummaryReportRequest request)
+        [FromBody] PutWeeklySummaryReportRequest request)
     {
         #region Authorization
 
@@ -84,7 +84,7 @@ public class SummaryReportsController : BaseController
             return BadRequest("SapDepartmentId route parameter is required");
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
-            return NotFound();
+            return DepartmentNotFound(sapDepartmentId);
 
         if (request.Period.DayOfWeek != DayOfWeek.Monday)
             return BadRequest("Period date must be the first day of the week");

@@ -5,18 +5,18 @@ namespace Fusion.Summary.Api.Tests.Helpers;
 
 public static class DepartmentHelpers
 {
-    public static ApiDepartment GenerateDepartment() =>
+    public static ApiDepartment GenerateDepartment(Guid resourceOwnerAzureUniqueId) =>
         new()
         {
             FullDepartmentName = $"Test FullDepartmentName {Guid.NewGuid()}",
             DepartmentSapId = $"Test DepartmentSapId {Guid.NewGuid()}",
-            ResourceOwnerAzureUniqueId = Guid.NewGuid()
+            ResourceOwnerAzureUniqueId = resourceOwnerAzureUniqueId
         };
 
-    public static async Task<ApiDepartment> PutDepartmentAsync(this HttpClient client,
+    public static async Task<ApiDepartment> PutDepartmentAsync(this HttpClient client, Guid resourceOwnerAzureUniqueId,
         Action<ApiDepartment>? setup = null)
     {
-        var department = GenerateDepartment();
+        var department = GenerateDepartment(resourceOwnerAzureUniqueId);
         setup?.Invoke(department);
 
         var response = await client.TestClientPutAsync<object>($"departments/{department.DepartmentSapId}", department);

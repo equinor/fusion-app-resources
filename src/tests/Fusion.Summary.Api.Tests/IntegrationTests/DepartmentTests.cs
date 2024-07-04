@@ -18,12 +18,25 @@ public class DepartmentTests
     }
 
     [Fact]
+    public async Task GetMissingDepartment_ShouldReturnNotFound()
+    {
+        using var adminScope = _fixture.AdminScope();
+
+        var nonExistingSapId = "FCA34128-BEA6-4238-B848-D749546F1E2E";
+
+        var response = await _client.GetDepartmentAsync(nonExistingSapId);
+        response.Should().BeNotFound();
+    }
+
+    [Fact]
     public async Task PutDepartment_Then_GetDepartment_ShouldBeSuccess()
     {
         using var adminScope = _fixture.AdminScope();
-        var department = await _client.PutDepartmentAsync();
+        var testUser = _fixture.Fusion.CreateUser().AsEmployee().AzureUniqueId!.Value;
 
+        var department = await _client.PutDepartmentAsync(testUser);
         var response = await _client.GetDepartmentAsync(department.DepartmentSapId);
+
         response.Should().BeSuccessfull();
     }
 
@@ -32,14 +45,15 @@ public class DepartmentTests
     public async Task PutDepartment_Then_UpdateOwner_ShouldBeSuccess()
     {
         using var adminScope = _fixture.AdminScope();
+        var oldOwner = _fixture.Fusion.CreateUser().AsEmployee().AzureUniqueId!.Value;
 
-        var department = await _client.PutDepartmentAsync();
+
+        var department = await _client.PutDepartmentAsync(oldOwner);
 
         var newOwner = _fixture.Fusion.CreateUser().AsEmployee();
 
-        await _client.PutDepartmentAsync(d =>
+        await _client.PutDepartmentAsync(newOwner.AzureUniqueId!.Value, d =>
         {
-            d.ResourceOwnerAzureUniqueId = newOwner.AzureUniqueId!.Value;
             d.DepartmentSapId = department.DepartmentSapId;
             d.FullDepartmentName = department.FullDepartmentName;
         });

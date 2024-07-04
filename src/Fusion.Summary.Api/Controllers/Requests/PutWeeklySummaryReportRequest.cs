@@ -3,7 +3,7 @@ using Fusion.Summary.Api.Controllers.ApiModels;
 
 namespace Fusion.Summary.Api.Controllers.Requests;
 
-public class PutSummaryReportRequest
+public class PutWeeklySummaryReportRequest
 {
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
@@ -23,7 +23,7 @@ public class PutSummaryReportRequest
     // may be a json with the list of several users - Propertybag?
     public required ApiPersonnelMoreThan100PercentFTE[] PersonnelMoreThan100PercentFTE { get; set; }
 
-    public class Validator : AbstractValidator<PutSummaryReportRequest>
+    public class Validator : AbstractValidator<PutWeeklySummaryReportRequest>
     {
         public Validator()
         {
