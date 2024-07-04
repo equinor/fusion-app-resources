@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Summary.Api.Database.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
-    [Migration("20240704082957_Initial")]
+    [Migration("20240704120150_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -101,6 +101,12 @@ namespace Fusion.Summary.Api.Database.Migrations
 
             modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklySummaryReport", b =>
                 {
+                    b.HasOne("Fusion.Summary.Api.Database.Models.DbDepartment", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentSapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.OwnsMany("Fusion.Summary.Api.Database.Models.DbEndingPosition", "PositionsEnding", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -152,6 +158,8 @@ namespace Fusion.Summary.Api.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("WeeklySummaryReportsId");
                         });
+
+                    b.Navigation("Department");
 
                     b.Navigation("PersonnelMoreThan100PercentFTE");
 

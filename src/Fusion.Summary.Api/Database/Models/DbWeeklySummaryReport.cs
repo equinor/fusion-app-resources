@@ -6,6 +6,8 @@ public class DbWeeklySummaryReport
 {
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
+
+    public DbDepartment? Department { get; set; }
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
@@ -50,6 +52,12 @@ public class DbWeeklySummaryReport
                 pm.HasKey("Id");
                 pm.ToTable("EndingPositions");
             });
+
+
+            report.HasOne(r => r.Department)
+                .WithMany()
+                .HasForeignKey(r => r.DepartmentSapId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

@@ -44,6 +44,12 @@ namespace Fusion.Summary.Api.Database.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WeeklySummaryReports", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WeeklySummaryReports_Departments_DepartmentSapId",
+                        column: x => x.DepartmentSapId,
+                        principalTable: "Departments",
+                        principalColumn: "DepartmentSapId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -107,9 +113,6 @@ namespace Fusion.Summary.Api.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Departments");
-
-            migrationBuilder.DropTable(
                 name: "EndingPositions");
 
             migrationBuilder.DropTable(
@@ -117,6 +120,9 @@ namespace Fusion.Summary.Api.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "WeeklySummaryReports");
+
+            migrationBuilder.DropTable(
+                name: "Departments");
         }
     }
 }
