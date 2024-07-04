@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Fusion.Resources.Functions.Common.Integration.Http;
 
@@ -45,16 +46,25 @@ public class SummaryApiClient : ISummaryApiClient
                ?? Array.Empty<ApiResourceOwnerDepartment>();
     }
 
-    public async Task<ApiSummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
+    private static DateTime GetLastSunday(DateTime date)
+    {
+        var daysUntilSunday = (int)date.DayOfWeek;
+        return date.AddDays(-daysUntilSunday);
+    }
+
+    public async Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default)
     {
-        var queryString = $"summary-reports/{departmentSapId}?$filter=PeriodType eq 'Weekly'&$top=1";
+        var lastSunday = GetLastSunday(DateTime.UtcNow);
+
+        var queryString =
+            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastSunday.Date.ToString(CultureInfo.InvariantCulture)}'&$top=1";
 
         using var response = await summaryClient.GetAsync(queryString, cancellationToken);
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        return (await JsonSerializer.DeserializeAsync<ICollection<ApiSummaryReport>>(contentStream,
-            cancellationToken: cancellationToken))?.FirstOrDefault();
+        return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklySummaryReport>>(contentStream,
+            cancellationToken: cancellationToken))?.Items.FirstOrDefault();
     }
 }
