@@ -17,6 +17,14 @@ public static class SummaryReportHelpers
         return response;
     }
 
+    private static DateTime CreateDayOfWeek(DayOfWeek dayOfWeek)
+    {
+        var newDate = DateTime.UtcNow;
+
+        var daysUntil = ((int)dayOfWeek - (int)newDate.DayOfWeek + 7) % 7;
+
+        return newDate.AddDays(daysUntil);
+    }
 
     public static async Task<TestClientHttpResponse<object>> PutWeeklySummaryReportAsync(this HttpClient client,
         string sapDepartmentId,
@@ -24,7 +32,7 @@ public static class SummaryReportHelpers
     {
         var request = new PutWeeklySummaryReportRequest
         {
-            Period = DateTime.Parse("01.07.2024 12:23:00"),
+            Period = CreateDayOfWeek(DayOfWeek.Monday),
             NumberOfPersonnel = "1",
             CapacityInUse = "2",
             NumberOfRequestsLastPeriod = "3",
