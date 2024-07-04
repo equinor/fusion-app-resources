@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Fusion.Summary.Api.Tests.Fixture;
 
+/// <summary>
+///     This class is created once for the <see cref="SummaryCollection" /> tests
+/// </summary>
 public class SummaryApiFixture : IDisposable
 {
     public readonly SummaryWebAppFactory ApiFactory;

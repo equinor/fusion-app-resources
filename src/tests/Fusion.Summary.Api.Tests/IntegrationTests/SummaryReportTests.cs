@@ -1,20 +1,23 @@
 ﻿using FluentAssertions;
 using Fusion.Summary.Api.Tests.Fixture;
 using Fusion.Summary.Api.Tests.Helpers;
+using Fusion.Summary.Api.Tests.IntegrationTests.Base;
 using Fusion.Testing;
+using Xunit.Abstractions;
 
 namespace Fusion.Summary.Api.Tests.IntegrationTests;
 
 [Collection(TestCollections.SUMMARY)]
-public class SummaryReportTests
+public class SummaryReportTests : TestBase
 {
     private readonly SummaryApiFixture _fixture;
     private HttpClient _client;
 
-    public SummaryReportTests(SummaryApiFixture fixture)
+    public SummaryReportTests(SummaryApiFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _client = _fixture.GetClient();
+        SetOutput(output);
     }
 
 
