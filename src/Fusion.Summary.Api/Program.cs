@@ -5,6 +5,7 @@ using Fusion.AspNetCore.OData;
 using Fusion.Summary.Api.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,10 @@ var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("liveness", () => HealthCheckResult.Healthy())
+    .AddDbContextCheck<SummaryDbContext>("db", tags: new[] { "ready" });
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.OperationFilter<ODataFilterParamSwaggerFilter>();
