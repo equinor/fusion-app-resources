@@ -47,7 +47,6 @@ steps:
       dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
       dotnet tool install -g --add-source infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/nupkg fusion.infra.cli
       
-      Get-ChildItem Env: | Select-Object Name, Value
     displayName: "Install fusion infra cli tool"
 
   - task: AzureCLI@2
@@ -57,6 +56,8 @@ steps:
       scriptType: pscore
       scriptLocation: inlineScript        
       inlineScript: |
+        Get-ChildItem Env: | Select-Object Name, Value
+        
         finf database provision `
           --url https://ci.infrasupport.api.fusion-dev.net/ `
           -f ./src/backend/infrastructure/fusion-db-config.json `
