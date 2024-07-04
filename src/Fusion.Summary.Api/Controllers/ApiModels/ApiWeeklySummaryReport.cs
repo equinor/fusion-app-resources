@@ -3,11 +3,10 @@ using Fusion.Summary.Api.Domain.Models;
 
 namespace Fusion.Summary.Api.Controllers.ApiModels;
 
-public class ApiSummaryReport
+public class ApiWeeklySummaryReport
 {
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
-    public required ApiSummaryReportPeriod PeriodType { get; set; }
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
@@ -27,33 +26,33 @@ public class ApiSummaryReport
     public required ApiPersonnelMoreThan100PercentFTE[] PersonnelMoreThan100PercentFTE { get; set; }
 
 
-    public static ApiSummaryReport FromQuerySummaryReport(QuerySummaryReport querySummaryReport)
+    public static ApiWeeklySummaryReport FromQuerySummaryReport(QueryWeeklySummaryReport queryWeeklySummaryReport)
     {
-        return new ApiSummaryReport
+        return new ApiWeeklySummaryReport
         {
-            Id = querySummaryReport.Id,
-            DepartmentSapId = querySummaryReport.DepartmentSapId,
-            PeriodType = Enum.Parse<ApiSummaryReportPeriod>(querySummaryReport.PeriodType.ToString()),
-            Period = querySummaryReport.Period,
-            NumberOfPersonnel = querySummaryReport.NumberOfPersonnel,
-            CapacityInUse = querySummaryReport.CapacityInUse,
-            NumberOfRequestsLastPeriod = querySummaryReport.NumberOfRequestsLastPeriod,
-            NumberOfOpenRequests = querySummaryReport.NumberOfOpenRequests,
+            Id = queryWeeklySummaryReport.Id,
+            DepartmentSapId = queryWeeklySummaryReport.DepartmentSapId,
+            Period = queryWeeklySummaryReport.Period,
+            NumberOfPersonnel = queryWeeklySummaryReport.NumberOfPersonnel,
+            CapacityInUse = queryWeeklySummaryReport.CapacityInUse,
+            NumberOfRequestsLastPeriod = queryWeeklySummaryReport.NumberOfRequestsLastPeriod,
+            NumberOfOpenRequests = queryWeeklySummaryReport.NumberOfOpenRequests,
             NumberOfRequestsStartingInLessThanThreeMonths =
-                querySummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
+                queryWeeklySummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
             NumberOfRequestsStartingInMoreThanThreeMonths =
-                querySummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
-            AverageTimeToHandleRequests = querySummaryReport.AverageTimeToHandleRequests,
-            AllocationChangesAwaitingTaskOwnerAction = querySummaryReport.AllocationChangesAwaitingTaskOwnerAction,
-            ProjectChangesAffectingNextThreeMonths = querySummaryReport.ProjectChangesAffectingNextThreeMonths,
-            PositionsEnding = querySummaryReport.PositionsEnding
+                queryWeeklySummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
+            AverageTimeToHandleRequests = queryWeeklySummaryReport.AverageTimeToHandleRequests,
+            AllocationChangesAwaitingTaskOwnerAction =
+                queryWeeklySummaryReport.AllocationChangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = queryWeeklySummaryReport.ProjectChangesAffectingNextThreeMonths,
+            PositionsEnding = queryWeeklySummaryReport.PositionsEnding
                 .Select(pe => new ApiEndingPosition()
                 {
                     FullName = pe.FullName,
                     EndDate = pe.EndDate
                 })
                 .ToArray(),
-            PersonnelMoreThan100PercentFTE = querySummaryReport.PersonnelMoreThan100PercentFTE
+            PersonnelMoreThan100PercentFTE = queryWeeklySummaryReport.PersonnelMoreThan100PercentFTE
                 .Select(pe => new ApiPersonnelMoreThan100PercentFTE()
                 {
                     FullName = pe.FullName,
@@ -62,10 +61,4 @@ public class ApiSummaryReport
                 .ToArray()
         };
     }
-}
-
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum ApiSummaryReportPeriod
-{
-    Weekly
 }

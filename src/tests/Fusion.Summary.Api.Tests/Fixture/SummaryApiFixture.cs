@@ -14,8 +14,15 @@ public class SummaryApiFixture : IDisposable
 
     public TestUser CoreAppUser { get; }
 
+    /// <summary>
+    ///     Uses <see cref="ResourcesFullControlUser" /> as the user.
+    /// </summary>
     public TestClientScope AdminScope() => new(ResourcesFullControlUser);
 
+    /// <summary>
+    ///     Uses <see cref="CoreAppUser" /> as the user.
+    /// </summary>
+    public TestClientScope CoreAppScope() => new(CoreAppUser);
     public TestClientScope UserScope(TestUser profile) => new(profile);
 
     public SummaryApiFixture()

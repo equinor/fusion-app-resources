@@ -6,7 +6,7 @@ namespace Fusion.Summary.Api.Database;
 public class SummaryDbContext : DbContext
 {
     public DbSet<DbDepartment> Departments { get; set; }
-    public DbSet<DbSummaryReport> SummaryReports { get; set; }
+    public DbSet<DbWeeklySummaryReport> WeeklySummaryReports { get; set; }
 
 
     public SummaryDbContext(DbContextOptions<SummaryDbContext> options) : base(options) { }
@@ -15,7 +15,7 @@ public class SummaryDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         DbDepartment.OnModelCreating(modelBuilder);
-        DbSummaryReport.OnModelCreating(modelBuilder);
+        DbWeeklySummaryReport.OnModelCreating(modelBuilder);
     }
 }
 

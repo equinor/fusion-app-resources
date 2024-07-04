@@ -5,7 +5,6 @@ namespace Fusion.Summary.Api.Controllers.Requests;
 
 public class PutSummaryReportRequest
 {
-    public required ApiSummaryReportPeriod PeriodType { get; set; }
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
@@ -28,17 +27,6 @@ public class PutSummaryReportRequest
     {
         public Validator()
         {
-            RuleFor(x => x.PeriodType).IsInEnum();
-            RuleFor(x => x.Period).Must((input, value, context) =>
-            {
-                return input.PeriodType switch
-                {
-                    ApiSummaryReportPeriod.Weekly => value.DayOfWeek == DayOfWeek.Monday,
-                    // Monthly first day of the month
-                    // Yearly first day of the year
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            }).WithMessage("Period must be first day of the period type");
         }
     }
 }

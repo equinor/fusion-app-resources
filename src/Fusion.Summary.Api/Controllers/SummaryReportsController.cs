@@ -19,16 +19,17 @@ namespace Fusion.Summary.Api.Controllers;
 [ApiVersion("1.0")]
 public class SummaryReportsController : BaseController
 {
-    [HttpGet("summary-reports/{sapDepartmentId}")]
+    [HttpGet("summary-reports/{sapDepartmentId}/weekly")]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ODataFilter(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.PositionsEnding),
-        nameof(ApiSummaryReport.PersonnelMoreThan100PercentFTE), nameof(ApiSummaryReport.PeriodType))]
-    [ODataOrderBy(nameof(ApiSummaryReport.Period), nameof(ApiSummaryReport.Id))]
+    [ODataFilter(nameof(ApiWeeklySummaryReport.Period), nameof(ApiWeeklySummaryReport.PositionsEnding),
+        nameof(ApiWeeklySummaryReport.PersonnelMoreThan100PercentFTE))]
+    [ODataOrderBy(nameof(ApiWeeklySummaryReport.Period), nameof(ApiWeeklySummaryReport.Id))]
     [ODataTop(1000), ODataSkip]
     [ApiVersion("1.0")]
-    public async Task<ActionResult<ApiCollection<ApiSummaryReport>>> GetSummaryReportsV1(
+    public async Task<ActionResult<ApiCollection<ApiWeeklySummaryReport>>> GetWeeklySummaryReportsV1(
         [FromRoute] string sapDepartmentId, ODataQueryParams query)
     {
         #region Authorization
@@ -51,18 +52,18 @@ public class SummaryReportsController : BaseController
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return NotFound();
 
-        var queryReports = await DispatchAsync(new GetSummaryReports(sapDepartmentId, query));
+        var queryReports = await DispatchAsync(new GetWeeklySummaryReports(sapDepartmentId, query));
 
-        return Ok(new ApiCollection<QuerySummaryReport>(queryReports));
+        return Ok(new ApiCollection<QueryWeeklySummaryReport>(queryReports));
     }
 
-    [HttpPut("summary-reports/{sapDepartmentId}")]
+    [HttpPut("summary-reports/{sapDepartmentId}/weekly")]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ApiVersion("1.0")]
-    public async Task<IActionResult> PutSummaryReportsV1([FromRoute] string sapDepartmentId,
+    public async Task<IActionResult> PutWeeklySummaryReportV1([FromRoute] string sapDepartmentId,
         [FromBody] PutSummaryReportRequest request)
     {
         #region Authorization
@@ -85,7 +86,10 @@ public class SummaryReportsController : BaseController
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return NotFound();
 
-        var command = new PutSummaryReport(sapDepartmentId, request);
+        if (request.Period.DayOfWeek != DayOfWeek.Monday)
+            return BadRequest("Period date must be the first day of the week");
+
+        var command = new PutWeeklySummaryReport(sapDepartmentId, request);
 
         await DispatchAsync(command);
 

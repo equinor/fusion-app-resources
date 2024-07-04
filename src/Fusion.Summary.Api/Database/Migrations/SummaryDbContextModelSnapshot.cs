@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Fusion.Summary.Api.Migrations
+namespace Fusion.Summary.Api.Database.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
     partial class SummaryDbContextModelSnapshot : ModelSnapshot
@@ -39,7 +39,7 @@ namespace Fusion.Summary.Api.Migrations
                     b.ToTable("Departments", (string)null);
                 });
 
-            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbSummaryReport", b =>
+            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklySummaryReport", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -84,24 +84,19 @@ namespace Fusion.Summary.Api.Migrations
                     b.Property<DateTime>("Period")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PeriodType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<string>("ProjectChangesAffectingNextThreeMonths")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DepartmentSapId", "PeriodType", "Period")
+                    b.HasIndex("DepartmentSapId", "Period")
                         .IsUnique();
 
-                    b.ToTable("SummaryReports", (string)null);
+                    b.ToTable("WeeklySummaryReports", (string)null);
                 });
 
-            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbSummaryReport", b =>
+            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklySummaryReport", b =>
                 {
                     b.OwnsMany("Fusion.Summary.Api.Database.Models.DbEndingPosition", "PositionsEnding", b1 =>
                         {
@@ -116,17 +111,17 @@ namespace Fusion.Summary.Api.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid>("SummaryReportId")
+                            b1.Property<Guid>("WeeklySummaryReportsId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.HasKey("Id");
 
-                            b1.HasIndex("SummaryReportId");
+                            b1.HasIndex("WeeklySummaryReportsId");
 
                             b1.ToTable("PersonnelMoreThan100PercentFTEs", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("SummaryReportId");
+                                .HasForeignKey("WeeklySummaryReportsId");
                         });
 
                     b.OwnsMany("Fusion.Summary.Api.Database.Models.DbPersonnelMoreThan100PercentFTE", "PersonnelMoreThan100PercentFTE", b1 =>
@@ -142,17 +137,17 @@ namespace Fusion.Summary.Api.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid>("SummaryReportId")
+                            b1.Property<Guid>("WeeklySummaryReportsId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.HasKey("Id");
 
-                            b1.HasIndex("SummaryReportId");
+                            b1.HasIndex("WeeklySummaryReportsId");
 
                             b1.ToTable("EndingPositions", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("SummaryReportId");
+                                .HasForeignKey("WeeklySummaryReportsId");
                         });
 
                     b.Navigation("PersonnelMoreThan100PercentFTE");

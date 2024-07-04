@@ -2,11 +2,10 @@
 
 namespace Fusion.Summary.Api.Database.Models;
 
-public class DbSummaryReport
+public class DbWeeklySummaryReport
 {
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
-    public required DbSummaryReportPeriod PeriodType { get; set; }
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
@@ -23,14 +22,11 @@ public class DbSummaryReport
 
     internal static void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<DbSummaryReport>(report =>
+        const string tableName = "WeeklySummaryReports";
+        modelBuilder.Entity<DbWeeklySummaryReport>(report =>
         {
-            report.ToTable("SummaryReports");
+            report.ToTable(tableName);
             report.HasKey(r => r.Id);
-
-            report.Property(r => r.PeriodType)
-                .HasConversion<string>()
-                .HasMaxLength(20);
 
             report.Property(r => r.Period)
                 // Strip time from date and retrieve as UTC
@@ -38,19 +34,19 @@ public class DbSummaryReport
                     d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
 
 
-            report.HasIndex(r => new { r.DepartmentSapId, r.PeriodType, r.Period })
+            report.HasIndex(r => new { r.DepartmentSapId, r.Period })
                 .IsUnique();
 
             report.OwnsMany(r => r.PositionsEnding, pe =>
             {
-                pe.WithOwner().HasForeignKey("SummaryReportId");
+                pe.WithOwner().HasForeignKey($"{tableName}Id");
                 pe.HasKey("Id");
                 pe.ToTable("PersonnelMoreThan100PercentFTEs");
             });
 
             report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE, pm =>
             {
-                pm.WithOwner().HasForeignKey("SummaryReportId");
+                pm.WithOwner().HasForeignKey($"{tableName}Id");
                 pm.HasKey("Id");
                 pm.ToTable("EndingPositions");
             });
@@ -70,9 +66,4 @@ public class DbEndingPosition
     public required Guid Id { get; set; }
     public required string FullName { get; set; }
     public required DateTime EndDate { get; set; }
-}
-
-public enum DbSummaryReportPeriod
-{
-    Weekly
 }

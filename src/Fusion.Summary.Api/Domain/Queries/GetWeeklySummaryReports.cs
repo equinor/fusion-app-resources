@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Queries;
 
-public class GetSummaryReports : IRequest<QueryCollection<QuerySummaryReport>>
+public class GetWeeklySummaryReports : IRequest<QueryCollection<QueryWeeklySummaryReport>>
 {
-    public GetSummaryReports(string sapDepartmentId, ODataQueryParams query)
+    public GetWeeklySummaryReports(string sapDepartmentId, ODataQueryParams query)
     {
         Query = query;
         SapDepartmentId = sapDepartmentId;
@@ -20,7 +20,7 @@ public class GetSummaryReports : IRequest<QueryCollection<QuerySummaryReport>>
     public ODataQueryParams Query { get; private set; }
 
 
-    public class Handler : IRequestHandler<GetSummaryReports, QueryCollection<QuerySummaryReport>>
+    public class Handler : IRequestHandler<GetWeeklySummaryReports, QueryCollection<QueryWeeklySummaryReport>>
     {
         private readonly SummaryDbContext _dbcontext;
 
@@ -29,27 +29,27 @@ public class GetSummaryReports : IRequest<QueryCollection<QuerySummaryReport>>
             _dbcontext = dbcontext;
         }
 
-        public async Task<QueryCollection<QuerySummaryReport>> Handle(GetSummaryReports request,
+        public async Task<QueryCollection<QueryWeeklySummaryReport>> Handle(GetWeeklySummaryReports request,
             CancellationToken cancellationToken)
         {
-            var getReportQuery = _dbcontext.SummaryReports.Where(r => r.DepartmentSapId == request.SapDepartmentId);
+            var getReportQuery = _dbcontext.WeeklySummaryReports
+                .Where(r => r.DepartmentSapId == request.SapDepartmentId);
 
             if (request.Query.HasFilter)
             {
                 getReportQuery = getReportQuery.ApplyODataFilters(request.Query, m =>
                 {
-                    m.MapField(nameof(ApiSummaryReport.PeriodType), r => r.PeriodType);
-                    m.MapField(nameof(ApiSummaryReport.Period), r => r.Period);
-                    m.MapField(nameof(ApiSummaryReport.PersonnelMoreThan100PercentFTE),
+                    m.MapField(nameof(ApiWeeklySummaryReport.Period), r => r.Period);
+                    m.MapField(nameof(ApiWeeklySummaryReport.PersonnelMoreThan100PercentFTE),
                         r => r.PersonnelMoreThan100PercentFTE);
-                    m.MapField(nameof(ApiSummaryReport.PositionsEnding), r => r.PositionsEnding);
+                    m.MapField(nameof(ApiWeeklySummaryReport.PositionsEnding), r => r.PositionsEnding);
                 });
             }
 
             getReportQuery = getReportQuery.ApplyODataSorting(request.Query, m =>
             {
-                m.MapField(nameof(ApiSummaryReport.Id), r => r.Id);
-                m.MapField(nameof(ApiSummaryReport.Period), r => r.Period);
+                m.MapField(nameof(ApiWeeklySummaryReport.Id), r => r.Id);
+                m.MapField(nameof(ApiWeeklySummaryReport.Period), r => r.Period);
             }, q => q.OrderByDescending(p => p.Period).ThenBy(p => p.Id));
 
             var totalCount = await getReportQuery.CountAsync(cancellationToken: cancellationToken);
@@ -62,7 +62,8 @@ public class GetSummaryReports : IRequest<QueryCollection<QuerySummaryReport>>
                 .ToListAsync(cancellationToken: cancellationToken);
 
 
-            return new QueryCollection<QuerySummaryReport>(reports.Select(QuerySummaryReport.FromDbSummaryReport))
+            return new QueryCollection<QueryWeeklySummaryReport>(
+                reports.Select(QueryWeeklySummaryReport.FromDbSummaryReport))
             {
                 Skip = skip,
                 Top = top,

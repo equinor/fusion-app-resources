@@ -2,11 +2,10 @@
 
 namespace Fusion.Summary.Api.Domain.Models;
 
-public class QuerySummaryReport
+public class QueryWeeklySummaryReport
 {
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
-    public required SummaryReportPeriod PeriodType { get; set; }
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
@@ -22,26 +21,25 @@ public class QuerySummaryReport
     public required List<PersonnelMoreThan100PercentFTE> PersonnelMoreThan100PercentFTE { get; set; }
 
 
-    public static QuerySummaryReport FromDbSummaryReport(DbSummaryReport dbSummaryReport)
+    public static QueryWeeklySummaryReport FromDbSummaryReport(DbWeeklySummaryReport dbWeeklySummaryReport)
     {
-        return new QuerySummaryReport
+        return new QueryWeeklySummaryReport
         {
-            Id = dbSummaryReport.Id,
-            DepartmentSapId = dbSummaryReport.DepartmentSapId,
-            PeriodType = Enum.Parse<SummaryReportPeriod>(dbSummaryReport.PeriodType.ToString()),
-            Period = dbSummaryReport.Period,
-            NumberOfPersonnel = dbSummaryReport.NumberOfPersonnel,
-            CapacityInUse = dbSummaryReport.CapacityInUse,
-            NumberOfRequestsLastPeriod = dbSummaryReport.NumberOfRequestsLastPeriod,
-            NumberOfOpenRequests = dbSummaryReport.NumberOfOpenRequests,
+            Id = dbWeeklySummaryReport.Id,
+            DepartmentSapId = dbWeeklySummaryReport.DepartmentSapId,
+            Period = dbWeeklySummaryReport.Period,
+            NumberOfPersonnel = dbWeeklySummaryReport.NumberOfPersonnel,
+            CapacityInUse = dbWeeklySummaryReport.CapacityInUse,
+            NumberOfRequestsLastPeriod = dbWeeklySummaryReport.NumberOfRequestsLastPeriod,
+            NumberOfOpenRequests = dbWeeklySummaryReport.NumberOfOpenRequests,
             NumberOfRequestsStartingInLessThanThreeMonths =
-                dbSummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
+                dbWeeklySummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
             NumberOfRequestsStartingInMoreThanThreeMonths =
-                dbSummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
-            AverageTimeToHandleRequests = dbSummaryReport.AverageTimeToHandleRequests,
-            AllocationChangesAwaitingTaskOwnerAction = dbSummaryReport.AllocationChangesAwaitingTaskOwnerAction,
-            ProjectChangesAffectingNextThreeMonths = dbSummaryReport.ProjectChangesAffectingNextThreeMonths,
-            PositionsEnding = dbSummaryReport.PositionsEnding
+                dbWeeklySummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
+            AverageTimeToHandleRequests = dbWeeklySummaryReport.AverageTimeToHandleRequests,
+            AllocationChangesAwaitingTaskOwnerAction = dbWeeklySummaryReport.AllocationChangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = dbWeeklySummaryReport.ProjectChangesAffectingNextThreeMonths,
+            PositionsEnding = dbWeeklySummaryReport.PositionsEnding
                 .Select(pe => new EndingPosition()
                 {
                     Id = pe.Id,
@@ -49,7 +47,7 @@ public class QuerySummaryReport
                     EndDate = pe.EndDate
                 })
                 .ToList(),
-            PersonnelMoreThan100PercentFTE = dbSummaryReport.PersonnelMoreThan100PercentFTE
+            PersonnelMoreThan100PercentFTE = dbWeeklySummaryReport.PersonnelMoreThan100PercentFTE
                 .Select(pm => new PersonnelMoreThan100PercentFTE()
                 {
                     Id = pm.Id,
@@ -60,13 +58,12 @@ public class QuerySummaryReport
         };
     }
 
-    public DbSummaryReport ToDbSummaryReport()
+    public DbWeeklySummaryReport ToDbSummaryReport()
     {
-        return new DbSummaryReport()
+        return new DbWeeklySummaryReport()
         {
             Id = Id,
             DepartmentSapId = DepartmentSapId,
-            PeriodType = Enum.Parse<DbSummaryReportPeriod>(PeriodType.ToString()),
             Period = Period,
             NumberOfPersonnel = NumberOfPersonnel,
             CapacityInUse = CapacityInUse,
@@ -111,9 +108,4 @@ public class EndingPosition
     public required Guid Id { get; set; }
     public required string FullName { get; set; }
     public required DateTime EndDate { get; set; }
-}
-
-public enum SummaryReportPeriod
-{
-    Weekly
 }

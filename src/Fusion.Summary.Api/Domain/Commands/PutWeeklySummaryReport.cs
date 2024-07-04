@@ -6,21 +6,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Commands;
 
-public class PutSummaryReport : IRequest
+public class PutWeeklySummaryReport : IRequest
 {
     public string SapDepartmentId { get; private set; }
 
     // Using api model to reduce repetitive code
     public PutSummaryReportRequest SummaryReport { get; private set; }
 
-    public PutSummaryReport(string sapDepartmentId, PutSummaryReportRequest summaryReport)
+    public PutWeeklySummaryReport(string sapDepartmentId, PutSummaryReportRequest summaryReport)
     {
         SapDepartmentId = sapDepartmentId;
         SummaryReport = summaryReport;
     }
 
 
-    public class Handler : IRequestHandler<PutSummaryReport>
+    public class Handler : IRequestHandler<PutWeeklySummaryReport>
     {
         private readonly SummaryDbContext _dbContext;
 
@@ -29,7 +29,7 @@ public class PutSummaryReport : IRequest
             _dbContext = dbContext;
         }
 
-        public async Task Handle(PutSummaryReport request, CancellationToken cancellationToken)
+        public async Task Handle(PutWeeklySummaryReport request, CancellationToken cancellationToken)
         {
             if (await _dbContext.Departments.AnyAsync(d => d.DepartmentSapId == request.SapDepartmentId,
                     cancellationToken: cancellationToken))
@@ -37,21 +37,19 @@ public class PutSummaryReport : IRequest
 
 
             // As this is a put operation, replace existing one if it exists
-            var existingReport = await _dbContext.SummaryReports.FirstOrDefaultAsync(r =>
+            var existingReport = await _dbContext.WeeklySummaryReports.FirstOrDefaultAsync(r =>
                 r.DepartmentSapId == request.SapDepartmentId &&
-                r.PeriodType.ToString() == request.SummaryReport.PeriodType.ToString() &&
                 r.Period.Date == request.SummaryReport.Period.Date,
                 cancellationToken: cancellationToken);
 
 
             if (existingReport is not null)
-                _dbContext.SummaryReports.Remove(existingReport);
+                _dbContext.WeeklySummaryReports.Remove(existingReport);
 
-            var dbSummaryReport = new DbSummaryReport()
+            var dbSummaryReport = new DbWeeklySummaryReport()
             {
                 Id = existingReport?.Id ?? Guid.NewGuid(),
                 DepartmentSapId = request.SapDepartmentId,
-                PeriodType = Enum.Parse<DbSummaryReportPeriod>(request.SummaryReport.PeriodType.ToString()),
                 Period = request.SummaryReport.Period.Date,
                 NumberOfPersonnel = request.SummaryReport.NumberOfPersonnel,
                 CapacityInUse = request.SummaryReport.CapacityInUse,
@@ -83,7 +81,7 @@ public class PutSummaryReport : IRequest
                     .ToList()
             };
 
-            _dbContext.SummaryReports.Add(dbSummaryReport);
+            _dbContext.WeeklySummaryReports.Add(dbSummaryReport);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
