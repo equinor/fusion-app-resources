@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 
@@ -10,25 +11,27 @@ public class Utils
     /// <summary>
     /// Check if there are any obvious problems with the token, and give some convenience debug output to the console.
     /// </summary>
-    public static void AnalyseToken(string token)
+    public static void AnalyseToken(ILogger logger, string token)
     {
         try
         {
+            using var scope = logger.BeginScope("Analyse token");
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenContent = tokenHandler.ReadJwtToken(token);
 
-            Console.WriteLine($"-- Token | object id: {tokenContent.Claims.FirstOrDefault(c => c.Type == "oid")?.Value}");
+            logger.LogInformation($"object id: {tokenContent.Claims.FirstOrDefault(c => c.Type == "oid")?.Value}");
 
             var requiredRole = tokenContent.Claims.FirstOrDefault(c => c.Type == "roles" && c.Value == "Fusion.Infrastructure.Database.Manage");
             var roles = string.Join(", ", tokenContent.Claims.Where(c => c.Type == "roles").Select(c => c.Value));
             if (requiredRole is null)
             {
-                Console.WriteLine($"-- Token | warning: Could not locate the role [Fusion.Infrastructure.Database.Manage]. Might be missing permissions?");
-                Console.WriteLine($"-- Token | roles: {roles}");
+                logger.LogWarning($"Could not locate the role [Fusion.Infrastructure.Database.Manage]. Might be missing permissions?");
+                logger.LogWarning($"roles: {roles}");
             }
         } catch
         {
-            Console.WriteLine("# WARN - Could not read token to analyse");
+            logger.LogWarning("Could not read token to analyse");
         }
     }
 

@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Fusion.Infra.Cli.Tests
 {
@@ -141,5 +143,55 @@ namespace Fusion.Infra.Cli.Tests
             request!.Request?.SqlPermission?.Contributors.Should().Contain($"{sp.Id}");
         }
 
+        [Fact]
+        public async Task GetTokenCommand_Should_OnlyOutputToken_WhenSuccessfull()
+        {
+            var tokenResource = "https://test.com";
+            var tokenResponse = "ey123=";
+
+            var tokenProvider = new Moq.Mock<ITokenProvider>();
+            tokenProvider.Setup(t => t.GetAccessToken(tokenResource)).ReturnsAsync(new Azure.Core.AccessToken(tokenResponse, DateTimeOffset.Now));
+
+            var testCommand = new TestCommandBuilder()
+                .WithConfigureServices(s =>
+                {
+                    s.AddSingleton<ITokenProvider>(tokenProvider.Object);
+                });
+
+            var textWriter = new StringWriter();
+            Console.SetOut(textWriter);
+
+            var result = await testCommand.ExecuteCommand($"get-token -r {tokenResource}");
+
+            var content = textWriter.ToString();
+            content.TrimEnd().Should().Be(tokenResponse);
+
+        }
+
+        [Fact]
+        public async Task GetTokenCommand_Should_LogToConsole_WhenError()
+        {
+            var tokenProvider = new Moq.Mock<ITokenProvider>();
+            tokenProvider.Setup(t => t.GetAccessToken(It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("Test token failed..."));
+
+            var testCommand = new TestCommandBuilder()
+                .WithConfigureServices(s =>
+                {
+                    s.AddSingleton<ITokenProvider>(tokenProvider.Object);
+                });
+
+            var textWriter = new StringWriter();
+            Console.SetOut(textWriter);
+
+            try
+            {
+                var result = await testCommand.ExecuteCommand($"get-token -r https://test.com");
+            }
+            catch (InvalidOperationException) { /* ignore */ }
+
+            var content = textWriter.ToString();
+            content.Should().Contain("Test token failed...", because: "Exception error message should be logger");
+
+        }
     }
 }

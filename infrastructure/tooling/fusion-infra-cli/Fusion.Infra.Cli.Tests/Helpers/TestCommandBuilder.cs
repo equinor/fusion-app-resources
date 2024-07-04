@@ -15,6 +15,7 @@ namespace Fusion.Infra.Cli.Tests
 
         public TestAccountResolver AccountResolver { get; set; } = new TestAccountResolver();
 
+        private Action<IServiceCollection>? customServiceSetup = null;
 
         public async Task<TestCommandExecutionResult> ExecuteCommand(string command)
         {
@@ -27,6 +28,8 @@ namespace Fusion.Infra.Cli.Tests
                 s.AddSingleton<IFileLoader>(FileContent);
                 s.AddSingleton<IAccountResolver>(AccountResolver);
                 s.AddSingleton<ITokenProvider, TestTokenProvider>();
+
+                customServiceSetup?.Invoke(s);
             });
 
             // Replace any quoted blocks with a single string without space.
@@ -57,6 +60,12 @@ namespace Fusion.Infra.Cli.Tests
                 CommandResult = result,
                 Operations = MessageHandler.Operations.ToList()
             };
+        }
+
+        public TestCommandBuilder WithConfigureServices(Action<IServiceCollection> setup)
+        {
+            this.customServiceSetup = setup;
+            return this;
         }
 
         public void ClearOperations()

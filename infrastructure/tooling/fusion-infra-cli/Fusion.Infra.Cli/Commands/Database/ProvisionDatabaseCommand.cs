@@ -155,7 +155,7 @@ namespace Fusion.Infra.Cli.Commands.Database
             if (!string.IsNullOrEmpty(AccessToken))
             {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", AccessToken);
-                Utils.AnalyseToken(AccessToken);
+                Utils.AnalyseToken(logger, AccessToken);
             }
         }
 
