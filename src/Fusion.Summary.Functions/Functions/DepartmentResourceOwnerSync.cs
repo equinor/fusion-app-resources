@@ -29,11 +29,12 @@ public class DepartmentResourceOwnerSync
         var departments = await lineOrgApiClient.GetOrgUnitDepartmentsAsync();
 
         var selectedDepartments = departments
-            .Where(d => d.FullDepartment != null).Distinct().ToList();
+            .Where(d => d.FullDepartment != null).DistinctBy(d => d.SapId).ToList();
 
         if (!selectedDepartments.Any())
             throw new Exception("No departments found.");
 
+        // TODO: Retrieving resource-owners wil be refactored later
         var resourceOwners = new List<LineOrgPerson>();
         foreach (var orgUnitsChunk in selectedDepartments.Chunk(10))
         {
