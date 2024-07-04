@@ -8,7 +8,11 @@ public interface ISummaryApiClient
     public Task<ICollection<ApiResourceOwnerDepartment>> GetDepartmentsAsync(
         CancellationToken cancellationToken = default);
 
-    public Task<ApiSummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
+    /// <summary>
+    ///     Get the latest weekly summary report for a department. The report is based on the last Sunday from the current
+    ///     date.
+    /// </summary>
+    public Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default);
 }
 
@@ -32,13 +36,14 @@ public class ApiResourceOwnerDepartment
     public Guid ResourceOwnerAzureUniqueId { get; init; }
 }
 
-public record ApiSummaryReport
+public record ApiCollection<T>(ICollection<T> Items);
+
+public record ApiWeeklySummaryReport
 {
     private const string MissingValue = "-";
 
     public Guid Id { get; set; }
     public string DepartmentSapId { get; set; } = MissingValue;
-    public string PeriodType { get; set; } = MissingValue;
     public DateTime Period { get; set; }
     public string NumberOfPersonnel { get; set; } = MissingValue;
     public string CapacityInUse { get; set; } = MissingValue;

@@ -53,14 +53,6 @@ public class WeeklyReportSender
                 return;
             }
 
-            if (summaryReport.PeriodType != "Weekly")
-            {
-                logger.LogWarning(
-                    "Summary report for department {@Department} is not a weekly report. Skipping notification",
-                    department);
-                return;
-            }
-
             var notification = CreateNotification(summaryReport, department);
 
             await notificationApiClient.SendNotification(notification, department.ResourceOwnerAzureUniqueId);
@@ -68,7 +60,8 @@ public class WeeklyReportSender
     }
 
 
-    private SendNotificationsRequest CreateNotification(ApiSummaryReport report, ApiResourceOwnerDepartment department)
+    private SendNotificationsRequest CreateNotification(ApiWeeklySummaryReport report,
+        ApiResourceOwnerDepartment department)
     {
         var personnelAllocationUri = $"{GetPortalUri()}apps/personnel-allocation/{department.DepartmentSapId}";
         var endingPositionsObjectList = report.PositionsEnding
