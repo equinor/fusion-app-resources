@@ -124,6 +124,9 @@ public class DepartmentsController : BaseController
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
             return BadRequest("SapDepartmentId route parameter is required");
 
+        if (await ResolvePersonAsync(request.ResourceOwnerAzureUniqueId) is null)
+            return BadRequest("Resource owner not found in azure ad");
+
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department exist
