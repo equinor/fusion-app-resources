@@ -60,7 +60,6 @@ public class ScheduledReportContentBuilderFunction
             if (string.IsNullOrEmpty(dto.FullDepartment))
                 throw new Exception("FullDepartmentIdentifier not valid.");
 
-
             await BuildContentForResourceOwner(dto.AzureUniqueId, dto.FullDepartment, dto.DepartmentSapId);
 
             _logger.LogInformation(
@@ -110,22 +109,7 @@ public class ScheduledReportContentBuilderFunction
                 continue;
             }
 
-            var sendNotification = await _notificationsClient.SendNotification(
-                new SendNotificationsRequest
-                {
-                    Title = $"Weekly summary - {fullDepartment}",
-                    EmailPriority = 1,
-                    Card = card,
-                    Description = $"Weekly report for department - {fullDepartment}"
-                },
-                azureUniqueId);
-
-            // Throwing exception if the response is not successful.
-            if (!sendNotification)
-            {
-                throw new Exception(
-                    $"Failed to send notification to resource-owner with AzureUniqueId: '{azureUniqueId}'.");
-            }
+            await SendNotification(fullDepartment, card, azureUniqueId);
         }
     }
 
@@ -255,6 +239,26 @@ public class ScheduledReportContentBuilderFunction
             .Build();
 
         return card;
+    }
+
+    private async Task SendNotification(string fullDepartment, AdaptiveCard card, Guid azureUniqueId)
+    {
+        var sendNotification = await _notificationsClient.SendNotification(
+                new SendNotificationsRequest
+                {
+                    Title = $"Weekly summary - {fullDepartment}",
+                    EmailPriority = 1,
+                    Card = card,
+                    Description = $"Weekly report for department - {fullDepartment}"
+                },
+                azureUniqueId);
+
+        // Throwing exception if the response is not successful.
+        if (!sendNotification)
+        {
+            throw new Exception(
+                $"Failed to send notification to resource-owner with AzureUniqueId: '{azureUniqueId}'.");
+        }
     }
 
     private string PortalUri()

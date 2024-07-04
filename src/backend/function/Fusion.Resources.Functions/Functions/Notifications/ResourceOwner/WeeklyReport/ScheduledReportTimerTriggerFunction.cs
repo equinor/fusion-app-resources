@@ -83,6 +83,7 @@ public class ScheduledReportTimerTriggerFunction
             // Query departments from LineOrg
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
                 .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
+                .Where(d => d.FullDepartment.Contains("PRD"))
                 .Where(x => x.Management?.Persons.Length > 0);            // Exclude departments with no receivers
 
             // Group OrgUnits by FullDepartment and join the Person arrays together
@@ -105,6 +106,11 @@ public class ScheduledReportTimerTriggerFunction
 
             // Calculate batch time based of total number of departments and the allowed run time
             var batchTimeInMinutes = CalculateBatchTime(totalBatchTimeInMinutes, groupedDepartments.Count);
+
+            var totalNumberOfDepartments = groupedDepartments.Count;
+            int totalNumberOfRecipients = groupedDepartments.Sum(orgUnit => orgUnit.Management.Persons.Length);
+
+            _logger.LogInformation($"With {totalNumberOfDepartments} departments it's going to send notification to {totalNumberOfRecipients} recipients");
 
             // Send the queue for processing
 
