@@ -34,6 +34,7 @@
                 "enabledForTemplateDeployment": false,
                 "enabledForDiskEncryption": false,
                 "enableRbacAuthorization": false,
+                "enableSoftDelete": true,
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
                     {
