@@ -23,10 +23,9 @@ public class SummaryReportsController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ODataFilter(nameof(ApiWeeklySummaryReport.Period), nameof(ApiWeeklySummaryReport.PositionsEnding),
-        nameof(ApiWeeklySummaryReport.PersonnelMoreThan100PercentFTE))]
+    [ODataFilter(nameof(ApiWeeklySummaryReport.Period))]
     [ODataOrderBy(nameof(ApiWeeklySummaryReport.Period), nameof(ApiWeeklySummaryReport.Id))]
-    [ODataTop(1000), ODataSkip]
+    [ODataTop(100), ODataSkip]
     [ApiVersion("1.0")]
     public async Task<ActionResult<ApiCollection<ApiWeeklySummaryReport>>> GetWeeklySummaryReportsV1(
         [FromRoute] string sapDepartmentId, ODataQueryParams query)
@@ -53,8 +52,8 @@ public class SummaryReportsController : BaseController
 
         var queryReports = await DispatchAsync(new GetWeeklySummaryReports(sapDepartmentId, query));
 
-        return Ok(new ApiCollection<ApiWeeklySummaryReport>(
-            queryReports.Select(ApiWeeklySummaryReport.FromQuerySummaryReport)));
+        return Ok(ApiCollection<ApiWeeklySummaryReport>
+            .FromQueryCollection(queryReports, ApiWeeklySummaryReport.FromQuerySummaryReport));
     }
 
     [HttpPut("summary-reports/{sapDepartmentId}/weekly")]

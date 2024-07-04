@@ -33,17 +33,15 @@ public class GetWeeklySummaryReports : IRequest<QueryCollection<QueryWeeklySumma
             CancellationToken cancellationToken)
         {
             var getReportQuery = _dbcontext.WeeklySummaryReports
-                .Where(r => r.DepartmentSapId == request.SapDepartmentId);
+                .Where(r => r.DepartmentSapId == request.SapDepartmentId)
+                .AsNoTracking()
+                .IgnoreAutoIncludes()
+                .AsSplitQuery();
 
             if (request.Query.HasFilter)
             {
-                getReportQuery = getReportQuery.ApplyODataFilters(request.Query, m =>
-                {
-                    m.MapField(nameof(ApiWeeklySummaryReport.Period), r => r.Period);
-                    m.MapField(nameof(ApiWeeklySummaryReport.PersonnelMoreThan100PercentFTE),
-                        r => r.PersonnelMoreThan100PercentFTE);
-                    m.MapField(nameof(ApiWeeklySummaryReport.PositionsEnding), r => r.PositionsEnding);
-                });
+                getReportQuery = getReportQuery.ApplyODataFilters(request.Query,
+                    m => { m.MapField(nameof(ApiWeeklySummaryReport.Period), r => r.Period); });
             }
 
             getReportQuery = getReportQuery.ApplyODataSorting(request.Query, m =>

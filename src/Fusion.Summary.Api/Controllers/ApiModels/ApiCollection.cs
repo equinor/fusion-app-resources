@@ -3,24 +3,23 @@ using Fusion.Summary.Api.Domain.Queries.Base;
 
 namespace Fusion.Summary.Api.Controllers.ApiModels;
 
-public class ApiCollection<T>
+public class ApiCollection<TApiModel>
 {
     public ApiCollection()
     {
-        Items = Array.Empty<T>();
+        Items = Array.Empty<TApiModel>();
     }
 
-    public ApiCollection(IEnumerable<T> items)
+    public static ApiCollection<TApiModel> FromQueryCollection<TQueryModel>(
+        QueryCollection<TQueryModel> queryCollection, Func<TQueryModel, TApiModel> transformationFunc)
     {
-        Items = items.ToArray();
-    }
-
-    public ApiCollection(QueryCollection<T> queryCollection)
-    {
-        Items = queryCollection.ToArray();
-        Top = queryCollection.Top;
-        Skip = queryCollection.Skip;
-        TotalCount = queryCollection.TotalCount;
+        return new ApiCollection<TApiModel>()
+        {
+            Items = queryCollection.Select(transformationFunc).ToArray(),
+            Top = queryCollection.Top,
+            Skip = queryCollection.Skip,
+            TotalCount = queryCollection.TotalCount
+        };
     }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -37,5 +36,5 @@ public class ApiCollection<T>
         ? TotalCount > Skip + Top
         : null;
 
-    public ICollection<T> Items { get; set; }
+    public ICollection<TApiModel> Items { get; set; }
 }
