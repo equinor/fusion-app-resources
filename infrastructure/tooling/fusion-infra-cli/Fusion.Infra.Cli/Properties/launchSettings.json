@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Fusion.Infra.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "database provision -e test"
-    }
-  }
-}

@@ -42,30 +42,6 @@ steps:
       ScriptPath: infrastructure/scripts/grant-adapp-sql-access.ps1
       ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
 
-  - script: |
-      dotnet restore infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-      dotnet pack infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/Fusion.Infra.Cli.csproj
-      dotnet tool install -g --add-source infrastructure/tooling/fusion-infra-cli/Fusion.Infra.Cli/nupkg fusion.infra.cli
-      
-    displayName: "Install fusion infra cli tool"
-
-  - task: AzureCLI@2
-    displayName: Create database
-    inputs:
-      azureSubscription: ${{ parameters.azureSubscription }}
-      scriptType: pscore
-      scriptLocation: inlineScript        
-      inlineScript: |
-        $items = Get-ChildItem Env: | Select-Object Name, Value
-        ConvertTo-Json $items
-
-        finf database provision `
-          --url https://ci.infrasupport.api.fusion-dev.net/ `
-          -f ./src/backend/infrastructure/fusion-db-config.json `
-          -e "${{ parameters.environment }}" `
-          --sql-contributor-client-id ${{ parameters.clientId }}
-
-
   - task: AzurePowerShell@5
     displayName: 'Deploy ARM template'
     inputs:
