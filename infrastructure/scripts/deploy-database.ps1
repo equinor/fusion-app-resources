@@ -1,6 +1,7 @@
 param(
     [string]$environment,
-    [string]$sqlServerName
+    [string]$sqlServerName,
+    [string]$database    
 )
 
 Write-Host "Starting deployment of sql server"
@@ -31,7 +32,12 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-data
     -sqlserver_name $server.Name `
     -sql-elastic-pool-id $pool.ResourceId
 
+
 $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=Fusion-Apps-Resources-$environment-DB;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+$summaryConnectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=sqldb-fapp-fra-summary-db-$environment;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
 Write-Host "##vso[task.setvariable variable=SqlConnectionString]$connectionString" 
 Write-Host "##vso[task.setvariable variable=SqlDatabaseName]Fusion-Apps-Resources-$environment-DB"
 
+Write-Host "##vso[task.setvariable variable=SummarySqlConnectionString]$summaryConnectionString" 
+Write-Host "##vso[task.setvariable variable=SummarySqlDatabaseName]sqldb-fapp-fra-summary-db-$environment"

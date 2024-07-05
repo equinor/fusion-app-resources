@@ -15,7 +15,8 @@ Write-Host "Deploying template"
 
 New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-environment" -ResourceGroupName $resourceGroup -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/infrastructure/arm/environment.template.json" `
     -env-name $environment `
-    -sql-connection-string $env:SQLCONNECTIONSTRING
+    -sql-connection-string $env:SQLCONNECTIONSTRING `
+    -summary-sql-connection-string $env:SUMMARYSQLCONNECTIONSTRING
 
 Write-Host "Setting service principal key vault access"
 $spName = (Get-AzContext).Account.Id
