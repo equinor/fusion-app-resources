@@ -1,7 +1,7 @@
 param(
     [string]$environment,
     [string]$sqlServerName,
-    [string]$database    
+    [string]$database
 )
 
 Write-Host "Starting deployment of sql server"
@@ -18,6 +18,9 @@ if ($null -eq $server) {
   throw "Could not locate any sql servers"
 }
 
+$fcoreEnv = "test"
+if ($environment -eq "fprd") { $fcoreEnv = "prod" }
+
 $sqlServer = Get-AzSqlServer -ResourceGroupName $server.ResourceGroupName -ServerName $server.Name
 
 $ePools = Get-AzSqlElasticPool -ServerName $sqlServer.ServerName -ResourceGroupName $sqlServer.ResourceGroupName
@@ -30,7 +33,8 @@ if ($ePools.Length -gt 1) {
 New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database-$environment" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/infrastructure/arm/database.template.json" `
     -env-name $environment `
     -sqlserver_name $server.Name `
-    -sql-elastic-pool-id $pool.ResourceId
+    -sql-elastic-pool-id $pool.ResourceId `
+    -fcore-env $fcoreEnv
 
 
 $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=Fusion-Apps-Resources-$environment-DB;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
