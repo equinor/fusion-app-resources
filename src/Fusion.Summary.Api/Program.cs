@@ -22,7 +22,6 @@ var databaseConnectionString = builder.Configuration.GetConnectionString("Databa
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
-builder.Services.AddSwaggerGen();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

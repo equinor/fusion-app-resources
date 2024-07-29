@@ -154,7 +154,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             app.MapWhen(SwaggerAuthMiddleware.IsSwaggerUiPath, b =>
             {
-                b.UseMiddleware<SwaggerAuthMiddleware>();
                 b.UseSwagger();
                 b.UseSwaggerUI(c =>
                 {
