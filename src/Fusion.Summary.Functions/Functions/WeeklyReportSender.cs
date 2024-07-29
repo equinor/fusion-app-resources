@@ -102,7 +102,6 @@ public class WeeklyReportSender
             })
             .ToList();
 
-        // TODO: Is this in days?
         var averageTimeToHandleRequests = TimeSpan.TryParse(report.AverageTimeToHandleRequests, out var timeSpan)
             ? timeSpan.Days
             : int.Parse(report.AverageTimeToHandleRequests);
