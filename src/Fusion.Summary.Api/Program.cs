@@ -46,6 +46,7 @@ builder.Services.AddSwagger(builder.Configuration);
 
 builder.Services.AddFusionIntegration(f =>
 {
+    f.AddFusionAuthorization();
     f.UseServiceInformation("Fusion.Summary.Api", "Dev");
     f.UseDefaultEndpointResolver(fusionEnvironment ?? "ci");
     f.UseDefaultTokenProvider(opts =>
