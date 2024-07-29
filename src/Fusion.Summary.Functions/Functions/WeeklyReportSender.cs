@@ -58,7 +58,16 @@ public class WeeklyReportSender
                 return;
             }
 
-            var notification = CreateNotification(summaryReport, department);
+            SendNotificationsRequest notification;
+            try
+            {
+                notification = CreateNotification(summaryReport, department);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to create notification for department {@Department}", department);
+                throw;
+            }
 
             await notificationApiClient.SendNotification(notification, department.ResourceOwnerAzureUniqueId);
         });

@@ -44,19 +44,13 @@ public class SummaryApiClient : ISummaryApiClient
                ?? Array.Empty<ApiResourceOwnerDepartment>();
     }
 
-    private static DateTime GetLastSunday(DateTime date)
-    {
-        var daysUntilSunday = (int)date.DayOfWeek;
-        return date.AddDays(-daysUntilSunday);
-    }
-
     public async Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default)
     {
-        var lastSunday = GetLastSunday(DateTime.UtcNow);
+        var lastMonday = GetCurrentOrLastMondayDate();
 
         var queryString =
-            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastSunday.Date:O}'&$top=1";
+            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
 
         using var response = await summaryClient.GetAsync(queryString, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -67,5 +61,23 @@ public class SummaryApiClient : ISummaryApiClient
         return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklySummaryReport>>(contentStream,
             jsonSerializerOptions,
             cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
+    }
+
+    private static DateTime GetCurrentOrLastMondayDate()
+    {
+        var date = DateTime.UtcNow;
+        switch (date.DayOfWeek)
+        {
+            case DayOfWeek.Monday:
+                return date;
+            case DayOfWeek.Sunday:
+                return date.AddDays(-6);
+            default:
+            {
+                var daysUntilMonday = (int)date.DayOfWeek - 1;
+
+                return date.AddDays(-daysUntilMonday);
+            }
+        }
     }
 }
