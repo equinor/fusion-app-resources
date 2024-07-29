@@ -52,6 +52,17 @@ public class DepartmentResourceOwnerSync
                 ApiResourceOwnerDepartment(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
                     Guid.Parse(resourceOwner.AzureUniqueId)));
 
-        await summaryApiClient.PutDepartmentsAsync(resourceOwnerDepartments, cancellationToken);
+
+        var parallelOptions = new ParallelOptions()
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = 10,
+        };
+
+        await Parallel.ForEachAsync(resourceOwnerDepartments, parallelOptions,
+            async (ownerDepartment, token) =>
+            {
+                await summaryApiClient.PutDepartmentAsync(ownerDepartment, token);
+            });
     }
 }

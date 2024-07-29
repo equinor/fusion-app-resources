@@ -2,7 +2,7 @@
 
 public interface ISummaryApiClient
 {
-    public Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartment> departments,
+    public Task PutDepartmentAsync(ApiResourceOwnerDepartment departments,
         CancellationToken cancellationToken = default);
 
     public Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(

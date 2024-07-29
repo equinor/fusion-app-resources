@@ -3,7 +3,6 @@ using Fusion.Resources.Functions.Common.Integration.Http;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
 
-
 public class SummaryApiClient : ISummaryApiClient
 {
     private readonly HttpClient summaryClient;
@@ -19,23 +18,14 @@ public class SummaryApiClient : ISummaryApiClient
         summaryClient.Timeout = TimeSpan.FromMinutes(2);
     }
 
-    public async Task PutDepartmentsAsync(IEnumerable<ApiResourceOwnerDepartment> departments,
+    public async Task PutDepartmentAsync(ApiResourceOwnerDepartment department,
         CancellationToken cancellationToken = default)
     {
-        var parallelOptions = new ParallelOptions()
-        {
-            CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = 10,
-        };
+        using var body = new JsonContent(JsonSerializer.Serialize(department, jsonSerializerOptions));
 
-        await Parallel.ForEachAsync(departments, parallelOptions, async (ownerDepartments, token) =>
-        {
-            var body = new JsonContent(JsonSerializer.Serialize(ownerDepartments, jsonSerializerOptions));
-
-            // Error logging is handled by http middleware => FunctionHttpMessageHandler
-            using var _ = await summaryClient.PutAsync($"departments/{ownerDepartments.DepartmentSapId}", body,
-                cancellationToken);
-        });
+        // Error logging is handled by http middleware => FunctionHttpMessageHandler
+        using var _ = await summaryClient.PutAsync($"departments/{department.DepartmentSapId}", body,
+            cancellationToken);
     }
 
     public async Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
@@ -45,7 +35,7 @@ public class SummaryApiClient : ISummaryApiClient
 
         if (!response.IsSuccessStatusCode)
             return null;
-        
+
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
         return await JsonSerializer.DeserializeAsync<ICollection<ApiResourceOwnerDepartment>>(contentStream,
