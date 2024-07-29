@@ -2,7 +2,7 @@
   {
     "environment": "pr",
     "disabledFunctions": [
-      
+      "department-resource-owner-sync"
     ]
   }
 ]
