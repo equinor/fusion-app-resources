@@ -16,4 +16,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Resources.Functions.Common\Fusion.Resources.Functions.Common.csproj" />
+  </ItemGroup>
 </Project>

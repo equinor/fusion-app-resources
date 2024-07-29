@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fusion.ApiClients.Org;
-using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
 namespace Fusion.Resources.Functions.Tests.Notifications.Mock;
