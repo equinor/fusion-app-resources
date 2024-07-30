@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Fusion.ApiClients.Org;
-using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 using Fusion.Resources.Functions.Tests.Notifications.Mock;
 using Xunit;
