@@ -11,7 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using static Fusion.Resources.Functions.ApiClients.LineOrgApiClient;
+using static Fusion.Resources.Functions.Common.ApiClients.LineOrgApiClient;
 
 namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.WeeklyReport;
 
