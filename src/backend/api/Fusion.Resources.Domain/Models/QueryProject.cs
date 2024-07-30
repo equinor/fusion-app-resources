@@ -11,12 +11,14 @@ namespace Fusion.Resources.Domain
             Name = project.Name;
             DomainId = project.DomainId;
             OrgProjectId = project.OrgProjectId;
+            State = project.State;
         }
 
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string? DomainId { get; set; }
         public Guid OrgProjectId { get; set; }
+        public string? State { get; set; }
 
     }
 

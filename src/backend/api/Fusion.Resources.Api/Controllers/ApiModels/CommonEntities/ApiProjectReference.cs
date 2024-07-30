@@ -17,6 +17,7 @@ namespace Fusion.Resources.Api.Controllers
             Id = project.OrgProjectId;
             Name = project.Name;
             InternalId = project.Id;
+            State = project.State;
         }
 
         public ApiProjectReference(QueryProjectRef project)
@@ -33,5 +34,6 @@ namespace Fusion.Resources.Api.Controllers
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Guid? InternalId { get; set; }
         public string Name { get; set; }
+        public string? State { get; set; }
     }
 }
