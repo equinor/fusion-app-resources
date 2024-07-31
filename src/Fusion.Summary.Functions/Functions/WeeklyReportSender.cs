@@ -46,6 +46,7 @@ public class WeeklyReportSender
             MaxDegreeOfParallelism = 10
         };
 
+        // Use Parallel.ForEachAsync to easily limit the number of parallel requests
         await Parallel.ForEachAsync(departments, options, async (department, ct) =>
         {
             var summaryReport = await summaryApiClient.GetLatestWeeklyReportAsync(department.DepartmentSapId, ct);

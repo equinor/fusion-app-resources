@@ -59,6 +59,7 @@ public class DepartmentResourceOwnerSync
             MaxDegreeOfParallelism = 10,
         };
 
+        // Use Parallel.ForEachAsync to easily limit the number of parallel requests
         await Parallel.ForEachAsync(resourceOwnerDepartments, parallelOptions,
             async (ownerDepartment, token) =>
             {

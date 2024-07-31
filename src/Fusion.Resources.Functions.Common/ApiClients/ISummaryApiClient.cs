@@ -9,8 +9,8 @@ public interface ISummaryApiClient
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     Get the latest weekly summary report for a department. The report is based on the last Sunday from the current
-    ///     date.
+    ///     Get the latest weekly summary report for a department. The report is based on the week that has passed.
+    ///     If today is monday, the report is based on the last seven days (from last monday to today).
     /// </summary>
     public Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default);

@@ -47,6 +47,8 @@ public class SummaryApiClient : ISummaryApiClient
     public async Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default)
     {
+        // Get the date of the last monday or today if today is monday
+        // So the weekly report is based on the week that has passed
         var lastMonday = GetCurrentOrLastMondayDate();
 
         var queryString =
@@ -68,10 +70,15 @@ public class SummaryApiClient : ISummaryApiClient
         var date = DateTime.UtcNow;
         switch (date.DayOfWeek)
         {
-            case DayOfWeek.Monday:
-                return date;
             case DayOfWeek.Sunday:
                 return date.AddDays(-6);
+            case DayOfWeek.Monday:
+                return date;
+            case DayOfWeek.Tuesday:
+            case DayOfWeek.Wednesday:
+            case DayOfWeek.Thursday:
+            case DayOfWeek.Friday:
+            case DayOfWeek.Saturday:
             default:
             {
                 var daysUntilMonday = (int)date.DayOfWeek - 1;
