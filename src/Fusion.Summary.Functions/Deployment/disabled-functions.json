@@ -2,7 +2,8 @@
   {
     "environment": "pr",
     "disabledFunctions": [
-      "department-resource-owner-sync"
+      "department-resource-owner-sync",
+      "weekly-report-sender"
     ]
   }
 ]
