@@ -88,6 +88,14 @@ public class ScheduledReportContentBuilderFunction
         var departmentPersonnel =
             (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
 
+        // Check if the department has personnel, abort if not
+        if(departmentPersonnel.Count() == 0)
+        {
+            _logger.LogInformation("Department contains no personnel, no need to send notification");
+
+            return;
+        }
+
         // Create notification card
         var card = CreateResourceOwnerAdaptiveCard(departmentPersonnel, departmentRequests, fullDepartment, departmentSapId);
 
