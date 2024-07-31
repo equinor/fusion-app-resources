@@ -42,7 +42,6 @@ public class QueryWeeklySummaryReport
             PositionsEnding = dbWeeklySummaryReport.PositionsEnding
                 .Select(pe => new EndingPosition()
                 {
-                    Id = pe.Id,
                     FullName = pe.FullName,
                     EndDate = pe.EndDate
                 })
@@ -50,7 +49,6 @@ public class QueryWeeklySummaryReport
             PersonnelMoreThan100PercentFTE = dbWeeklySummaryReport.PersonnelMoreThan100PercentFTE
                 .Select(pm => new PersonnelMoreThan100PercentFTE()
                 {
-                    Id = pm.Id,
                     FullName = pm.FullName,
                     FTE = pm.FTE
                 })
@@ -79,7 +77,6 @@ public class QueryWeeklySummaryReport
             PositionsEnding = PositionsEnding
                 .Select(pe => new DbEndingPosition()
                 {
-                    Id = pe.Id,
                     FullName = pe.FullName,
                     EndDate = pe.EndDate
                 })
@@ -87,7 +84,6 @@ public class QueryWeeklySummaryReport
             PersonnelMoreThan100PercentFTE = PersonnelMoreThan100PercentFTE
                 .Select(pm => new DbPersonnelMoreThan100PercentFTE()
                 {
-                    Id = pm.Id,
                     FullName = pm.FullName,
                     FTE = pm.FTE
                 })
@@ -98,14 +94,12 @@ public class QueryWeeklySummaryReport
 
 public class PersonnelMoreThan100PercentFTE
 {
-    public required Guid Id { get; set; }
     public required string FullName { get; set; }
     public required int FTE { get; set; }
 }
 
 public class EndingPosition
 {
-    public required Guid Id { get; set; }
     public required string FullName { get; set; }
     public required DateTime EndDate { get; set; }
 }

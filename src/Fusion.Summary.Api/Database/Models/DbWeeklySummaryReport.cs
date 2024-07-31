@@ -24,10 +24,9 @@ public class DbWeeklySummaryReport
 
     internal static void OnModelCreating(ModelBuilder modelBuilder)
     {
-        const string tableName = "WeeklySummaryReports";
         modelBuilder.Entity<DbWeeklySummaryReport>(report =>
         {
-            report.ToTable(tableName);
+            report.ToTable("WeeklySummaryReports");
             report.HasKey(r => r.Id);
 
             report.Property(r => r.Period)
@@ -39,19 +38,11 @@ public class DbWeeklySummaryReport
             report.HasIndex(r => new { r.DepartmentSapId, r.Period })
                 .IsUnique();
 
-            report.OwnsMany(r => r.PositionsEnding, pe =>
-            {
-                pe.WithOwner().HasForeignKey($"{tableName}Id");
-                pe.HasKey("Id");
-                pe.ToTable("PersonnelMoreThan100PercentFTEs");
-            });
+            report.OwnsMany(r => r.PositionsEnding, pe
+                => pe.ToJson("PersonnelMoreThan100PercentFTEs"));
 
-            report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE, pm =>
-            {
-                pm.WithOwner().HasForeignKey($"{tableName}Id");
-                pm.HasKey("Id");
-                pm.ToTable("EndingPositions");
-            });
+            report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE, pm
+                => pm.ToJson("EndingPositions"));
 
 
             report.HasOne(r => r.Department)
@@ -64,14 +55,12 @@ public class DbWeeklySummaryReport
 
 public class DbPersonnelMoreThan100PercentFTE
 {
-    public required Guid Id { get; set; }
     public required string FullName { get; set; }
     public required int FTE { get; set; }
 }
 
 public class DbEndingPosition
 {
-    public required Guid Id { get; set; }
     public required string FullName { get; set; }
     public required DateTime EndDate { get; set; }
 }

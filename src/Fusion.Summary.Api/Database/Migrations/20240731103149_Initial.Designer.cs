@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Summary.Api.Database.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
-    [Migration("20240704120150_Initial")]
+    [Migration("20240731103149_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -109,9 +109,12 @@ namespace Fusion.Summary.Api.Database.Migrations
 
                     b.OwnsMany("Fusion.Summary.Api.Database.Models.DbEndingPosition", "PositionsEnding", b1 =>
                         {
-                            b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
+                            b1.Property<Guid>("DbWeeklySummaryReportId")
                                 .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
 
                             b1.Property<DateTime>("EndDate")
                                 .HasColumnType("datetime2");
@@ -120,24 +123,24 @@ namespace Fusion.Summary.Api.Database.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid>("WeeklySummaryReportsId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.HasKey("DbWeeklySummaryReportId", "Id");
 
-                            b1.HasKey("Id");
+                            b1.ToTable("WeeklySummaryReports");
 
-                            b1.HasIndex("WeeklySummaryReportsId");
-
-                            b1.ToTable("PersonnelMoreThan100PercentFTEs", (string)null);
+                            b1.ToJson("PersonnelMoreThan100PercentFTEs");
 
                             b1.WithOwner()
-                                .HasForeignKey("WeeklySummaryReportsId");
+                                .HasForeignKey("DbWeeklySummaryReportId");
                         });
 
                     b.OwnsMany("Fusion.Summary.Api.Database.Models.DbPersonnelMoreThan100PercentFTE", "PersonnelMoreThan100PercentFTE", b1 =>
                         {
-                            b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
+                            b1.Property<Guid>("DbWeeklySummaryReportId")
                                 .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
 
                             b1.Property<int>("FTE")
                                 .HasColumnType("int");
@@ -146,17 +149,14 @@ namespace Fusion.Summary.Api.Database.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid>("WeeklySummaryReportsId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.HasKey("DbWeeklySummaryReportId", "Id");
 
-                            b1.HasKey("Id");
+                            b1.ToTable("WeeklySummaryReports");
 
-                            b1.HasIndex("WeeklySummaryReportsId");
-
-                            b1.ToTable("EndingPositions", (string)null);
+                            b1.ToJson("EndingPositions");
 
                             b1.WithOwner()
-                                .HasForeignKey("WeeklySummaryReportsId");
+                                .HasForeignKey("DbWeeklySummaryReportId");
                         });
 
                     b.Navigation("Department");

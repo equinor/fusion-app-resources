@@ -67,7 +67,6 @@ public class PutWeeklySummaryReport : IRequest
                 PositionsEnding = request.WeeklySummaryReport.PositionsEnding
                     .Select(pe => new DbEndingPosition()
                     {
-                        Id = Guid.NewGuid(),
                         FullName = pe.FullName,
                         EndDate = pe.EndDate
                     })
@@ -75,7 +74,6 @@ public class PutWeeklySummaryReport : IRequest
                 PersonnelMoreThan100PercentFTE = request.WeeklySummaryReport.PersonnelMoreThan100PercentFTE
                     .Select(pm => new DbPersonnelMoreThan100PercentFTE()
                     {
-                        Id = Guid.NewGuid(),
                         FullName = pm.FullName,
                         FTE = pm.FTE
                     })
