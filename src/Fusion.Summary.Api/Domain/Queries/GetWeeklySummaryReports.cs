@@ -34,8 +34,6 @@ public class GetWeeklySummaryReports : IRequest<QueryCollection<QueryWeeklySumma
         {
             var getReportQuery = _dbcontext.WeeklySummaryReports
                 .Where(r => r.DepartmentSapId == request.SapDepartmentId)
-                .AsNoTracking()
-                .IgnoreAutoIncludes()
                 .AsSplitQuery();
 
             if (request.Query.HasFilter)
