@@ -12,7 +12,7 @@ public static class SummaryReportHelpers
     {
         var response =
             await client.TestClientGetAsync<ApiCollection<ApiWeeklySummaryReport>>(
-                $"summary-reports/{sapDepartmentId}/weekly");
+                $"resource-owners-summary-reports/{sapDepartmentId}/weekly");
 
         return response;
     }
@@ -64,6 +64,7 @@ public static class SummaryReportHelpers
 
         setup?.Invoke(request);
 
-        return await client.TestClientPutAsync<object>($"summary-reports/{sapDepartmentId}/weekly", request);
+        return await client.TestClientPutAsync<object>($"resource-owners-summary-reports/{sapDepartmentId}/weekly",
+            request);
     }
 }
