@@ -18,7 +18,7 @@ namespace Fusion.Summary.Api.Controllers;
 [ApiVersion("1.0")]
 public class SummaryReportsController : BaseController
 {
-    [HttpGet("summary-reports/{sapDepartmentId}/weekly")]
+    [HttpGet("resource-owners-summary-reports/{sapDepartmentId}/weekly")]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -56,7 +56,7 @@ public class SummaryReportsController : BaseController
             .FromQueryCollection(queryReports, ApiWeeklySummaryReport.FromQuerySummaryReport));
     }
 
-    [HttpPut("summary-reports/{sapDepartmentId}/weekly")]
+    [HttpPut("resource-owners-summary-reports/{sapDepartmentId}/weekly")]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
