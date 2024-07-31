@@ -118,7 +118,7 @@ public class ScheduledReportTimerTriggerFunction
 
             foreach (var dep in groupedDepartments)
             {
-                var timeDelayInMinutes = resourceOwnerMessageSent * batchTimeInMinutes;
+                var timeDelayInMinutes = resourceOwnerMessageSent++ * batchTimeInMinutes;
 
                 try
                 {
