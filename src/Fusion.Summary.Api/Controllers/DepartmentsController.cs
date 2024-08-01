@@ -19,7 +19,7 @@ namespace Fusion.Summary.Api.Controllers;
 [ApiController]
 public class DepartmentsController : BaseController
 {
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpGet("departments")]
