@@ -1,8 +1,8 @@
+using System.Reflection;
 using Fusion.AspNetCore.Mvc.Versioning;
 using Fusion.Resources.Api.Middleware;
-using Fusion.Summary.Api.Middleware;
-using System.Reflection;
 using Fusion.Summary.Api.Database;
+using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -54,9 +54,8 @@ builder.Services.AddFusionIntegration(f =>
         opts.ClientSecret = azureAdClientSecret;
     });
 });
-_ = "Test PR";
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseInMemoryDatabase("Test"));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var app = builder.Build();
