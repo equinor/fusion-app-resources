@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,9 @@ var databaseConnectionString = builder.Configuration.GetConnectionString("Databa
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("liveness", () => HealthCheckResult.Healthy())
+    .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });;
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
