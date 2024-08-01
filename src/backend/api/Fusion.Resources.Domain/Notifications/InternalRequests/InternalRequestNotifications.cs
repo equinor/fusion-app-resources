@@ -1,5 +1,5 @@
-﻿using MediatR;
-using System;
+﻿using System;
+using MediatR;
 
 namespace Fusion.Resources.Domain.Notifications.InternalRequests
 {
@@ -25,6 +25,16 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
             public Guid RequestId { get; }
         }
 
-      
+        // TODO: Is this a good name?
+        // Request is auto approved when the request was proposed without changes
+        public class ProposedPersonAutoApproved : INotification
+        {
+            public ProposedPersonAutoApproved(Guid requestId)
+            {
+                RequestId = requestId;
+            }
+
+            public Guid RequestId { get; }
+        }
     }
 }

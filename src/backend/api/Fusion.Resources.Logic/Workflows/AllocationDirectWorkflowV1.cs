@@ -1,6 +1,6 @@
-﻿using Fusion.Resources.Database.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Logic.Workflows
 {
@@ -53,6 +53,18 @@ namespace Fusion.Resources.Logic.Workflows
                 .SetDescription("Specified resrouce resulted in auto approval of request")
                 .Skip()
                 .StartNext().Current;
+        }
+
+        public WorkflowStep AutoApproveUnchangedRequest()
+        {
+            return Step(APPROVAL)
+                .SetName("Approved")
+                .SetDescription(
+                    "The request was auto approved as the request was unchanged without any proposed changes. " +
+                    "The provisioning process will start so changes are visible in the org chart.")
+                .Skip()
+                .StartNext().Current
+                .WithDescription("The new position or changes will be provisioned to the organisational chart");
         }
 
         public WorkflowStep Approved(DbPerson approver)
@@ -112,7 +124,8 @@ namespace Fusion.Resources.Logic.Workflows
             .WithNextStep(APPROVAL);
 
         public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
-            .WithDescription("Review personnel request and approve/reject")
+            .WithDescription(
+                "Review personnel request and approve/reject. If there are no proposed changes, the request will be auto approved.")
             .WithPreviousStep(PROPOSAL)
             .WithNextStep(PROVISIONING);
 
