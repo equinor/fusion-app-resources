@@ -1,5 +1,4 @@
-﻿using Asp.Versioning;
-using Fusion.AspNetCore.FluentAuthorization;
+﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
 using Fusion.Summary.Api.Authorization.Extensions;
 using Fusion.Summary.Api.Controllers.ApiModels;
@@ -19,7 +18,7 @@ namespace Fusion.Summary.Api.Controllers;
 [ApiController]
 public class DepartmentsController : BaseController
 {
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpGet("departments")]
@@ -58,7 +57,7 @@ public class DepartmentsController : BaseController
         return Ok(ret);
     }
 
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpGet("departments/{sapDepartmentId}")]
@@ -94,7 +93,7 @@ public class DepartmentsController : BaseController
         return Ok(ApiDepartment.FromQueryDepartment(department));
     }
 
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpPut("departments/{sapDepartmentId}")]

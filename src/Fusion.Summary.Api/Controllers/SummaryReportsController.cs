@@ -1,5 +1,4 @@
 ﻿using System.Net.Mime;
-using Asp.Versioning;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;

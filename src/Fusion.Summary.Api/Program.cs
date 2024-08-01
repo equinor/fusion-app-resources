@@ -1,10 +1,13 @@
+using Fusion.AspNetCore.Mvc.Versioning;
+using Fusion.Resources.Api.Middleware;
+using Fusion.Summary.Api.Middleware;
 using System.Reflection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Fusion.AspNetCore.OData;
 using Fusion.Summary.Api.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -27,16 +30,6 @@ builder.Services.AddHealthChecks()
 // TODO: Add a real health check, when database is added
 // .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
 
-builder.Services.AddSwaggerGen(c =>
-{
-    c.OperationFilter<ODataFilterParamSwaggerFilter>();
-    c.OperationFilter<ODataExpandParamSwaggerFilter>();
-    c.OperationFilter<ODataOrderByParamSwaggerFilter>();
-    c.OperationFilter<ODataTopParamSwaggerFilter>();
-    c.OperationFilter<ODataSkipParamSwaggerFilter>();
-    c.OperationFilter<ODataSearchParamSwaggerFilter>();
-    c.DocumentFilter<ODataQueryParamSwaggerFilter>();
-});
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -46,6 +39,17 @@ builder.Services
         options.Authority = "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0";
         options.SaveToken = true;
     });
+
+
+builder.Services.AddApiVersioning(s =>
+{
+    s.ReportApiVersions = true;
+    s.AssumeDefaultVersionWhenUnspecified = true;
+    s.DefaultApiVersion = new ApiVersion(1, 0);
+    s.ApiVersionReader = new HeaderOrQueryVersionReader("api-version");
+});
+
+builder.Services.AddSwagger(builder.Configuration);
 
 builder.Services.AddFusionIntegration(f =>
 {
@@ -70,10 +74,20 @@ app.UseCors(opts => opts
     .AllowAnyMethod()
     .AllowAnyHeader()
     .WithExposedHeaders("Allow", "x-fusion-retriable"));
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseAuthentication();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+//app.UseMiddleware<RequestResponseLoggingMiddleware>();
+app.UseMiddleware<TraceMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseSummaryApiSwagger();
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireAuthorization();
 
