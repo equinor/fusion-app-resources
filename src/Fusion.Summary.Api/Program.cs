@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,11 @@ var databaseConnectionString = builder.Configuration.GetConnectionString("Databa
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("liveness", () => HealthCheckResult.Healthy())
+    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
+// TODO: Add a real health check, when database is added
+// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -88,7 +93,7 @@ app.UseHealthChecks("/_health/liveness", new HealthCheckOptions
 {
     Predicate = r => r.Name.Contains("liveness")
 });
-app.UseHealthChecks("/_health/ready", new HealthCheckOptions
+app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 {
     Predicate = r => r.Tags.Contains("ready")
 });
