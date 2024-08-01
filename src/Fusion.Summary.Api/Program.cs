@@ -1,10 +1,10 @@
-using Fusion.AspNetCore.Mvc.Versioning;
-using Fusion.Resources.Api.Middleware;
-using Fusion.Summary.Api.Middleware;
 using System.Reflection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Fusion.AspNetCore.Versioning;
+using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api.Database;
+using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
