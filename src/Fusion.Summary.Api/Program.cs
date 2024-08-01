@@ -90,7 +90,7 @@ app.UseHealthChecks("/_health/liveness", new HealthCheckOptions
 {
     Predicate = r => r.Name.Contains("liveness")
 });
-app.UseHealthChecks("/_health/ready", new HealthCheckOptions
+app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 {
     Predicate = r => r.Tags.Contains("ready")
 });
