@@ -54,7 +54,7 @@ builder.Services.AddFusionIntegration(f =>
         opts.ClientSecret = azureAdClientSecret;
     });
 });
-
+_ = "Test PR";
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
