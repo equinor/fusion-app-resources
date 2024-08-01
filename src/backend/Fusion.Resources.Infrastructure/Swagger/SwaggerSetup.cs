@@ -1,4 +1,7 @@
-﻿using Fusion.AspNetCore.OData;
+﻿using System.ComponentModel;
+using System.Reflection;
+using Fusion.AspNetCore.OData;
+using Fusion.Resources.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -7,12 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -66,7 +63,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
                 c.OperationFilter<SecurityRequirementsOperationFilter>();
                 c.OperationFilter<AddApiVersionParameter>();
-
+                c.SchemaFilter<PatchPropertySchemaFilter>();
+                c.SchemaFilter<EnumSchemaFilter>();
+                c.OperationFilter<ODataFilterParamSwaggerFilter>();
+                c.OperationFilter<ODataExpandParamSwaggerFilter>();
+                c.OperationFilter<ODataOrderByParamSwaggerFilter>();
+                c.OperationFilter<ODataTopParamSwaggerFilter>();
+                c.OperationFilter<ODataSkipParamSwaggerFilter>();
+                c.OperationFilter<ODataSearchParamSwaggerFilter>();
                 c.DocumentFilter<ODataQueryParamSwaggerFilter>();
 
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
@@ -97,15 +101,46 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 c.AddSecurityRequirement(securityRequirement);
 
-                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlFile = $"{Assembly.GetEntryAssembly()?.GetName().Name}.xml";
                 string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
+                if (File.Exists(xmlPath))
+                    c.IncludeXmlComments(xmlPath);
             });
 
             TypeConverterAttribute typeConverterAttribute = new TypeConverterAttribute(typeof(ToStringTypeConverter));
             TypeDescriptor.AddAttributes(typeof(ODataQueryParams), typeConverterAttribute);
 
+
+            services.AddSwaggerAuthorizationScheme(configuration);
+
+
             return services;
+        }
+
+        public static void AddSwaggerAuthorizationScheme(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddAuthentication()
+                .AddCookie(SwaggerAuthDefaults.CookieAuthenticationScheme, c =>
+                {
+                    c.Cookie.Name = ".swagger-auth";
+                    c.Cookie.Path = "/swagger";
+                })
+                .AddOpenIdConnect(SwaggerAuthDefaults.AuthenticationScheme, c =>
+                {
+                    c.SignInScheme = SwaggerAuthDefaults.CookieAuthenticationScheme;
+                    c.Authority = $"https://login.microsoftonline.com/{config.GetValue<string>("Swagger:TenantId")}";
+                    c.ClientId = config.GetValue<string>("Swagger:ClientId");
+                    c.UsePkce = true;
+                    c.RequireHttpsMetadata = true;
+                    c.ResponseType = "code";
+                    c.ResponseMode = "form_post";
+                    c.CallbackPath = "/signin-oidc";
+
+                    // If 'Origin' is null, OIDC throws an exception because "tokens may only be redeemed via cross-origin requests"
+                    var defaultBackChannel = new HttpClient();
+                    defaultBackChannel.DefaultRequestHeaders.Add("Origin", "fusion.equinor.com");
+                    c.Backchannel = defaultBackChannel;
+                });
         }
 
         public static IApplicationBuilder UseFusionSwagger(this IApplicationBuilder app)
@@ -116,23 +151,27 @@ namespace Microsoft.Extensions.DependencyInjection
             var instanceConfig = app.ApplicationServices.GetService<IOptions<SwaggerApiConfig>>();
             var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
 
-            app.UseSwagger();
 
-            app.UseSwaggerUI(c =>
+            app.MapWhen(SwaggerAuthMiddleware.IsSwaggerUiPath, b =>
             {
-                if (instanceConfig != null)
+                b.UseSwagger();
+                b.UseSwaggerUI(c =>
                 {
-                    foreach (var version in instanceConfig.Value.EnabledVersions)
-                        c.SwaggerEndpoint($"/swagger/api-v{version}/swagger.json", $"v{version}.0");
+                    if (instanceConfig != null)
+                    {
+                        foreach (var version in instanceConfig.Value.EnabledVersions)
+                            c.SwaggerEndpoint($"/swagger/api-v{version}/swagger.json", $"v{version}.0");
 
-                    if (instanceConfig.Value.EnablePreview)
-                        c.SwaggerEndpoint($"/swagger/api-beta/swagger.json", $"Previews");
-                }
+                        if (instanceConfig.Value.EnablePreview)
+                            c.SwaggerEndpoint($"/swagger/api-beta/swagger.json", $"Previews");
+                    }
 
-                c.OAuthAppName(configuration.GetValue<string>("Swagger:OAuthAppName"));
-                c.OAuthClientId(configuration.GetValue<string>("Swagger:ClientId"));
-                c.OAuthRealm(configuration.GetValue<string>("Swagger:TenantId"));
-                c.OAuthAdditionalQueryStringParams(new Dictionary<string, string>() { { "resource", configuration.GetValue<string>("Swagger:Resource") } });
+                    c.OAuthAppName(configuration.GetValue<string>("Swagger:OAuthAppName"));
+                    c.OAuthClientId(configuration.GetValue<string>("Swagger:ClientId"));
+                    c.OAuthRealm(configuration.GetValue<string>("Swagger:TenantId"));
+                    c.OAuthAdditionalQueryStringParams(new Dictionary<string, string>()
+                        { { "resource", configuration.GetValue<string>("Swagger:Resource") } });
+                });
             });
 
             return app;
@@ -174,9 +213,5 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return thisVersionValue?.ImplementedApiVersions.OrderByDescending(p => p).Any(v => v.MajorVersion == version && v.Status == null) == true;
         }
-
-
-
-
     }
 }

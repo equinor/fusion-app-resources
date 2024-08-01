@@ -1,5 +1,4 @@
-﻿using Asp.Versioning;
-using Fusion.AspNetCore.FluentAuthorization;
+﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
@@ -21,7 +20,7 @@ public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAz
 [ApiController]
 public class DepartmentsController : BaseController
 {
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpGet("departments")]
@@ -60,7 +59,7 @@ public class DepartmentsController : BaseController
         return Ok(ret);
     }
 
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpGet("departments/{sapDepartmentId}")]
@@ -94,7 +93,7 @@ public class DepartmentsController : BaseController
         return Ok(department);
     }
 
-    /// <summary>
+    /// <summary />
     /// TODO: Add summary
     /// <returns></returns>
     [HttpPut("departments/{sapDepartmentId}")]
