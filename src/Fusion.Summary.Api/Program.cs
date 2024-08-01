@@ -4,6 +4,7 @@ using FluentValidation.AspNetCore;
 using Fusion.AspNetCore.OData;
 using Fusion.Summary.Api.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -22,7 +23,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
     .AddCheck("liveness", () => HealthCheckResult.Healthy())
-    .AddDbContextCheck<SummaryDbContext>("db", tags: new[] { "ready" });
+    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
+// TODO: Add a real health check, when database is added
+// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -73,8 +76,20 @@ app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers().RequireAuthorization();
-app.MapHealthChecks("/_health/liveness");
-app.MapHealthChecks("/_health/readiness");
+
+#region Health probes
+
+app.UseHealthChecks("/_health/liveness", new HealthCheckOptions
+{
+    Predicate = r => r.Name.Contains("liveness")
+});
+app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready")
+});
+
+#endregion Health probes
+
 app.Run();
 
 /// <summary>
