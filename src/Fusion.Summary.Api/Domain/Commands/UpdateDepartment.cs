@@ -22,9 +22,9 @@ public class UpdateDepartment : IRequest
 
     public class Handler : IRequestHandler<UpdateDepartment>
     {
-        private readonly DatabaseContext _context;
+        private readonly SummaryDbContext _context;
 
-        public Handler(DatabaseContext context)
+        public Handler(SummaryDbContext context)
         {
             _context = context;
         }

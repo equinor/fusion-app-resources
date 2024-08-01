@@ -1,8 +1,10 @@
-using Fusion.AspNetCore.Mvc.Versioning;
-using Fusion.Resources.Api.Middleware;
-using Fusion.Summary.Api.Middleware;
 using System.Reflection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Fusion.AspNetCore.Versioning;
+using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api.Database;
+using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +20,7 @@ builder.Configuration
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
-var databaseConnectionString = builder.Configuration.GetConnectionString("DatabaseContext");
+var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -27,6 +29,7 @@ builder.Services.AddHealthChecks()
     .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
 // TODO: Add a real health check, when database is added
 // .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
+
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -61,8 +64,9 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
+builder.Services.AddDbContext<SummaryDbContext>(options => options.UseSqlServer(databaseConnectionString));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+builder.Services.AddFluentValidationAutoValidation().AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();
 app.UseCors(opts => opts
@@ -101,3 +105,10 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 #endregion Health probes
 
 app.Run();
+
+/// <summary>
+///     For testing
+/// </summary>
+public partial class Program
+{
+}

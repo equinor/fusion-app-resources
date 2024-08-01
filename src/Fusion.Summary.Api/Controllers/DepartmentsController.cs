@@ -1,16 +1,14 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Summary.Api.Authorization.Extensions;
+using Fusion.Summary.Api.Controllers.ApiModels;
+using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
-using Fusion.Summary.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Summary.Api.Controllers;
-
-public record PutDepartmentRquest(string DepartmentSapId, string FullDepartmentName, Guid ResourceOwnerAzureUniqueId);
-
-public record GetDepartmentResponse(string departmentSapId, Guid resourceOwnerAzureUniqueId, string fullDepartmentName);
 
 /// <summary>
 /// TODO: Add summary
@@ -25,18 +23,18 @@ public class DepartmentsController : BaseController
     /// <returns></returns>
     [HttpGet("departments")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiDepartment[]), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDepartmentsV1()
     {
-
         #region Authorization
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
         {
-            r.AlwaysAccessWhen().BeTrustedApplication();
+            r.AlwaysAccessWhen().ResourcesFullControl();
+            r.AnyOf(or => { or.BeTrustedApplication(); });
         });
 
         if (authResult.Unauthorized)
@@ -47,9 +45,9 @@ public class DepartmentsController : BaseController
         var ret = new List<ApiDepartment>();
 
         // Query
-        var departments = await DispatchAsync(new GetAllDepartments());
+        var departments = (await DispatchAsync(new GetAllDepartments())).ToArray();
 
-        if (departments.Count() == 0)
+        if (departments.Length == 0)
             return NotFound();
         else
         {
@@ -64,7 +62,7 @@ public class DepartmentsController : BaseController
     /// <returns></returns>
     [HttpGet("departments/{sapDepartmentId}")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiDepartment), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,7 +72,8 @@ public class DepartmentsController : BaseController
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
         {
-            r.AlwaysAccessWhen().BeTrustedApplication();
+            r.AlwaysAccessWhen().ResourcesFullControl();
+            r.AnyOf(or => { or.BeTrustedApplication(); });
         });
 
         if (authResult.Unauthorized)
@@ -82,15 +81,16 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
+        if (string.IsNullOrWhiteSpace(sapDepartmentId))
+            return BadRequest("SapDepartmentId route parameter is required");
+
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department is null
         if (department == null)
-        {
-            return NotFound();
-        }
+            return DepartmentNotFound(sapDepartmentId);
 
-        return Ok(department);
+        return Ok(ApiDepartment.FromQueryDepartment(department));
     }
 
     /// <summary />
@@ -99,16 +99,18 @@ public class DepartmentsController : BaseController
     [HttpPut("departments/{sapDepartmentId}")]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> PutV1(PutDepartmentRquest request)
+    public async Task<IActionResult> PutV1(string sapDepartmentId, [FromBody] PutDepartmentRequest request)
     {
         #region Authorization
 
         var authResult = await Request.RequireAuthorizationAsync(r =>
         {
-            r.AlwaysAccessWhen().BeTrustedApplication();
+            r.AlwaysAccessWhen().ResourcesFullControl();
+            r.AnyOf(or => { or.BeTrustedApplication(); });
         });
 
         if (authResult.Unauthorized)
@@ -116,15 +118,21 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
-        var department = await DispatchAsync(new GetDepartment(request.DepartmentSapId));
+        if (string.IsNullOrWhiteSpace(sapDepartmentId))
+            return BadRequest("SapDepartmentId route parameter is required");
+
+        if (await ResolvePersonAsync(request.ResourceOwnerAzureUniqueId) is null)
+            return BadRequest("Resource owner not found in azure ad");
+
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department exist
         if (department == null)
         {
             await DispatchAsync(
                 new CreateDepartment(
-                    request.DepartmentSapId, 
-                    request.ResourceOwnerAzureUniqueId, 
+                    sapDepartmentId,
+                    request.ResourceOwnerAzureUniqueId,
                     request.FullDepartmentName));
 
             return Created();
@@ -134,7 +142,7 @@ public class DepartmentsController : BaseController
         {
             await DispatchAsync(
                 new UpdateDepartment(
-                    request.DepartmentSapId,
+                    sapDepartmentId,
                     request.ResourceOwnerAzureUniqueId,
                     request.FullDepartmentName));
 
