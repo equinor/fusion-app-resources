@@ -4,8 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AdaptiveCards;
-using Azure;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
@@ -18,13 +16,11 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
-#nullable enable 
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -381,11 +377,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task DirectRequest_Propose_ShouldSetState_WhenApproving()
+        public async Task DirectRequest_Propose_WithChanges_ShouldSetState_WhenApproving()
         {
             using var adminScope = fixture.AdminScope();
 
-            await FastForward_ProposedRequest();
+            await FastForward_ProposedRequest(withProposedChanges: new()
+            {
+                { "workload", 50 }
+            });
 
             var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{directRequest.Id}", new { state = (string?)null });
             resp.Should().BeSuccessfull();
@@ -393,11 +392,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task DirectRequest_Propose_ShouldSetWorkflow_WhenApproving()
+        public async Task DirectRequest_Propose_WithChanges_ShouldSetWorkflow_WhenApproving()
         {
             using var adminScope = fixture.AdminScope();
 
-            await FastForward_ProposedRequest();
+            await FastForward_ProposedRequest(withProposedChanges: new()
+            {
+                { "workload", 99 },
+                { "location", new { id = "50ea7407-b417-4dc8-b8f8-2c461e97151b", name = "asia" } }
+            });
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}");
             resp.Should().BeSuccessfull();
@@ -414,24 +417,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #region Approval state
 
         [Fact]
-        public async Task DirectRequest_Approval_ShouldBeSuccessful_WhenApproving()
+        public async Task DirectRequest_Approval_ShouldBeSuccessful_WhenProposedChanges()
         {
             using var adminScope = fixture.AdminScope();
 
-            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
+            await FastForward_ProposedRequest(withProposedChanges: new()
+            {
+                { "workload", 50 }
+            });
 
-            await FastForward_ProposedRequest();
-
-            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}/approve", null);
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/projects/{projectId}/requests/{directRequest.Id}/approve", null);
             resp.Should().BeSuccessfull();
         }
 
         [Fact]
-        public async Task DirectRequest_Approval_ShouldSetWorkflow_WhenApproving()
+        public async Task DirectRequest_Approval_ShouldSetWorkflow_WhenApprovingProposedChanges()
         {
             using var adminScope = fixture.AdminScope();
 
-            await FastForward_ApprovalRequest();
+            await FastForward_ApprovalRequest(withProposedChanges: new()
+            {
+                { "workload", 66 }
+            });
 
             var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{directRequest.Id}", new { workflow = new TestApiWorkflow() });
             resp.Should().BeSuccessfull();
@@ -448,7 +456,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            await FastForward_ApprovalRequest();
+            await FastForward_ApprovalRequest(withProposedChanges: new()
+            {
+                { "workload", 66 }
+            });
 
             fixture.ApiFactory.queueMock.Verify(q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition, It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequest.Id), It.IsAny<int>()), Times.Once);
         }
@@ -458,7 +469,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            await FastForward_ApprovalRequest();
+            await FastForward_ApprovalRequest(withProposedChanges: new()
+            {
+                { "workload", 66 }
+            });
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{directRequest.Id}/provision", null);
             resp.Should().BeSuccessfull();
@@ -474,7 +488,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            await FastForward_ApprovalRequest();
+            await FastForward_ApprovalRequest(withProposedChanges: new()
+            {
+                { "workload", 66 }
+            });
+
             await Client.ProvisionRequestAsync(directRequest.Id);
 
             var resp = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{directRequest.Id}", new
@@ -645,6 +663,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
+        #region Auto approval no proposed changes
+
+        [Fact]
+        public async Task DirectRequest_Propose_WithoutChanges_ShouldAutoComplete()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await FastForward_ProposedRequest();
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>(
+                $"/projects/{projectId}/requests/{directRequest.Id}");
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Workflow.Should().NotBeNull();
+            resp.Value.Workflow!.State.Should().Be("Running");
+
+            resp.Value.Workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
+
+            fixture.ApiFactory.queueMock.Verify(
+                q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition,
+                    It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequest.Id), It.IsAny<int>()),
+                Times.Once);
+        }
+
+        #endregion
+        
+        
         #endregion
 
         #region Query requests
@@ -677,7 +723,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
-            var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests");
+            var respList =
+                await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                    $"/projects/{projectId}/requests");
             var resp = respList.Value.Value.Single(x => x.Id == directRequest.Id);
             resp.ProposedPerson.Should().NotBeNull();
             resp.ProposedPersonAzureUniqueId.Should().NotBeNull();
@@ -688,7 +736,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
-            var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/resources/requests/internal");
+            var respList =
+                await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                    $"/resources/requests/internal");
             var resp = respList.Value.Value.Single(x => x.Id == directRequest.Id);
             resp.ProposedPerson.Should().NotBeNull();
             resp.ProposedPersonAzureUniqueId.Should().NotBeNull();
@@ -700,17 +750,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// Perform steps required to end up with a proposed request
         /// </summary>
         /// <returns></returns>
-        private async Task FastForward_ProposedRequest()
+        private async Task FastForward_ProposedRequest(Dictionary<string, object>? withProposedChanges = null)
         {
+            if (withProposedChanges != null)
+            {
+                await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/resources/requests/internal/{directRequest.Id}", new
+                    {
+                        proposedChanges = withProposedChanges
+                    });
+            }
+
             await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{directRequest.AssignedDepartment}/requests/{directRequest.Id}/approve", null);
             resp.Should().BeSuccessfull();
         }
 
-        private async Task FastForward_ApprovalRequest()
+        private async Task FastForward_ApprovalRequest(Dictionary<string, object>? withProposedChanges = null)
         {
-            await FastForward_ProposedRequest();
+            await FastForward_ProposedRequest(withProposedChanges: withProposedChanges);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}/approve", null);
             resp.Should().BeSuccessfull();

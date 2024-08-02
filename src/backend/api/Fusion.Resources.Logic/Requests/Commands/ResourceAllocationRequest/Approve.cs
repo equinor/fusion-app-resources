@@ -55,6 +55,9 @@ namespace Fusion.Resources.Logic.Commands
                         new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId),
                         cancellationToken);
 
+                    if (!workflow.HasNextStep())
+                        throw new InvalidWorkflowError("The request has no next step to approve", []);
+
                     currentStep = workflow.CompleteCurrentStep(DbWFStepState.Approved, request.Editor.Person);
                     dbRequest.State.State = workflow.GetCurrent().Id;
 

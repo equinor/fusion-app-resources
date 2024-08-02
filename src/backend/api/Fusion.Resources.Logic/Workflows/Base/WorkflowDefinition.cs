@@ -60,6 +60,9 @@ namespace Fusion.Resources.Logic.Workflows
         public WorkflowStepFlow Step(string id) => new WorkflowStepFlow(this, id);
 
         public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending && s.Started != null);
+
+        public bool HasNextStep() => Steps.Any(s => s.State == DbWFStepState.Pending && s.Started == null);
+
         //public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending &&);
 
         public WorkflowStepFlow Resume() => Step(GetCurrent().Id);
