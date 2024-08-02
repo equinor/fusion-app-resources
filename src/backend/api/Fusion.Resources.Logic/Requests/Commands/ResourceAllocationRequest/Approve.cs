@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Logic.Workflows;
@@ -29,13 +28,11 @@ namespace Fusion.Resources.Logic.Commands
             {
                 private readonly ResourcesDbContext dbContext;
                 private readonly IMediator mediator;
-                private readonly IProfileService profileService;
 
-                public Handler(ResourcesDbContext dbContext, IMediator mediator, IProfileService profileService)
+                public Handler(ResourcesDbContext dbContext, IMediator mediator)
                 {
                     this.dbContext = dbContext;
                     this.mediator = mediator;
-                    this.profileService = profileService;
                 }
 
                 public async Task Handle(Approve request, CancellationToken cancellationToken)
