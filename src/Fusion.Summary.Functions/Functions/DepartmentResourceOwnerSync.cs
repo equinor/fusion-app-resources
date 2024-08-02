@@ -49,9 +49,21 @@ public class DepartmentResourceOwnerSync
         var resourceOwnerDepartments = resourceOwners
             .Where(ro => ro.DepartmentSapId is not null && Guid.TryParse(ro.AzureUniqueId, out _))
             .Select(resourceOwner => new
-                ApiResourceOwnerDepartments(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
+                ApiResourceOwnerDepartment(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
                     Guid.Parse(resourceOwner.AzureUniqueId)));
 
-        await summaryApiClient.PutDepartmentsAsync(resourceOwnerDepartments, cancellationToken);
+
+        var parallelOptions = new ParallelOptions()
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = 10,
+        };
+
+        // Use Parallel.ForEachAsync to easily limit the number of parallel requests
+        await Parallel.ForEachAsync(resourceOwnerDepartments, parallelOptions,
+            async (ownerDepartment, token) =>
+            {
+                await summaryApiClient.PutDepartmentAsync(ownerDepartment, token);
+            });
     }
 }

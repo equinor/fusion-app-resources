@@ -1,5 +1,5 @@
-﻿using Fusion.Summary.Api.Database.Models;
-using Fusion.Summary.Api.Models;
+﻿using Fusion.Summary.Api.Controllers.ApiModels;
+using Fusion.Summary.Api.Database.Models;
 
 namespace Fusion.Summary.Api.Domain.Models;
 

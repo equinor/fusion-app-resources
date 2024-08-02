@@ -1,6 +1,6 @@
 ﻿using Fusion.Summary.Api.Domain.Models;
 
-namespace Fusion.Summary.Api.Models;
+namespace Fusion.Summary.Api.Controllers.ApiModels;
 
 public class ApiDepartment
 {
