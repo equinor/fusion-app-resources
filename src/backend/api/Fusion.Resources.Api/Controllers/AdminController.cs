@@ -2,6 +2,7 @@
 using Fusion.Authorization;
 using Fusion.Integration.Profile.Internal;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -79,6 +80,34 @@ namespace Fusion.Resources.Api.Controllers
             return new OkObjectResult(new { message = "Cache reset has been queued for all instances."});
         }
 
-      
+
+        [HttpGet("admin/projects/sync-state")]
+        public async Task<ActionResult> SyncProjectStates()
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.FullControl();
+                    or.FullControlInternal();
+                    or.BeTrustedApplication();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+
+            await mediator.Send(new SyncProjectStates());
+
+
+            return new OkObjectResult(new { message = "Project states synced." });
+        }
+
+
     }
 }
