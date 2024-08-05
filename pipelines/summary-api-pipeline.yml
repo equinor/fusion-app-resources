@@ -82,7 +82,7 @@ stages:
   
     jobs:
     - deployment: DeployCI
-      environment: fusion-ci.fusion-summary-app-ci
+      environment: fra-ci
       strategy:
         runOnce:
           deploy:
@@ -135,7 +135,7 @@ stages:
               
     jobs:
       - deployment: DeployFQA
-        environment: fusion-resources-fqa.fusion-summary-app-fqa
+        environment: fra-fqa
         strategy:
           runOnce:
             deploy:
@@ -187,7 +187,7 @@ stages:
               
     jobs:
       - deployment: DeployFPRD
-        environment: fusion-prod.fusion-summary-app-fprd
+        environment: fra-fprd
         strategy:
           runOnce:
             deploy:
@@ -246,7 +246,7 @@ stages:
               
     jobs:
       - deployment: DeployTR
-        environment: fusion-resources-tr.fusion-summary-app-tr
+        environment: fra-tr
         strategy:
           runOnce:
             deploy:
