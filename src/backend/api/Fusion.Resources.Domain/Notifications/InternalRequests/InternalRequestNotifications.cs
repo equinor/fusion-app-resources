@@ -25,8 +25,7 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
             public Guid RequestId { get; }
         }
 
-        // TODO: Is this a good name?
-        // Request is auto approved when the request was proposed without changes
+
         /// <summary>
         ///     Sent when a request is auto approved because the request was proposed without changes
         /// </summary>

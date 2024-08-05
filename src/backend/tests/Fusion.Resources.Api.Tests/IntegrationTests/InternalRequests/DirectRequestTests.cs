@@ -432,6 +432,42 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task DirectRequest_Approval_ShouldBeSuccessful_WhenProposedNewPerson()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var newPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
+            var initialPerson = directRequest.ProposedPerson;
+
+            var resp = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{directRequest.Id}", new
+                {
+                    ProposedPersonAzureUniqueId = newPerson.AzureUniqueId
+                });
+            resp.Should().BeSuccessfull();
+
+
+            resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/projects/{projectId}/requests/{directRequest.Id}/approve", null);
+            resp.Should().BeSuccessfull();
+
+
+            resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>(
+                $"/projects/{projectId}/requests/{directRequest.Id}");
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Workflow.Should().NotBeNull();
+            resp.Value.Workflow.State.Should().Be("Running");
+
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
+
+            resp.Value.InitialProposedPersonAzureUniqueId.Should().Be(initialPerson!.Person.AzureUniquePersonId);
+        }
+
+        [Fact]
         public async Task DirectRequest_Approval_ShouldSetWorkflow_WhenApprovingProposedChanges()
         {
             using var adminScope = fixture.AdminScope();

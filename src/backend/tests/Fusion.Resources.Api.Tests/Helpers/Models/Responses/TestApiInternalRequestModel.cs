@@ -1,8 +1,6 @@
 ﻿using System;
-using Fusion.ApiClients.Org;
 using System.Collections.Generic;
-
-#nullable enable
+using Fusion.ApiClients.Org;
 
 namespace Fusion.Testing.Mocks
 {
@@ -27,6 +25,8 @@ namespace Fusion.Testing.Mocks
         public string? AdditionalNote { get; set; }
 
         public Dictionary<string, object>? ProposedChanges { get; set; }
+        public Guid? InitialProposedPersonAzureUniqueId { get; set; }
+        public TestApiProposedPerson? InitialProposedPerson { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public TestApiProposedPerson? ProposedPerson { get; set; }
 
