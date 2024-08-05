@@ -18,6 +18,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications.ResourceOwner.Weekl
 public class ScheduledReportTimerTriggerFunction
 {
     private readonly ILineOrgApiClient _lineOrgClient;
+    private readonly IResourcesApiClient _resourcesApiClient;
     private readonly ILogger<ScheduledReportTimerTriggerFunction> _logger;
     private readonly string _serviceBusConnectionString;
     private readonly string _queueName;
@@ -25,10 +26,14 @@ public class ScheduledReportTimerTriggerFunction
     // The function should start 02:10 and in order to be finished before 07:00 it spaces out the batch work over 4.5 hours
     private int _totalBatchTimeInMinutes = 270;
 
-    public ScheduledReportTimerTriggerFunction(ILineOrgApiClient lineOrgApiClient,
-        ILogger<ScheduledReportTimerTriggerFunction> logger, IConfiguration configuration)
+    public ScheduledReportTimerTriggerFunction(
+        ILineOrgApiClient lineOrgApiClient,
+        IResourcesApiClient resourcesApiClient,
+        ILogger<ScheduledReportTimerTriggerFunction> logger,
+        IConfiguration configuration)
     {
         _lineOrgClient = lineOrgApiClient;
+        _resourcesApiClient = resourcesApiClient;
         _logger = logger;
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _queueName = configuration["scheduled_notification_report_queue"];
@@ -50,7 +55,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 10 0 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 10 0 * * MON", RunOnStartup = true)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -83,32 +88,15 @@ public class ScheduledReportTimerTriggerFunction
             // Query departments from LineOrg
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
                 .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
-                .Where(d => d.FullDepartment.Contains("PRD"))
-                .Where(x => x.Management?.Persons.Length > 0);            // Exclude departments with no receivers
-
-            // Group OrgUnits by FullDepartment and join the Person arrays together
-            var groupedDepartments = departments
-                .GroupBy(orgUnit => orgUnit.FullDepartment)
-                .Select(group =>
-                {
-                    // Combine the Person arrays of all OrgUnits in the group into a single array
-                    var allPersons = group.SelectMany(orgUnit => orgUnit.Management.Persons).ToArray();
-
-                    // Create a new OrgUnits object with the FullDepartment, SapId, and combined Person array
-                    return new OrgUnits
-                    {
-                        FullDepartment = group.Key,
-                        SapId = group.First().SapId,
-                        Management = new Management { Persons = allPersons }
-                    };
-                })
+                .Where(d => d.FullDepartment.Contains("PDP PRD PMC PCA PCA5"))
+                .Where(x => x.Management?.Persons.Length > 0)             // Exclude departments with no receivers
                 .ToList();
 
             // Calculate batch time based of total number of departments and the allowed run time
-            var batchTimeInMinutes = CalculateBatchTime(totalBatchTimeInMinutes, groupedDepartments.Count);
+            var batchTimeInMinutes = CalculateBatchTime(totalBatchTimeInMinutes, departments.Count);
 
-            var totalNumberOfDepartments = groupedDepartments.Count;
-            int totalNumberOfRecipients = groupedDepartments.Sum(orgUnit => orgUnit.Management.Persons.Length);
+            var totalNumberOfDepartments = departments.Count;
+            int totalNumberOfRecipients = departments.Sum(orgUnit => orgUnit.Management.Persons.Length);
 
             _logger.LogInformation($"With {totalNumberOfDepartments} departments it's going to send notification to {totalNumberOfRecipients} recipients");
 
@@ -116,8 +104,16 @@ public class ScheduledReportTimerTriggerFunction
 
             var resourceOwnerMessageSent = 0;
 
-            foreach (var dep in groupedDepartments)
+            foreach (var dep in departments)
             {
+                var notificationRecipients = dep.Management.Persons.Select(x => x.AzureUniqueId).ToList();
+
+                // Get delegates for department, if any
+                var delegatesResult = await _resourcesApiClient.GetDelegatedResponsibleForDepartment(dep.FullDepartment);
+
+                // Add the user id to the list
+                notificationRecipients.AddRange(delegatesResult.Select(x => x.DelegatedResponsible.AzureUniquePersonId));
+
                 var timeDelayInMinutes = resourceOwnerMessageSent++ * batchTimeInMinutes;
 
                 try
