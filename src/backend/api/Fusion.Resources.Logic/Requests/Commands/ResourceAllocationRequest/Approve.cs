@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Logic.Workflows;
@@ -28,11 +29,13 @@ namespace Fusion.Resources.Logic.Commands
             {
                 private readonly ResourcesDbContext dbContext;
                 private readonly IMediator mediator;
+                private readonly IProfileService profileService;
 
-                public Handler(ResourcesDbContext dbContext, IMediator mediator)
+                public Handler(ResourcesDbContext dbContext, IMediator mediator, IProfileService profileService)
                 {
                     this.dbContext = dbContext;
                     this.mediator = mediator;
+                    this.profileService = profileService;
                 }
 
                 public async Task Handle(Approve request, CancellationToken cancellationToken)
@@ -74,13 +77,11 @@ namespace Fusion.Resources.Logic.Commands
                             StringComparison.OrdinalIgnoreCase))
                         return;
 
-
-                    var noProposedChanges = !AnyProposedChanges(dbRequest);
-
                     // For a direct allocation, we can auto complete the request if no changes has been proposed.
-                    if (workflow is AllocationDirectWorkflowV1 directWorkflow && noProposedChanges)
+                    if (workflow is AllocationDirectWorkflowV1 directWorkflow && AnyProposedChanges(dbRequest) == false)
                     {
-                        currentStep = directWorkflow.AutoApproveUnchangedRequest();
+                        var systemAccount = await profileService.EnsureSystemAccountAsync();
+                        currentStep = directWorkflow.AutoApproveUnchangedRequest(systemAccount);
                         dbRequest.State.State = workflow.GetCurrent().Id;
 
                         workflow.SaveChanges();
@@ -101,19 +102,23 @@ namespace Fusion.Resources.Logic.Commands
                     }
                 }
 
-
+                /// <summary>
+                ///     AnyProposedChanges for a direct allocation
+                /// </summary>
                 private static bool AnyProposedChanges(DbResourceAllocationRequest dbRequest)
                 {
+                    if (!dbRequest.ProposedPerson.HasBeenProposed)
+                        throw new InvalidOperationException("Proposed person has not been set for a direct allocation");
+
                     // For older requests, we don't have the InitialProposedPerson property
                     // Assume for these that the proposed person has been changed
                     var hasProposedPersonBeenChanged = dbRequest.InitialProposedPerson is null
                                                        ||
-                                                       (dbRequest.ProposedPerson.HasBeenProposed &&
                                                         dbRequest.InitialProposedPerson.AzureUniqueId !=
                                                         dbRequest.ProposedPerson.AzureUniqueId
                                                         ||
                                                         dbRequest.InitialProposedPerson.Mail !=
-                                                        dbRequest.ProposedPerson.Mail);
+                                                       dbRequest.ProposedPerson.Mail;
                     bool hasProposedChanges;
                     try
                     {

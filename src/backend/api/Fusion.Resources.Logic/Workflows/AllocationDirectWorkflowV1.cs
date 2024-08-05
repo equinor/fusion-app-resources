@@ -55,14 +55,14 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext().Current;
         }
 
-        public WorkflowStep AutoApproveUnchangedRequest()
+        public WorkflowStep AutoApproveUnchangedRequest(DbPerson? completedBy = null)
         {
             return Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription(
                     "The request was auto approved as the request was unchanged without any proposed changes. " +
                     "The provisioning process will start so changes are visible in the org chart.")
-                .Skip()
+                .Skip(completedBy)
                 .StartNext().Current
                 .WithDescription("The new position or changes will be provisioned to the organisational chart");
         }
