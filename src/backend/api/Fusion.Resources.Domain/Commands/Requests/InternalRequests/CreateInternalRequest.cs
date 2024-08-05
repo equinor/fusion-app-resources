@@ -1,17 +1,17 @@
-﻿using FluentValidation;
-using Fusion.ApiClients.Org;
-using Fusion.Integration.Org;
-using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain.Queries;
-using Fusion.Services.LineOrg.ApiModels;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
+using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
+using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
+using Fusion.Resources.Domain.Queries;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -80,7 +80,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id));
+                await mediator.Publish(new InternalRequestCreated(dbItem.Id));
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
@@ -129,6 +129,13 @@ namespace Fusion.Resources.Domain.Commands
                         Obs = instance.Obs,
                         Workload = instance.Workload
                     },
+                    InitialProposedPerson = proposedPerson is not null
+                        ? new DbResourceAllocationRequest.DbOpInitialProposedPerson()
+                        {
+                            AzureUniqueId = proposedPerson.AzureUniqueId,
+                            Mail = proposedPerson.Mail
+                        }
+                        : null,
 
                     IsDraft = request.IsDraft,
 

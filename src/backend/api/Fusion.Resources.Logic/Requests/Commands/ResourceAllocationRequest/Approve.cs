@@ -75,13 +75,10 @@ namespace Fusion.Resources.Logic.Commands
                         return;
 
 
-                    // TODO: Hear with PO whether to lock the proposed candidate, if not
-                    // Then we need to save the original proposed candidate and check if proposed candidate is changed.
-                    var anyProposedChanges = !string.IsNullOrWhiteSpace(dbRequest.ProposedChanges) &&
-                                             JObject.Parse(dbRequest.ProposedChanges).HasValues;
+                    var noProposedChanges = !AnyProposedChanges(dbRequest);
 
                     // For a direct allocation, we can auto complete the request if no changes has been proposed.
-                    if (workflow is AllocationDirectWorkflowV1 directWorkflow && !anyProposedChanges)
+                    if (workflow is AllocationDirectWorkflowV1 directWorkflow && noProposedChanges)
                     {
                         currentStep = directWorkflow.AutoApproveUnchangedRequest();
                         dbRequest.State.State = workflow.GetCurrent().Id;
@@ -102,6 +99,34 @@ namespace Fusion.Resources.Logic.Commands
                         await mediator.Publish(new InternalRequestNotifications.ProposedPerson(request.RequestId),
                             CancellationToken.None);
                     }
+                }
+
+
+                private static bool AnyProposedChanges(DbResourceAllocationRequest dbRequest)
+                {
+                    // For older requests, we don't have the InitialProposedPerson property
+                    // Assume for these that the proposed person has been changed
+                    var hasProposedPersonBeenChanged = dbRequest.InitialProposedPerson is null
+                                                       ||
+                                                       (dbRequest.ProposedPerson.HasBeenProposed &&
+                                                        dbRequest.InitialProposedPerson.AzureUniqueId !=
+                                                        dbRequest.ProposedPerson.AzureUniqueId
+                                                        ||
+                                                        dbRequest.InitialProposedPerson.Mail !=
+                                                        dbRequest.ProposedPerson.Mail);
+                    bool hasProposedChanges;
+                    try
+                    {
+                        hasProposedChanges = !string.IsNullOrWhiteSpace(dbRequest.ProposedChanges) &&
+                                             JObject.Parse(dbRequest.ProposedChanges).HasValues;
+                    }
+                    catch (Exception e)
+                    {
+                        // If we can't parse the proposed changes, we should not continue
+                        throw new InvalidOperationException("Could not parse proposed changes", e);
+                    }
+
+                    return hasProposedPersonBeenChanged || hasProposedChanges;
                 }
             }
         }
