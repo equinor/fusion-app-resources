@@ -1,24 +1,14 @@
-﻿using Fusion.Resources.Database;
-using MediatR;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Fusion.Integration.Org;
-
+using Fusion.Resources.Database;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands
 {
     public class SyncProjectStates: IRequest
     {
-
-
-
-        public SyncProjectStates()
-        {
-            
-        }
-
-
         public class Handler : IRequestHandler<SyncProjectStates>
         {
             private readonly ResourcesDbContext db;
@@ -32,7 +22,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task Handle(SyncProjectStates request, CancellationToken cancellationToken)
             {
-                var projects = await db.Projects.ToListAsync();
+                var projects = await db.Projects.ToListAsync(cancellationToken: cancellationToken);
 
                 foreach (var project in projects)
                 {
@@ -40,8 +30,7 @@ namespace Fusion.Resources.Domain.Commands
 
                     if (orgProject is not null)
                     {
-                        var state = orgProject.State;
-                        project.State = state;
+                        project.State = orgProject.State;
                     }
                 }
                 await db.SaveChangesAsync(cancellationToken);
