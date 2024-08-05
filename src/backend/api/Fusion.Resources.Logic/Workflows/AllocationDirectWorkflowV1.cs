@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Logic.Workflows
@@ -57,6 +58,16 @@ namespace Fusion.Resources.Logic.Workflows
 
         public WorkflowStep AutoApproveUnchangedRequest(DbPerson? completedBy = null)
         {
+            // Quite hacky, but this is to avoid having to check if the request has changes in the Proposed() method.
+            var approvedTheRequestText = this[PROPOSAL].Description?
+                .Split("The project must approve the proposal for the changes to be provisioned.",
+                    StringSplitOptions.RemoveEmptyEntries)?.FirstOrDefault();
+
+            if (approvedTheRequestText is not null)
+                this[PROPOSAL].WithDescription(approvedTheRequestText.TrimEnd() +
+                                               " The request was proposed without any changes by the resource manager. The request will be auto approved.");
+
+
             return Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription(
