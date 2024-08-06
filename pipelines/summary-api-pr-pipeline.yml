@@ -20,7 +20,7 @@ resources:
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
     fusionAcr: 'fusioncr.azurecr.io'
-    imageRepo: resources/fusion-summary-api
+    imageRepo: resources/fra-summary-api
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
