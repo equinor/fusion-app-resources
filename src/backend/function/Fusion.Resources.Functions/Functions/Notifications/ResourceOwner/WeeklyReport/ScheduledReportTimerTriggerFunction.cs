@@ -88,7 +88,7 @@ public class ScheduledReportTimerTriggerFunction
             // Query departments from LineOrg
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
                 .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
-                .Where(d => d.FullDepartment.Contains("PDP PRD PMC PCA PCA5"))
+                .Where(d => d.FullDepartment.Contains("PRD"))
                 .Where(x => x.Management?.Persons.Length > 0)             // Exclude departments with no receivers
                 .ToList();
 
