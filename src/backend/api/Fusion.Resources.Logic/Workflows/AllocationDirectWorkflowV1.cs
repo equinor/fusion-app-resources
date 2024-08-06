@@ -73,7 +73,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .SetDescription(
                     "The request was auto accepted as there were no proposed changes from the resource owner. " +
                     "The provisioning process will start so changes are visible in the org chart.")
-                .Skip(completedBy)
+                .Complete(completedBy, true)
                 .StartNext().Current
                 .WithDescription("The new position or changes will be provisioned to the organisational chart");
         }

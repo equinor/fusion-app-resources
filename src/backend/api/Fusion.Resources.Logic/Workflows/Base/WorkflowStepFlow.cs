@@ -53,7 +53,7 @@ namespace Fusion.Resources.Logic.Workflows
             return this;
         }
 
-        public WorkflowStepFlow Complete(DbPerson completedBy, bool approved)
+        public WorkflowStepFlow Complete(DbPerson? completedBy, bool approved)
         {
             Current.Completed = DateTimeOffset.Now;
             Current.CompletedBy = completedBy;
