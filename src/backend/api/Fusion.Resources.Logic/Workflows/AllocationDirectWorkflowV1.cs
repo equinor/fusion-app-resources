@@ -60,12 +60,12 @@ namespace Fusion.Resources.Logic.Workflows
         {
             // Quite hacky, but this is to avoid having to check if the request has changes in the Proposed() method.
             var approvedTheRequestText = this[PROPOSAL].Description?
-                .Split("The project must approve the proposal for the changes to be provisioned.",
+                .Split(TheProjectMustApproveText,
                     StringSplitOptions.RemoveEmptyEntries)?.FirstOrDefault();
 
             if (approvedTheRequestText is not null)
                 this[PROPOSAL].WithDescription(approvedTheRequestText.TrimEnd() +
-                                               " The request was proposed without any changes by the resource manager. The request will be auto approved.");
+                                               " The request was proposed without any changes by the resource owner. The request will be auto accepted.");
 
 
             return Step(APPROVAL)
@@ -73,7 +73,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .SetDescription(
                     "The request was auto accepted as there were no proposed changes from the resource owner. " +
                     "The provisioning process will start so changes are visible in the org chart.")
-                .Complete(completedBy, true)
+                .Skip(completedBy)
                 .StartNext().Current
                 .WithDescription("The new position or changes will be provisioned to the organisational chart");
         }
@@ -91,7 +91,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             return Step(PROPOSAL)
                 .SetName("Proposed")
-                .SetDescription($"{proposer.Name} have proposed a candidate. The project must approve the proposal for the changes to be provisioned.")
+                .SetDescription($"{proposer.Name} have proposed a candidate. {TheProjectMustApproveText}")
                 .Complete(proposer, true)
                 .StartNext().Current;
         }
@@ -145,6 +145,9 @@ namespace Fusion.Resources.Logic.Workflows
             .WithPreviousStep(APPROVAL);
         
         #endregion
+
+        private const string TheProjectMustApproveText =
+            "The project must approve the proposal for the changes to be provisioned.";
     }
 
 }
