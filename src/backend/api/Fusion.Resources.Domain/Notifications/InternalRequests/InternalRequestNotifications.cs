@@ -29,9 +29,9 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         /// <summary>
         ///     Sent when a request is auto approved because the request was proposed without changes
         /// </summary>
-        public class ProposedPersonAutoApproved : INotification
+        public class ProposedPersonAutoAccepted : INotification
         {
-            public ProposedPersonAutoApproved(Guid requestId)
+            public ProposedPersonAutoAccepted(Guid requestId)
             {
                 RequestId = requestId;
             }

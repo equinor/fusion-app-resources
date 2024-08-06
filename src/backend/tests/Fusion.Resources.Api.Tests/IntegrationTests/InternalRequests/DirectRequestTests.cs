@@ -699,10 +699,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
-        #region Auto approval no proposed changes
+        #region Auto accept if no proposed changes
 
         [Fact]
-        public async Task DirectRequest_Propose_WithoutChanges_ShouldAutoComplete()
+        public async Task DirectRequest_Propose_WithoutChanges_ShouldAutoAccept()
         {
             using var adminScope = fixture.AdminScope();
 

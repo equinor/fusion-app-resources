@@ -81,7 +81,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (workflow is AllocationDirectWorkflowV1 directWorkflow && AnyProposedChanges(dbRequest) == false)
                     {
                         var systemAccount = await profileService.EnsureSystemAccountAsync();
-                        currentStep = directWorkflow.AutoApproveUnchangedRequest(systemAccount);
+                        currentStep = directWorkflow.AutoAcceptedUnchangedRequest(systemAccount);
                         dbRequest.State.State = workflow.GetCurrent().Id;
 
                         workflow.SaveChanges();
@@ -92,7 +92,7 @@ namespace Fusion.Resources.Logic.Commands
                             currentStep?.PreviousStepId, currentStep?.Id);
                         await mediator.Publish(notification, CancellationToken.None);
 
-                        notification = new InternalRequestNotifications.ProposedPersonAutoApproved(dbRequest.Id);
+                        notification = new InternalRequestNotifications.ProposedPersonAutoAccepted(dbRequest.Id);
                         await mediator.Publish(notification, CancellationToken.None);
                     }
                     else

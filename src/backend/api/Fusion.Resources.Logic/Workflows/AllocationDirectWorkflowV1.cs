@@ -56,7 +56,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext().Current;
         }
 
-        public WorkflowStep AutoApproveUnchangedRequest(DbPerson? completedBy = null)
+        public WorkflowStep AutoAcceptedUnchangedRequest(DbPerson? completedBy = null)
         {
             // Quite hacky, but this is to avoid having to check if the request has changes in the Proposed() method.
             var approvedTheRequestText = this[PROPOSAL].Description?
@@ -71,7 +71,7 @@ namespace Fusion.Resources.Logic.Workflows
             return Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription(
-                    "The request was auto approved as the request was unchanged without any proposed changes. " +
+                    "The request was auto accepted as there were no proposed changes from the resource owner. " +
                     "The provisioning process will start so changes are visible in the org chart.")
                 .Skip(completedBy)
                 .StartNext().Current

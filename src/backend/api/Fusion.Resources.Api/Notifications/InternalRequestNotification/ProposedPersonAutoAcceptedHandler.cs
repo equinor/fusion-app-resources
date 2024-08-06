@@ -18,19 +18,19 @@ namespace Fusion.Resources.Api.Notifications;
 public partial class InternalRequestNotification
 {
     public class
-        ProposedPersonAutoApprovedHandler : INotificationHandler<
-        InternalRequestNotifications.ProposedPersonAutoApproved>
+        ProposedPersonAutoAcceptedHandler : INotificationHandler<
+        InternalRequestNotifications.ProposedPersonAutoAccepted>
     {
         private readonly IMediator mediator;
         private readonly INotificationBuilder notificationBuilder;
         private readonly IProjectOrgResolver orgResolver;
         private readonly IFusionContextResolver contextResolver;
-        private readonly ILogger<ProposedPersonAutoApprovedHandler> logger;
+        private readonly ILogger<ProposedPersonAutoAcceptedHandler> logger;
 
 
-        public ProposedPersonAutoApprovedHandler(IMediator mediator,
+        public ProposedPersonAutoAcceptedHandler(IMediator mediator,
             INotificationBuilderFactory notificationBuilderFactory, IProjectOrgResolver orgResolver,
-            IFusionContextResolver contextResolver, ILogger<ProposedPersonAutoApprovedHandler> logger)
+            IFusionContextResolver contextResolver, ILogger<ProposedPersonAutoAcceptedHandler> logger)
         {
             this.mediator = mediator;
             this.orgResolver = orgResolver;
@@ -39,7 +39,7 @@ public partial class InternalRequestNotification
             this.notificationBuilder = notificationBuilderFactory.CreateDesigner();
         }
 
-        public async Task Handle(InternalRequestNotifications.ProposedPersonAutoApproved notification,
+        public async Task Handle(InternalRequestNotifications.ProposedPersonAutoAccepted notification,
             CancellationToken cancellationToken)
         {
             try
@@ -49,9 +49,9 @@ public partial class InternalRequestNotification
 
 
                 var card = await notificationBuilder
-                    .AddTitle($"A {request.AllocationRequest.SubType} personnel allocation request was auto-approved")
+                    .AddTitle($"A {request.AllocationRequest.SubType} personnel allocation request was auto-accepted")
                     .AddDescription(
-                        $"The {request.AllocationRequest.SubType} personnel request has been auto-approved as there where no proposed changes by the Resource owner. " +
+                        $"The {request.AllocationRequest.SubType} personnel request has been auto-accepted as there where no proposed changes by the Resource owner. " +
                         $"Changes wil be provisioned to the org chart")
                     .AddFacts(facts => facts
                         .AddFact("Request number", $"{request.AllocationRequest.RequestNumber}")
