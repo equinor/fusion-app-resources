@@ -103,6 +103,7 @@ namespace Fusion.Resources.Api.Controllers
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
             return NoContent();
         }
+        
         [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment([FromRoute] OrgUnitIdentifier departmentString, bool shouldIgnoreDateFilter)
         {
@@ -113,7 +114,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
                     or.CanDelegateAccessToDepartment(new DepartmentPath(departmentString.FullDepartment));
