@@ -1,12 +1,12 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using System;
+using System.Threading.Tasks;
+using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
-using Fusion.Integration.Profile.Internal;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpGet("admin/projects/sync-state")]
-        public async Task<ActionResult> SyncProjectStates()
+        public async Task<ActionResult> SyncProjectStates([FromBody] SyncProjectStatesRequest? request = null)
         {
             #region Authorization
 
@@ -102,11 +102,17 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
-            await mediator.Send(new SyncProjectStates());
+            var query = new SyncProjectStates();
+            if (request?.OptionalOrgProjectIdsFilter != null)
+                query.WhereOrgProjectIds(request.OptionalOrgProjectIdsFilter);
+
+            await mediator.Send(query);
 
 
             return new OkObjectResult(new { message = "Project states synced." });
         }
+
+        public record SyncProjectStatesRequest(Guid[] OptionalOrgProjectIdsFilter);
 
 
     }

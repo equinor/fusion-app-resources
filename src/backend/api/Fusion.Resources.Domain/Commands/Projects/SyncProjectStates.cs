@@ -1,4 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
@@ -7,8 +10,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class SyncProjectStates: IRequest
+    public class SyncProjectStates : TrackableRequest
     {
+        public IEnumerable<Guid>? OrgProjectIds { get; private set; }
+
+        public SyncProjectStates WhereOrgProjectIds(IEnumerable<Guid> orgProjectIds)
+        {
+            OrgProjectIds = orgProjectIds;
+            return this;
+        }
+        
         public class Handler : IRequestHandler<SyncProjectStates>
         {
             private readonly ResourcesDbContext db;
@@ -22,7 +33,9 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task Handle(SyncProjectStates request, CancellationToken cancellationToken)
             {
-                var projects = await db.Projects.ToListAsync(cancellationToken: cancellationToken);
+                var projects = await db.Projects
+                    .Where(p => request.OrgProjectIds == null || request.OrgProjectIds.Contains(p.OrgProjectId))
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 foreach (var project in projects)
                 {
