@@ -173,7 +173,6 @@ namespace Fusion.Resources.Functions.Common.ApiClients
             public string AzureUniquePersonId { get; set; }
         }
 
-
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum ApiAbsenceType
         {

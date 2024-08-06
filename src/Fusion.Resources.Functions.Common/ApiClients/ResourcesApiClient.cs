@@ -97,10 +97,10 @@ namespace Fusion.Resources.Functions.Common.ApiClients
         }
 
         public async Task<IEnumerable<DelegatedresponsibleResult>> GetDelegatedResponsibleForDepartment(string departmentIdentifier)
-        {
-            var response = await resourcesClient.GetAsJsonAsync<InternalCollection<DelegatedresponsibleResult>>($"departments/{departmentIdentifier}/delegated-resource-owners");
+        {            
+            var response = await resourcesClient.GetAsJsonAsync<List<DelegatedresponsibleResult>>($"departments/{departmentIdentifier}/delegated-resource-owners");
 
-            return response.Value;
+            return response;
         }
 
         internal class InternalCollection<T>

@@ -114,6 +114,9 @@ public class ScheduledReportTimerTriggerFunction
                 // Add the user id to the list
                 notificationRecipients.AddRange(delegatesResult.Select(x => x.DelegatedResponsible.AzureUniquePersonId));
 
+                // Clean up duplicates in the list
+                notificationRecipients = notificationRecipients.Distinct().ToList();
+
                 var timeDelayInMinutes = resourceOwnerMessageSent++ * batchTimeInMinutes;
 
                 try
