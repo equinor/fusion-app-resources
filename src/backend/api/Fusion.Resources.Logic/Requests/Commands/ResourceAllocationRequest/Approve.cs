@@ -1,14 +1,14 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain;
+﻿﻿using Fusion.Resources.Database;
 using Fusion.Resources.Domain.Commands;
-using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Newtonsoft.Json.Linq;
 
 namespace Fusion.Resources.Logic.Commands
@@ -40,9 +40,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public async Task Handle(Approve request, CancellationToken cancellationToken)
                 {
-                    var dbRequest =
-                        await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId,
-                            cancellationToken);
+                    var dbRequest = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId, cancellationToken);
                     if (dbRequest is null)
                         throw new InvalidOperationException("Could not locate request");
 
@@ -54,9 +52,7 @@ namespace Fusion.Resources.Logic.Commands
 
 
                     var currentStep = workflow[dbRequest.State.State];
-                    await mediator.Publish(
-                        new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId),
-                        cancellationToken);
+                    await mediator.Publish(new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId), cancellationToken);
 
                     if (!workflow.HasNextStep())
                         throw new InvalidWorkflowError("The request has no next step to approve", []);
@@ -68,13 +64,11 @@ namespace Fusion.Resources.Logic.Commands
 
                     await dbContext.SaveChangesAsync(cancellationToken);
 
-                    INotification notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type,
-                        currentStep?.PreviousStepId, currentStep?.Id);
+                    INotification notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep?.PreviousStepId, currentStep?.Id);
                     await mediator.Publish(notification, cancellationToken);
 
 
-                    if (!string.Equals(dbRequest.State.State, WorkflowDefinition.APPROVAL,
-                            StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(dbRequest.State.State, WorkflowDefinition.APPROVAL, StringComparison.OrdinalIgnoreCase))
                         return;
 
                     // For a direct allocation, we can auto complete the request if no changes has been proposed.
@@ -88,8 +82,7 @@ namespace Fusion.Resources.Logic.Commands
                         await dbContext.SaveChangesAsync(CancellationToken.None);
 
 
-                        notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type,
-                            currentStep?.PreviousStepId, currentStep?.Id);
+                        notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep?.PreviousStepId, currentStep?.Id);
                         await mediator.Publish(notification, CancellationToken.None);
 
                         notification = new InternalRequestNotifications.ProposedPersonAutoAccepted(dbRequest.Id);
@@ -97,8 +90,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
                     else
                     {
-                        await mediator.Publish(new InternalRequestNotifications.ProposedPerson(request.RequestId),
-                            CancellationToken.None);
+                        await mediator.Publish(new InternalRequestNotifications.ProposedPerson(request.RequestId), CancellationToken.None);
                     }
                 }
 

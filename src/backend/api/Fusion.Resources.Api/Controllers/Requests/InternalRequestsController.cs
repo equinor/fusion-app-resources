@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using FluentValidation;
+﻿﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
@@ -21,6 +16,11 @@ using Fusion.Resources.Logic.Requests;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Controllers
@@ -65,8 +65,8 @@ namespace Fusion.Resources.Api.Controllers
             {
                 // Must resolve the subType to use when allocation request.
                 if (string.IsNullOrEmpty(request.SubType))
-                    request.SubType =
-                        await DispatchAsync(new ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceId));
+                    request.SubType = await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceId));
+
             }
             // Create all requests as draft
             var command = new CreateInternalRequest(InternalRequestOwner.Project, request.ResolveType())
@@ -146,8 +146,7 @@ namespace Fusion.Resources.Api.Controllers
                 // Must resolve the subType to use when allocation request.
                 if (string.IsNullOrEmpty(request.SubType))
                 {
-                    request.SubType = await DispatchAsync(new ResolveSubType(request.OrgPositionId,
-                        request.OrgPositionInstanceIds.First()));
+                    request.SubType = await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceIds.First()));
                 }
             }
 
@@ -802,7 +801,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var transaction = await BeginTransactionAsync();
-                await DispatchCommandAsync(new Initialize(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
                 await transaction.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -852,7 +851,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var transaction = await BeginTransactionAsync();
-                await DispatchCommandAsync(new Initialize(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
                 await transaction.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -946,7 +945,7 @@ namespace Fusion.Resources.Api.Controllers
                 await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var scope = await BeginTransactionAsync();
 
-                await DispatchCommandAsync(new Provision(requestId)
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId)
                 {
                     ForceProvision = force
                 });
@@ -988,7 +987,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchCommandAsync(new Approve(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
                 await scope.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -1035,7 +1034,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchCommandAsync(new Approve(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
                 await scope.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -1415,8 +1414,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 var currentStep = result.Workflow?.GetWorkflowStepByState(result.State);
                 if (string.IsNullOrEmpty(currentStep?.Id) || string.IsNullOrEmpty(currentStep?.NextStep)) return NoContent();
-                await DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id,
-                    currentStep.NextStep));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id, currentStep.NextStep));
             }
             catch (UnauthorizedWorkflowException)
             {
@@ -1704,8 +1702,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 var currentStep = result.Workflow?.GetWorkflowStepByState(result.State);
                 if (string.IsNullOrEmpty(currentStep?.Id) || string.IsNullOrEmpty(currentStep?.NextStep)) return NoContent();
-                await DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id,
-                    currentStep.NextStep));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id, currentStep.NextStep));
             }
             catch (UnauthorizedWorkflowException)
             {
