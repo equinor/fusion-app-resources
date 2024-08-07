@@ -53,13 +53,14 @@ public class ScheduledReportContentBuilderFunction
         {
             var body = Encoding.UTF8.GetString(message.Body);
             var dto = JsonConvert.DeserializeObject<ScheduledNotificationQueueDto>(body);
-            if (!Guid.TryParse(dto.AzureUniqueId, out var azureUniqueId))
-                throw new Exception("AzureUniqueId not valid.");
+
+            if (!dto.AzureUniqueId.Any())
+                throw new Exception("There are no recipients. This should have been filtered");
+            
             if (string.IsNullOrEmpty(dto.FullDepartment))
                 throw new Exception("FullDepartmentIdentifier not valid.");
 
-
-            await BuildContentForResourceOwner(azureUniqueId, dto.FullDepartment, dto.DepartmentSapId);
+            await BuildContentForResourceOwner(dto.AzureUniqueId, dto.FullDepartment, dto.DepartmentSapId);
 
             _logger.LogInformation(
                 $"{nameof(ScheduledReportContentBuilderFunction)} " +
@@ -78,7 +79,7 @@ public class ScheduledReportContentBuilderFunction
         }
     }
 
-    private async Task BuildContentForResourceOwner(Guid azureUniqueId, string fullDepartment, string departmentSapId)
+    private async Task BuildContentForResourceOwner(IEnumerable<string> azureUniqueIds, string fullDepartment, string departmentSapId)
     {
         //  Requests for department
         var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(fullDepartment)).ToList();
@@ -87,22 +88,36 @@ public class ScheduledReportContentBuilderFunction
         var departmentPersonnel =
             (await GetPersonnelForDepartmentExludingConsultantAndExternal(fullDepartment)).ToList();
 
-        var sendNotification = await _notificationsClient.SendNotification(
-            new SendNotificationsRequest
-            {
-                Title = $"Weekly summary - {fullDepartment}",
-                EmailPriority = 1,
-                Card = CreateResourceOwnerAdaptiveCard(departmentPersonnel, departmentRequests,
-                    fullDepartment, departmentSapId),
-                Description = $"Weekly report for department - {fullDepartment}"
-            },
-            azureUniqueId);
-
-        // Throwing exception if the response is not successful.
-        if (!sendNotification)
+        // Check if the department has personnel, abort if not
+        if(departmentPersonnel.Count() == 0)
         {
-            throw new Exception(
-                $"Failed to send notification to resource-owner with AzureUniqueId: '{azureUniqueId}'.");
+            _logger.LogInformation("Department contains no personnel, no need to send notification");
+
+            return;
+        }
+
+        // Create notification card
+        var card = CreateResourceOwnerAdaptiveCard(departmentPersonnel, departmentRequests, fullDepartment, departmentSapId);
+
+        foreach (var azureUniqueIdStr in azureUniqueIds)
+        {
+            Guid azureUniqueId = Guid.Empty;
+
+            if(!Guid.TryParse(azureUniqueIdStr, out azureUniqueId))
+            {
+                _logger.LogError($"Unable to parse notification recipient '{azureUniqueIdStr}'");
+
+                continue;
+            }
+
+            if( azureUniqueId.Equals(Guid.Empty) )
+            {
+                _logger.LogError($"Empty notification recipient '{azureUniqueIdStr}'");
+
+                continue;
+            }
+
+            await SendNotification(fullDepartment, card, azureUniqueId);
         }
     }
 
@@ -232,6 +247,26 @@ public class ScheduledReportContentBuilderFunction
             .Build();
 
         return card;
+    }
+
+    private async Task SendNotification(string fullDepartment, AdaptiveCard card, Guid azureUniqueId)
+    {
+        var sendNotification = await _notificationsClient.SendNotification(
+                new SendNotificationsRequest
+                {
+                    Title = $"Weekly summary - {fullDepartment}",
+                    EmailPriority = 1,
+                    Card = card,
+                    Description = $"Weekly report for department - {fullDepartment}"
+                },
+                azureUniqueId);
+
+        // Throwing exception if the response is not successful.
+        if (!sendNotification)
+        {
+            throw new Exception(
+                $"Failed to send notification to resource-owner with AzureUniqueId: '{azureUniqueId}'.");
+        }
     }
 
     private string PortalUri()
