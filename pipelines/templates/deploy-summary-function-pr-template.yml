@@ -67,6 +67,7 @@ steps:
           queues = @{
               provisionPosition = "provision-position"
               scheduledNotificationReportQueue = "scheduled-notification"
+              departmentSummaryWeeklyQueue = "department-summary-weekly-queue"
           }
       }
      
