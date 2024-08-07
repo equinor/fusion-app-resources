@@ -49,7 +49,6 @@
     
 
 	<ItemGroup>
-		<Folder Include="Configuration\"/>
 	  <Folder Include="Database\Migrations\" />
 	</ItemGroup>
 
