@@ -7,16 +7,11 @@ namespace Fusion.Summary.Api.Domain.Queries;
 
 public class GetAllDepartments : IRequest<IEnumerable<QueryDepartment>>
 {
-    public GetAllDepartments All()
-    {
-        return this;
-    }
-
     public class Handler : IRequestHandler<GetAllDepartments, IEnumerable<QueryDepartment>>
     {
-        private readonly DatabaseContext _context;
+        private readonly SummaryDbContext _context;
 
-        public Handler(DatabaseContext context)
+        public Handler(SummaryDbContext context)
         {
             _context = context;
         }
@@ -26,7 +21,7 @@ public class GetAllDepartments : IRequest<IEnumerable<QueryDepartment>>
             var ret = new List<QueryDepartment>();
 
             // Get all departments 
-            var dbDepartments = await _context.Departments.ToListAsync();
+            var dbDepartments = await _context.Departments.ToListAsync(cancellationToken: cancellationToken);
 
             // Remap
             foreach(var  dbDepartment in dbDepartments) ret.Add(QueryDepartment.FromDbDepartment(dbDepartment));

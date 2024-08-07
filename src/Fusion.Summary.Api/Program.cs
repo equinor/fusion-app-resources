@@ -1,7 +1,15 @@
 using System.Reflection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Fusion.AspNetCore.Versioning;
+using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api.Database;
+using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,14 +20,16 @@ builder.Configuration
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
-var databaseConnectionString = builder.Configuration.GetConnectionString("DatabaseContext");
+var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHealthChecks();
-builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks()
+    .AddCheck("liveness", () => HealthCheckResult.Healthy())
+    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
+// TODO: Add a real health check, when database is added
+// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
 
-var foo = builder.Configuration["AzureAd:ClientId"];
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -30,8 +40,20 @@ builder.Services
         options.SaveToken = true;
     });
 
+
+builder.Services.AddApiVersioning(s =>
+{
+    s.ReportApiVersions = true;
+    s.AssumeDefaultVersionWhenUnspecified = true;
+    s.DefaultApiVersion = new ApiVersion(1, 0);
+    s.ApiVersionReader = new HeaderOrQueryVersionReader("api-version");
+});
+
+builder.Services.AddSwagger(builder.Configuration);
+
 builder.Services.AddFusionIntegration(f =>
 {
+    f.AddFusionAuthorization();
     f.UseServiceInformation("Fusion.Summary.Api", "Dev");
     f.UseDefaultEndpointResolver(fusionEnvironment ?? "ci");
     f.UseDefaultTokenProvider(opts =>
@@ -42,8 +64,9 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(databaseConnectionString));
+builder.Services.AddDbContext<SummaryDbContext>(options => options.UseSqlServer(databaseConnectionString));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+builder.Services.AddFluentValidationAutoValidation().AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();
 app.UseCors(opts => opts
@@ -51,12 +74,41 @@ app.UseCors(opts => opts
     .AllowAnyMethod()
     .AllowAnyHeader()
     .WithExposedHeaders("Allow", "x-fusion-retriable"));
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseAuthentication();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+//app.UseMiddleware<RequestResponseLoggingMiddleware>();
+app.UseMiddleware<TraceMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseSummaryApiSwagger();
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireAuthorization();
-app.MapHealthChecks("/_health/liveness");
-app.MapHealthChecks("/_health/readiness");
+
+#region Health probes
+
+app.UseHealthChecks("/_health/liveness", new HealthCheckOptions
+{
+    Predicate = r => r.Name.Contains("liveness")
+});
+app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready")
+});
+
+#endregion Health probes
+
 app.Run();
+
+/// <summary>
+///     For testing
+/// </summary>
+public partial class Program
+{
+}

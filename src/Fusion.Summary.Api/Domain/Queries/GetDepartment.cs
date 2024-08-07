@@ -16,9 +16,9 @@ public class GetDepartment : IRequest<QueryDepartment?>
 
     public class Handler : IRequestHandler<GetDepartment, QueryDepartment?>
     {
-        private readonly DatabaseContext _context;
+        private readonly SummaryDbContext _context;
 
-        public Handler(DatabaseContext context)
+        public Handler(SummaryDbContext context)
         {
             _context = context;
         }
@@ -26,7 +26,7 @@ public class GetDepartment : IRequest<QueryDepartment?>
         public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
         {
             // Filter
-            var dbDepartment = await _context.Departments.FirstOrDefaultAsync(x=>x.DepartmentSapId == request.SapDepartmentId);
+            var dbDepartment = await _context.Departments.FirstOrDefaultAsync(x=>x.DepartmentSapId == request.SapDepartmentId, cancellationToken: cancellationToken);
 
             // Nullcheck
             if (dbDepartment == null) return null;

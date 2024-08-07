@@ -1,5 +1,4 @@
-﻿using Fusion.Resources.Functions.ApiClients;
-using Microsoft.Azure.WebJobs;
+﻿using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Fusion.Resources.Functions.Common.Integration.Http;
 
 namespace Fusion.Resources.Functions.Functions
 {
