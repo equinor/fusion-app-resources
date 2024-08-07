@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Fusion.AspNetCore.Versioning;
 using Fusion.Resources.Api.Middleware;
+using Fusion.Summary.Api;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,18 +18,18 @@ builder.Configuration
     .AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true)
     .AddJsonFile("/app/static/config/env.json", optional: true, reloadOnChange: true);
 
+builder.AddKeyVault();
+
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
-var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext));
+var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
     .AddCheck("liveness", () => HealthCheckResult.Healthy())
-    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
-// TODO: Add a real health check, when database is added
-// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
+    .AddDbContextCheck<SummaryDbContext>("db", tags: new[] { "ready" });
 
 
 builder.Services
@@ -64,7 +65,9 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddDbContext<SummaryDbContext>(options => options.UseSqlServer(databaseConnectionString));
+builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString)
+    .AddSqlTokenProvider<SqlTokenProvider>()
+    .AddAccessTokenSupport();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 builder.Services.AddFluentValidationAutoValidation().AddValidatorsFromAssembly(typeof(Program).Assembly);
 
