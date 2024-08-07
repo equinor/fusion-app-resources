@@ -141,6 +141,9 @@ namespace Fusion.Resources.Domain
                     }
                 });
 
+                await PopulateProjectStateForPositionInstancesAsync(departmentPersonnel);
+
+
                 return departmentPersonnel;
             }
 
@@ -222,6 +225,30 @@ namespace Fusion.Resources.Domain
                 var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, queryString, requests: requests);
 
                 return personnel;
+            }
+
+            private async Task PopulateProjectStateForPositionInstancesAsync(
+                List<QueryInternalPersonnelPerson> departmentPersonnel)
+            {
+                var orgProjectIds = departmentPersonnel
+                    .SelectMany(d => d.PositionInstances.Select(p => p.Project.OrgProjectId))
+                    .Distinct();
+
+
+                var orgProjectIdsDictionary = await db.Projects
+                    .Select(p => new { p.OrgProjectId, p.State })
+                    .Where(p => orgProjectIds.Contains(p.OrgProjectId))
+                    .AsNoTracking()
+                    .ToDictionaryAsync(p => p.OrgProjectId, p => p.State);
+
+
+                departmentPersonnel.ForEach(p =>
+                {
+                    p.PositionInstances.ForEach(pi =>
+                    {
+                        pi.Project.State = orgProjectIdsDictionary.GetValueOrDefault(pi.Project.OrgProjectId);
+                    });
+                });
             }
 
             private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)

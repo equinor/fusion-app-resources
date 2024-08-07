@@ -1,6 +1,6 @@
-﻿using Fusion.Resources.Domain;
+﻿using System;
+using Fusion.Resources.Domain;
 using Newtonsoft.Json;
-using System;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -24,6 +24,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             Id = project.OrgProjectId;
             Name = project.Name;
+            State = project.State;
         }
 
         /// <summary>

@@ -1,5 +1,5 @@
-﻿using Fusion.Resources.Database.Entities;
-using System;
+﻿using System;
+using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
@@ -25,18 +25,22 @@ namespace Fusion.Resources.Domain
     public class QueryProjectRef
     {
         public QueryProjectRef(QueryProject project)
-            : this(project.OrgProjectId, project.Name, project.DomainId ?? "", "") { }
+            : this(project.OrgProjectId, project.Name, project.DomainId ?? "", "", project.State)
+        {
+        }
 
-        public QueryProjectRef(Guid orgId, string name, string domainId, string type)
+        public QueryProjectRef(Guid orgId, string name, string domainId, string type, string? state)
         {
             OrgProjectId = orgId;
             Name = name;
             DomainId = domainId;
             Type = type;
+            State = state;
         }
         public string Name { get; set; }
         public string? DomainId { get; set; }
         public Guid OrgProjectId { get; set; }
+        public string? State { get; set; }
         public string Type { get; set; }
     }
 }
