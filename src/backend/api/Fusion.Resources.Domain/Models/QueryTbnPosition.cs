@@ -1,5 +1,5 @@
-﻿using System;
-using Fusion.ApiClients.Org;
+﻿﻿using Fusion.ApiClients.Org;
+using System;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -12,8 +12,7 @@ namespace Fusion.Resources.Domain.Queries
             ParentPositionId = pos.ExternalId;
             ProjectId = pos.ProjectId;
 
-            Project = new QueryProjectRef(pos.Project.ProjectId, pos.Project.Name, pos.Project.DomainId,
-                pos.Project.ProjectType, projectState);
+            Project = new QueryProjectRef(pos.Project.ProjectId, pos.Project.Name, pos.Project.DomainId, pos.Project.ProjectType, projectState);
 
             BasePosition = pos.BasePosition;
             Name = pos.Name;
