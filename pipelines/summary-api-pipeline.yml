@@ -23,7 +23,7 @@ resources:
 variables:
     imageTag: $(Build.BuildNumber)
     fusionAcr: 'fusioncr.azurecr.io'
-    imageRepo: resources/fra-summary-api
+    imageRepo: fra/fusion-summary-api
     imageName: $(imageRepo):$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
