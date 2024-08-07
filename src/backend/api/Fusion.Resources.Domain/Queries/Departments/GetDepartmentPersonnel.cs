@@ -141,7 +141,7 @@ namespace Fusion.Resources.Domain
                     }
                 });
 
-                await PopulateProjectStateForPositionInstancesAsync(departmentPersonnel);
+                await PopulateProjectStateForPositionInstancesAsync(departmentPersonnel, cancellationToken);
 
 
                 return departmentPersonnel;
@@ -228,7 +228,7 @@ namespace Fusion.Resources.Domain
             }
 
             private async Task PopulateProjectStateForPositionInstancesAsync(
-                List<QueryInternalPersonnelPerson> departmentPersonnel)
+                List<QueryInternalPersonnelPerson> departmentPersonnel, CancellationToken cancellationToken = default)
             {
                 var orgProjectIds = departmentPersonnel
                     .SelectMany(d => d.PositionInstances.Select(p => p.Project.OrgProjectId))
@@ -239,7 +239,7 @@ namespace Fusion.Resources.Domain
                     .Select(p => new { p.OrgProjectId, p.State })
                     .Where(p => orgProjectIds.Contains(p.OrgProjectId))
                     .AsNoTracking()
-                    .ToDictionaryAsync(p => p.OrgProjectId, p => p.State);
+                    .ToDictionaryAsync(p => p.OrgProjectId, p => p.State, cancellationToken: cancellationToken);
 
 
                 departmentPersonnel.ForEach(p =>
