@@ -55,7 +55,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 10 0 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 10 0 * * MON", RunOnStartup = true)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -88,7 +88,7 @@ public class ScheduledReportTimerTriggerFunction
             // Query departments from LineOrg
             var departments = (await _lineOrgClient.GetOrgUnitDepartmentsAsync())
                 .Where(d => d.FullDepartment != null)                     // Exclude departments with blank department name
-                .Where(d => d.FullDepartment.Contains("PRD"))
+                .Where(d => d.FullDepartment.Contains("PDP PRD PMC PCA PCA5"))
                 .Where(x => x.Management?.Persons.Length > 0)             // Exclude departments with no receivers
                 .ToList();
 
@@ -123,7 +123,7 @@ public class ScheduledReportTimerTriggerFunction
                 {
                     await SendDtoToQueue(sender, new ScheduledNotificationQueueDto
                     {
-                        AzureUniqueId = dep.Management.Persons.Select(x => x.AzureUniqueId),
+                        AzureUniqueId = notificationRecipients,
                         FullDepartment = dep.FullDepartment,
                         DepartmentSapId = dep.SapId
                     }, timeDelayInMinutes);
