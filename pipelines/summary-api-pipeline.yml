@@ -56,7 +56,7 @@ stages:
           buildContext: ./src
           dockerfile: src/Fusion.Summary.Api/Dockerfile
           arguments: |
-            --target=final
+            --target=publish
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
             --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
 
