@@ -27,7 +27,9 @@
         },
         "queues": {
           "provisionPosition": "provision-position",
-          "scheduledNotificationReportQueue": "scheduled-notification"
+          "scheduledNotificationReportQueue": "scheduled-notification",
+          "departmentSummaryWeeklyQueue": "department-summary-weekly-queue"
+          
         }
       }
     },
