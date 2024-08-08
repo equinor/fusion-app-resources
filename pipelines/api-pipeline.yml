@@ -68,6 +68,9 @@ stages:
             deployment-test-env.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
   
+      - bash: ls -acl $(Build.ArtifactStagingDirectory)
+
+
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
   
