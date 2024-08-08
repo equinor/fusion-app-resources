@@ -3,12 +3,14 @@ parameters:
   secretName: ''
   vaultName: ''
   secret: ''
+  condition: ''
 
 steps:
 - task: AzurePowerShell@5
   displayName: 'Persist secret to keyvault'
   condition: succeeded()
   inputs:
+    condition: ${{ parameters.condition }}
     azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: InlineScript
     FailOnStandardError: true
@@ -22,7 +24,7 @@ steps:
       if ([string]::IsNullOrEmpty("${{ parameters.secret }}")) {
         throw "Secret provided is empty..."
       }
-      
+
       $secretValue = ConvertTo-SecureString -String ${{ parameters.secret }} -AsPlainText -Force
 
       Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId; "hint" = $newSecret.Hint }
