@@ -61,6 +61,7 @@ namespace Fusion.Resources.Api
             {
                 existingProject.Name = orgProject.Name;
                 existingProject.DomainId = orgProject.DomainId;
+                existingProject.State = orgProject.State;
 
                 await db.SaveChangesAsync(cancellationToken);
             }
