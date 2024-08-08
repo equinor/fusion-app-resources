@@ -40,8 +40,8 @@ namespace Fusion.Summary.Api.Database.Migrations
                     AverageTimeToHandleRequests = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AllocationChangesAwaitingTaskOwnerAction = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProjectChangesAffectingNextThreeMonths = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EndingPositions = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PersonnelMoreThan100PercentFTEs = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    PersonnelMoreThan100PercentFTE = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PositionsEnding = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
