@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
 
 namespace Fusion.Summary.Functions.Functions;
 
@@ -13,19 +14,37 @@ public class DepartmentResourceOwnerSync
 {
     private readonly ILineOrgApiClient lineOrgApiClient;
     private readonly ISummaryApiClient summaryApiClient;
+    private readonly IConfiguration configuration;
 
-    public DepartmentResourceOwnerSync(ILineOrgApiClient lineOrgApiClient, ISummaryApiClient summaryApiClient)
+    public DepartmentResourceOwnerSync(
+        ILineOrgApiClient lineOrgApiClient, 
+        ISummaryApiClient summaryApiClient,
+        IConfiguration configuration)
     {
         this.lineOrgApiClient = lineOrgApiClient;
         this.summaryApiClient = summaryApiClient;
+        this.configuration = configuration;
     }
 
+    /// <summary>
+    /// Function does two things:
+    /// - Fetches all departments and updates the database
+    /// - Sends the department info to the weekly summary queue for the workers to pick up
+    /// </summary>
+    /// <param name="timerInfo">The running date & time</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     [FunctionName("department-resource-owner-sync")]
     public async Task RunAsync(
         [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
         TimerInfo timerInfo, CancellationToken cancellationToken
     )
     {
+        // Configure weekly summary servicebus queue
+        var weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
+
+        // Fetch all departments
         var departments = await lineOrgApiClient.GetOrgUnitDepartmentsAsync();
 
         var selectedDepartments = departments
@@ -63,7 +82,11 @@ public class DepartmentResourceOwnerSync
         await Parallel.ForEachAsync(resourceOwnerDepartments, parallelOptions,
             async (ownerDepartment, token) =>
             {
+                // Update the database
                 await summaryApiClient.PutDepartmentAsync(ownerDepartment, token);
+
+                // Send queue message
+                // TODO
             });
     }
 }
