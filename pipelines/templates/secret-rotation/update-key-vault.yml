@@ -17,6 +17,7 @@ steps:
     Inline: |
       $SECRETVAULTNAME = "${{ parameters.vaultName }}"
       $SECRET_NAME = "${{ parameters.secretName }}"
+      $SECRET_VALUE = "${{ parameters.secret }}"
       Write-Host "Key vault: $SECRETVAULTNAME"
       Write-Host "Secret name: $SECRET_NAME"
 
@@ -24,7 +25,7 @@ steps:
         throw "Secret provided is empty..."
       }
 
-      $secretValue = ConvertTo-SecureString -String ${{ parameters.secret }} -AsPlainText -Force
+      $secretValue = ConvertTo-SecureString -String $SECRET_VALUE -AsPlainText -Force
 
       Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId; "hint" = $newSecret.Hint }
 
