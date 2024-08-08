@@ -6,7 +6,7 @@ parameters:
 
 steps:
 - task: AzurePowerShell@5
-  displayName: 'Check expiration'
+  displayName: 'Persist secret to keyvault'
   condition: success()
   inputs:
     azureSubscription: ${{ parameters.azureSubscription }}
