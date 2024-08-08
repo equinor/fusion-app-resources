@@ -1,6 +1,7 @@
-﻿using Fusion.Resources.Database.Entities;
+﻿﻿using Fusion.Resources.Database.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Logic.Workflows
 {
@@ -55,6 +56,28 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext().Current;
         }
 
+        public WorkflowStep AutoAcceptedUnchangedRequest(DbPerson? completedBy = null)
+        {
+            // Quite hacky, but this is to avoid having to check if the request has changes in the Proposed() method.
+            var approvedTheRequestText = this[PROPOSAL].Description?
+                .Split(TheProjectMustApproveText,
+                    StringSplitOptions.RemoveEmptyEntries)?.FirstOrDefault();
+
+            if (approvedTheRequestText is not null)
+                this[PROPOSAL].WithDescription(approvedTheRequestText.TrimEnd() +
+                                               " The request was proposed without any changes by the resource owner. The request will be auto accepted.");
+
+
+            return Step(APPROVAL)
+                .SetName("Approved")
+                .SetDescription(
+                    "The request was auto accepted as there were no proposed changes from the resource owner. " +
+                    "The provisioning process will start so changes are visible in the org chart.")
+                .Skip(completedBy)
+                .StartNext().Current
+                .WithDescription("The new position or changes will be provisioned to the organisational chart");
+        }
+
         public WorkflowStep Approved(DbPerson approver)
         {
             return Step(APPROVAL)
@@ -68,7 +91,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             return Step(PROPOSAL)
                 .SetName("Proposed")
-                .SetDescription($"{proposer.Name} have proposed a candidate. The project must approve the proposal for the changes to be provisioned.")
+                .SetDescription($"{proposer.Name} have proposed a candidate. {TheProjectMustApproveText}")
                 .Complete(proposer, true)
                 .StartNext().Current;
         }
@@ -112,7 +135,8 @@ namespace Fusion.Resources.Logic.Workflows
             .WithNextStep(APPROVAL);
 
         public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
-            .WithDescription("Review personnel request and approve/reject")
+            .WithDescription(
+                "Review personnel request and approve/reject. If there are no proposed changes, the request will be auto approved.")
             .WithPreviousStep(PROPOSAL)
             .WithNextStep(PROVISIONING);
 
@@ -121,6 +145,9 @@ namespace Fusion.Resources.Logic.Workflows
             .WithPreviousStep(APPROVAL);
         
         #endregion
+
+        private const string TheProjectMustApproveText =
+            "The project must approve the proposal for the changes to be provisioned.";
     }
 
 }

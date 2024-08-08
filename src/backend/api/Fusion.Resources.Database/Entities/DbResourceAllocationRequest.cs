@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
@@ -65,6 +65,7 @@ namespace Fusion.Resources.Database.Entities
         /// </summary>
         public string? ProposedChanges { get; set; }
         public string? Properties { get; set; }
+        public DbOpInitialProposedPerson? InitialProposedPerson { get; init; }
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
         public DbOpProposalParameters ProposalParameters { get; set; } = new DbOpProposalParameters();
 
@@ -114,6 +115,7 @@ namespace Fusion.Resources.Database.Entities
                     op.Property(ps => ps.State).HasConversion(new EnumToStringConverter<DbProvisionState>());
                 });
                 entity.OwnsOne(e => e.OrgPositionInstance);
+                entity.OwnsOne(e => e.InitialProposedPerson);
                 entity.OwnsOne(e => e.ProposedPerson);
                 entity.OwnsOne(e => e.State);
                 entity.OwnsOne(e => e.ProposalParameters, op =>
@@ -174,6 +176,12 @@ namespace Fusion.Resources.Database.Entities
                 WasNotified = false;
             }
 
+        }
+
+        public class DbOpInitialProposedPerson
+        {
+            public Guid AzureUniqueId { get; set; }
+            [MaxLength(100)] public string? Mail { get; set; }
         }
 
         public class DbOpState
