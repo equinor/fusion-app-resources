@@ -66,7 +66,9 @@ stages:
           SourceFolder: 'src/Fusion.Summary.Api/Deployment/k8s'
           Contents: |
             deployment-test-env.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'   
+
+      - bash: ls -acl $(Build.ArtifactStagingDirectory)
   
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
