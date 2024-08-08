@@ -40,25 +40,30 @@ stages:
         inputs:
           command: login
           containerRegistry: fusioncr
-      - template: templates/docker-buildx.yml@infra
-        parameters:
-          repository: $(imageRepo)
-          buildContext: ./src
-          dockerfile: src/Fusion.Summary.Api/Dockerfile
-          dockerPush: true
-          disableCache: true
-          tags: |
-            $(imageTag)
-      - template: templates/docker-buildx.yml@infra
-        parameters:
-          initBuilderInstance: false
-          repository: ''
-          buildContext: ./src
-          dockerfile: src/Fusion.Summary.Api/Dockerfile
-          arguments: |
-            --target=final
-            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
+      # - template: templates/docker-buildx.yml@infra
+      #   parameters:
+      #     repository: $(imageRepo)
+      #     buildContext: ./src
+      #     dockerfile: src/Fusion.Summary.Api/Dockerfile
+      #     dockerPush: true
+      #     disableCache: true
+      #     tags: |
+      #       $(imageTag)
+      # - template: templates/docker-buildx.yml@infra
+      #   parameters:
+      #     initBuilderInstance: false
+      #     repository: ''
+      #     buildContext: ./src
+      #     dockerfile: src/Fusion.Summary.Api/Dockerfile
+      #     arguments: |
+      #       --target=final
+      #       --output=type=local,dest=$(Build.ArtifactStagingDirectory)
+      #       --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
+
+      - bash: ls -acl src/
+      - bash: ls -acl src/Fusion.Summary.Api/
+      - bash: ls -acl src/Fusion.Summary.Api/Deployment
+      - bash: ls -acl src/Fusion.Summary.Api/Deployment/k8s
 
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -69,6 +74,8 @@ stages:
           TargetFolder: '$(Build.ArtifactStagingDirectory)'   
 
       - bash: ls -acl $(Build.ArtifactStagingDirectory)
+
+      - bash: echo "test" >> $(Build.ArtifactStagingDirectory)/testFile
   
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
