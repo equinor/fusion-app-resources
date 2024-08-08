@@ -32,4 +32,5 @@ COPY --from=publish /migrations/migration.sql db-migration.sql
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=publish /migrations .
 ENTRYPOINT ["dotnet", "Fusion.Summary.Api.dll"]
