@@ -22,6 +22,7 @@ builder.AddKeyVault();
 
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+var certThumbprint = builder.Configuration["Config:CertThumbprint"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
 var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
@@ -62,6 +63,7 @@ builder.Services.AddFusionIntegration(f =>
     {
         opts.ClientId = azureAdClientId ?? throw new InvalidOperationException("Missing AzureAd:ClientId");
         opts.ClientSecret = azureAdClientSecret;
+        opts.CertificateThumbprint = certThumbprint;
     });
 });
 
