@@ -1,0 +1,30 @@
+parameters:
+  azureSubscription: ''  
+  secretName: ''
+  vaultName: ''
+  secret: ''
+
+steps:
+- task: AzurePowerShell@5
+  displayName: 'Check expiration'
+  condition: success()
+  inputs:
+    azureSubscription: ${{ parameters.azureSubscription }}
+    ScriptType: InlineScript
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |
+      $SECRETVAULTNAME = "${{ parameters.vaultName }}"
+      $SECRET_NAME = "${{ parameters.secretName }}"
+      Write-Host "Key vault: $SECRETVAULTNAME"
+      Write-Host "Secret name: $SECRET_NAME"
+
+      $secretValue = ConvertTo-SecureString -String ${{ parameters.secret }} -AsPlainText -Force
+
+      Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId; "hint" = $newSecret.Hint }
+
+      Write-Host "Key vault updated..."
+
+
+
+    
