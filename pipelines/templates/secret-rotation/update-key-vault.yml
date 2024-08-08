@@ -7,10 +7,10 @@ parameters:
 
 steps:
 - task: AzurePowerShell@5
+  condition: ${{ parameters.condition }}
   displayName: 'Persist secret to keyvault'
   condition: succeeded()
   inputs:
-    condition: ${{ parameters.condition }}
     azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: InlineScript
     FailOnStandardError: true
