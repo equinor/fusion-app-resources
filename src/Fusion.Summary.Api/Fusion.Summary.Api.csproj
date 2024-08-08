@@ -19,6 +19,7 @@
 		<PackageReference Include="Fusion.AspNetCore" Version="8.0.4"/>
         <PackageReference Include="Fusion.AspNetCore.FluentAuthorization" Version="8.0.0" />
 		<PackageReference Include="Fusion.AspNetCore.Versioning" Version="8.1.0"/>
+		<PackageReference Include="Fusion.Infrastructure.Database" Version="8.0.5"/>
 		<PackageReference Include="Fusion.Integration" Version="8.0.0" />
 		<PackageReference Include="Fusion.Integration.Authorization" Version="8.0.0" />
 		<PackageReference Include="MediatR" Version="12.3.0" />
