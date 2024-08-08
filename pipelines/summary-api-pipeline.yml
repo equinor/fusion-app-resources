@@ -78,10 +78,6 @@ stages:
 
       - bash: echo "test" >> $(Build.ArtifactStagingDirectory)/testFile
 
-      - bash: ls -acl /home/vsts/work/1/a/lib/
-      - bash: ls -acl /home/vsts/work/1/a/lib/ssl/
-      - bash: ls -acl /home/vsts/work/1/a/lib/ssl/private
-
 
       - publish: $(Build.ArtifactStagingDirectory)/output
         artifact: 'k8s-deployment'
