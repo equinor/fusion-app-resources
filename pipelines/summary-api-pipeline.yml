@@ -80,6 +80,7 @@ stages:
       - bash: ls -acl /home/vsts/work/1/a/lib/
       - bash: ls -acl /home/vsts/work/1/a/lib/ssl/
       - bash: ls -acl /home/vsts/work/1/a/lib/ssl/private
+      - bash: ls -acl /etc/ssl/private
 
 
       - publish: $(Build.ArtifactStagingDirectory)
