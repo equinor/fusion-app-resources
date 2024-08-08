@@ -1,11 +1,12 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using System;
+using System.Threading.Tasks;
+using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
-using Fusion.Integration.Profile.Internal;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -79,6 +80,40 @@ namespace Fusion.Resources.Api.Controllers
             return new OkObjectResult(new { message = "Cache reset has been queued for all instances."});
         }
 
-      
+
+        [HttpGet("admin/projects/sync-state")]
+        public async Task<ActionResult> SyncProjectStates([FromBody] SyncProjectStatesRequest? request = null)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.FullControl();
+                    or.FullControlInternal();
+                    or.BeTrustedApplication();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+
+            var query = new SyncProjectStates();
+            if (request?.OptionalOrgProjectIdsFilter != null)
+                query.WhereOrgProjectIds(request.OptionalOrgProjectIdsFilter);
+
+            await mediator.Send(query);
+
+
+            return new OkObjectResult(new { message = "Project states synced." });
+        }
+
+        public record SyncProjectStatesRequest(Guid[] OptionalOrgProjectIdsFilter);
+
+
     }
 }

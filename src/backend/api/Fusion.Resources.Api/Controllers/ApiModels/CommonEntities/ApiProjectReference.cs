@@ -1,6 +1,6 @@
-﻿using Fusion.Resources.Domain;
+﻿using System;
+using Fusion.Resources.Domain;
 using Newtonsoft.Json;
-using System;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -17,12 +17,14 @@ namespace Fusion.Resources.Api.Controllers
             Id = project.OrgProjectId;
             Name = project.Name;
             InternalId = project.Id;
+            State = project.State;
         }
 
         public ApiProjectReference(QueryProjectRef project)
         {
             Id = project.OrgProjectId;
             Name = project.Name;
+            State = project.State;
         }
 
         /// <summary>
@@ -33,5 +35,6 @@ namespace Fusion.Resources.Api.Controllers
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Guid? InternalId { get; set; }
         public string Name { get; set; }
+        public string? State { get; set; }
     }
 }

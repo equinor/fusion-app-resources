@@ -1,18 +1,18 @@
-﻿using Fusion.ApiClients.Org;
+﻿﻿using Fusion.ApiClients.Org;
 using System;
 
 namespace Fusion.Resources.Domain.Queries
 {
     public class QueryTbnPosition
     {
-        public QueryTbnPosition(ApiPositionV2 pos, ApiPositionInstanceV2 instance)
+        public QueryTbnPosition(ApiPositionV2 pos, ApiPositionInstanceV2 instance, string? projectState)
         {
             PositionId = pos.Id;
             InstanceId = instance.Id;
             ParentPositionId = pos.ExternalId;
             ProjectId = pos.ProjectId;
 
-            Project = new QueryProjectRef(pos.Project.ProjectId, pos.Project.Name, pos.Project.DomainId, pos.Project.ProjectType);
+            Project = new QueryProjectRef(pos.Project.ProjectId, pos.Project.Name, pos.Project.DomainId, pos.Project.ProjectType, projectState);
 
             BasePosition = pos.BasePosition;
             Name = pos.Name;
