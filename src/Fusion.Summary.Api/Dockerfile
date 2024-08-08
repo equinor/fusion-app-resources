@@ -17,8 +17,17 @@ WORKDIR "/src/Fusion.Summary.Api"
 RUN dotnet build "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
+
+## Set an variable to indicate build 
+ENV IS_DOCKER_BUILD=true
+
 ARG BUILD_CONFIGURATION=Release
+RUN dotnet tool restore
 RUN dotnet publish "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish
+RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql" --configuration Release --no-build
+
+FROM scratch as export
+COPY --from=publish /migrations/migration.sql db-migration.sql
 
 FROM base AS final
 WORKDIR /app

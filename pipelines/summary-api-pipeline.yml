@@ -56,30 +56,21 @@ stages:
           buildContext: ./src
           dockerfile: src/Fusion.Summary.Api/Dockerfile
           arguments: |
-            --target=final
-            --output=type=local,dest=$(Build.ArtifactStagingDirectory)/output
+            --target=export
+            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
             --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
 
-      - bash: ls -acl src/
-      - bash: ls -acl src/Fusion.Summary.Api/
-      - bash: ls -acl src/Fusion.Summary.Api/Deployment
-      - bash: ls -acl src/Fusion.Summary.Api/Deployment/k8s
-
       - task: CopyFiles@2
-        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)/output'
+        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
           SourceFolder: 'src/Fusion.Summary.Api/Deployment/k8s'
           Contents: |
             deployment-test-env.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)/output'   
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'   
 
       - bash: ls -acl $(Build.ArtifactStagingDirectory)
-      - bash: ls -acl $(Build.ArtifactStagingDirectory)/output
 
-      - bash: echo "test" >> $(Build.ArtifactStagingDirectory)/testFile
-
-
-      - publish: $(Build.ArtifactStagingDirectory)/output
+      - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
   
   - stage: DeployCI
