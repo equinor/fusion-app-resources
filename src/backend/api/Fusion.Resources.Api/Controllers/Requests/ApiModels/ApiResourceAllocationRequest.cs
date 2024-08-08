@@ -22,6 +22,12 @@ namespace Fusion.Resources.Api.Controllers
             Type = $"{query.Type}";
             SubType = query.SubType;
 
+            if (query.InitialProposedPerson != null)
+            {
+                InitialProposedPerson = new ApiProposedPerson(query.InitialProposedPerson);
+                InitialProposedPersonAzureUniqueId = query.InitialProposedPerson.AzureUniqueId;
+            }
+
             if (query.ProposedPerson != null)
             {
                 ProposedPerson = new ApiProposedPerson(query.ProposedPerson);
@@ -99,6 +105,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public ApiPropertiesCollection? Properties { get; }
+        public Guid? InitialProposedPersonAzureUniqueId { get; set; }
+        public ApiProposedPerson? InitialProposedPerson { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
         public ApiProposalParameters? ProposalParameters { get; set; }

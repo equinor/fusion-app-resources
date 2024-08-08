@@ -47,6 +47,16 @@ namespace Fusion.Resources.Domain
             OrgPositionId = entity.OrgPositionId;
             OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
 
+            if (entity.InitialProposedPerson is not null)
+            {
+                InitialProposedPerson = new QueryProposedPerson()
+                {
+                    ProposedDate = entity.Created,
+                    AzureUniqueId = entity.InitialProposedPerson.AzureUniqueId,
+                    Mail = entity.InitialProposedPerson.Mail,
+                };
+            }
+
             if (entity.ProposedPerson.HasBeenProposed)
                 ProposedPerson = new QueryProposedPerson()
                 {
@@ -98,7 +108,7 @@ namespace Fusion.Resources.Domain
         public ApiPositionV2? OrgPosition { get; set; }
 
         public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
-
+        public QueryProposedPerson? InitialProposedPerson { get; set; }
         public QueryProposedPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
         public string? PropertiesJson { get; set; }
