@@ -3,6 +3,7 @@ parameters:
     sqlFile: ''
     artifact: 'drop'
     environment: ''
+	dbTagPrefix: ''
   
 steps:
 #   - task: DownloadPipelineArtifact@2
@@ -24,12 +25,17 @@ steps:
             if (-not [string]::IsNullOrEmpty($overrideFileName)) {
                 $sqlFile = $overrideFileName
             }
+
+            $dbTagPrefix = "${{ parameters.dbTagPrefix }}"
+            if ($dbTagPrefix -eq '') {
+                throw "dbTagPrefix is required"
+            }
                         
             ## Use access token to access database - the service principal should be located in the sql server admin group.
             $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
             $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, "https://database.windows.net/")
             
-            $dbResource = Get-AzResource -TagName fusion-app-component-id -TagValue "resources-api-db-${{ parameters.environment }}" | select -First 1 
+            $dbResource = Get-AzResource -TagName fusion-app-component-id -TagValue "${{ parameters.dbTagPrefix }}-api-db-${{ parameters.environment }}" | select -First 1 
             $db = Get-AzSqlDatabase -DatabaseName $dbResource.Name.Split("/")[1] -ResourceGroupName $dbResource.ResourceGroupName -ServerName $dbResource.Name.Split("/")[0]
             $sqlServer = Get-AzSqlServer -ServerName $db.ServerName -ResourceGroupName $db.ResourceGroupName
 

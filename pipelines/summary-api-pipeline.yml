@@ -28,6 +28,7 @@ variables:
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
+    dbTagPrefix: resources
   
 stages:
   - stage: BuildDockerImage
@@ -118,7 +119,8 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
-                environment: $(envName)                
+                environment: $(envName)
+                dbTagPrefix: $(dbTagPrefix)         
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
@@ -171,6 +173,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  dbTagPrefix: $(dbTagPrefix) 
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -223,6 +226,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  dbTagPrefix: $(dbTagPrefix) 
   
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -282,6 +286,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  dbTagPrefix: $(dbTagPrefix) 
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
