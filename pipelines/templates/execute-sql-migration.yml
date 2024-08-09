@@ -10,7 +10,7 @@ steps:
 #     inputs:
 #       buildType: 'current'
   
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Execute sql migrations'
     inputs:
       azureSubscription: ${{ parameters.azureSubscription }}
