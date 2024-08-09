@@ -3,7 +3,8 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "env-name": { "type": "string" },        
-        "sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} }
+        "sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} },
+        "summary-sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} }
     },
     "variables": {
         "env-name": "[toLower(parameters('env-name'))]",
@@ -34,6 +35,7 @@
                 "enabledForTemplateDeployment": false,
                 "enabledForDiskEncryption": false,
                 "enableRbacAuthorization": false,
+                "enableSoftDelete": true,
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
                     {
@@ -215,6 +217,17 @@
             "name": "[concat(variables('keyvault-name'), '/', 'Connectionstrings--ResourcesDbContext')]",
             "properties": {
                 "value": "[parameters('sql-connection-string')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('keyvault-name'), '/', 'Connectionstrings--SummaryDbContext')]",
+            "properties": {
+                "value": "[parameters('summary-sql-connection-string')]"
             },
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"

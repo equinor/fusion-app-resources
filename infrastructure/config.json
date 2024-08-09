@@ -1,0 +1,89 @@
+{
+    "subscriptionId": "63b791ae-b2bc-41a1-ac66-806c4e69bffe",
+    "appRegOwners": [
+        {
+            "upn": "handah@equinor.com",
+            "objectId": "f59e967d-8422-41ae-8980-a47f3ac0b70c"
+        },
+        {
+            "upn": "az_handah@equinor.com",
+            "objectId": "0a9c3e47-52b3-43fe-ab2c-0c56ffc3155b"
+        },
+        {
+            "upn": "ogjo@equinor.com",
+            "objectId": "0bd99c23-64f4-477e-a18c-79a42c4cd709"
+        },
+        {
+            "upn": "tebr@equinor.com",
+            "objectId": "d8d9fa2f-ecee-4cfb-a371-a39e8c1b76aa"
+        },
+        {
+            "upn": "alund@equinor.com",
+            "objectId": "f9158061-e8e3-494a-acbe-afcb6bc9f7ab"
+        }
+    ],
+
+    "spAppRegs": {
+        "production": {
+            "name": "DevOps SP - Fusion resource allocation - production",
+            "appId": "3363e160-679c-48c0-8b87-022352cd565c",
+            "objectId": "555b9404-0898-421a-b094-41c5b671bc84",
+            "managedIdentity": "ad3ca9c7-dd10-423c-96e0-137c8b26ae9f",
+            "configFile": "sp-prod.json",
+            "apiPermissions": [
+                {
+                    "id": "18a4783c-866b-4cc7-a460-3d5e5662c884",
+                    "name": "Application.ReadWrite.OwnedBy",
+                    "type": "graph"
+                }
+            ]
+        },
+        "nonProduction": {
+            "name": "DevOps SP - Fusion resource allocation - non-production",
+            "appId": "b6dc16db-85f7-41e4-afad-5f1a07c5961c",
+            "objectId": "fab7c06b-0779-4eee-b628-87fd25361f80",
+            "managedIdentity": "6f29795a-2712-4e66-a119-ea082d8b4201",
+            "configFile": "sp-non-prod.json",
+            "apiPermissions": [
+                {
+                    "id": "18a4783c-866b-4cc7-a460-3d5e5662c884",
+                    "name": "Application.ReadWrite.OwnedBy",
+                    "type": "graph"
+                }
+            ]
+        }
+    },
+
+    "resourceGroups": [
+        {
+            "name": "fusion-apps-resources-ci",
+            "managedIdentity": "6f29795a-2712-4e66-a119-ea082d8b4201",
+            "roleName": "Contributor"
+        },
+        {
+            "name": "fusion-apps-resources-fqa",
+            "managedIdentity": "6f29795a-2712-4e66-a119-ea082d8b4201",
+            "roleName": "Contributor"
+        },
+        {
+            "name": "fusion-apps-resources-pr",
+            "managedIdentity": "6f29795a-2712-4e66-a119-ea082d8b4201",
+            "roleName": "Contributor"
+        },
+        {
+            "name": "fusion-apps-resources-tr",
+            "managedIdentity": "6f29795a-2712-4e66-a119-ea082d8b4201",
+            "roleName": "Contributor"
+        },
+        {
+            "name": "fusion-apps-resources-fprd",
+            "managedIdentity": "ad3ca9c7-dd10-423c-96e0-137c8b26ae9f",
+            "roleName": "Contributor"
+        },
+        {
+            "name": "fusion-apps-resources-hosting",
+            "managedIdentity": "ad3ca9c7-dd10-423c-96e0-137c8b26ae9f",
+            "roleName": "Contributor"
+        }
+    ]
+}

@@ -1,0 +1,74 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env-name": { "type": "string" },
+
+        "sqlserver_name": {
+            "defaultValue": "fusion-test-sqlserver",
+            "type": "String"
+        },
+        "sql-elastic-pool-id": {
+            "type": "string"
+        },
+        "fcore-env": { "type": "string", "allowedValues": ["test", "prod"] }
+    },
+    "variables": {
+        "db-name": "[concat('Fusion-Apps-Resources-', toUpper(parameters('env-name')), '-DB')]",
+        "summary-db-name": "[concat('sqldb-fapp-fra-summary-db-', toUpper(parameters('env-name')))]"
+    },
+    "resources": [   
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('sqlserver_name'), '/', variables('db-name'))]",
+            "location": "northeurope",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "db",
+                "fusion-app-component-id": "[concat('resources-api-db-', toLower(parameters('env-name')))]",
+                "adm-acg": "acg-fusion-resource-allocation",
+                "dev-acg": "acg-fusion-resource-allocation",
+                "fcore-env": "[parameters('fcore-env')]"
+            },
+            "kind": "v12.0,user,pool",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": 268435456000,
+                "elasticPoolId": "[parameters('sql-elastic-pool-id')]",
+                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                "zoneRedundant": false,
+                "readScale": "Disabled",
+                "readReplicaCount": 0,
+                "storageAccountType": "GRS"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('sqlserver_name'), '/', variables('summary-db-name'))]",
+            "location": "northeurope",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "db",
+                "fusion-app-component-id": "[concat('summary-api-db-', toLower(parameters('env-name')))]",
+                "adm-acg": "acg-fusion-resource-allocation",
+                "dev-acg": "acg-fusion-resource-allocation",
+                "fcore-env": "[parameters('fcore-env')]"
+            },
+            "kind": "v12.0,user,pool",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": 268435456000,
+                "elasticPoolId": "[parameters('sql-elastic-pool-id')]",
+                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                "zoneRedundant": false,
+                "readScale": "Disabled",
+                "readReplicaCount": 0,
+                "storageAccountType": "GRS"
+            }
+        }
+    ]
+}
