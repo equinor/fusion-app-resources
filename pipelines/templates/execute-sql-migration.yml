@@ -3,7 +3,7 @@ parameters:
     sqlFile: ''
     artifact: 'drop'
     environment: ''
-	dbTagPrefix: ''
+    dbTagPrefix: ''
   
 steps:
 #   - task: DownloadPipelineArtifact@2
