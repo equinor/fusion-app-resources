@@ -28,9 +28,12 @@ steps:
         throw "Secret provided is empty..."
       }
 
-      $keyId, $hint = $SECRET_META.Split(";")
+      $keyId, $hint, $endDateString = $SECRET_META.Split(";")
 
       $secretValue = ConvertTo-SecureString -String $SECRET_VALUE -AsPlainText -Force
+      $endDate = Get-Date $endDateString
+
+      Write-Host "New secret [$hint************] generated with expiration date $endDate, key id [$keyId]"
 
       Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $keyId; "hint" = $hint }
 
