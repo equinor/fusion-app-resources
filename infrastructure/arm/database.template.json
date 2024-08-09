@@ -53,7 +53,7 @@
                 "fusion-app": "resources",
                 "fusion-app-env": "[toLower(parameters('env-name'))]",
                 "fusion-app-component-type": "db",
-                "fusion-app-component-id": "[concat('resources-api-db-', toLower(parameters('env-name')))]",
+                "fusion-app-component-id": "[concat('summary-api-db-', toLower(parameters('env-name')))]",
                 "adm-acg": "acg-fusion-resource-allocation",
                 "dev-acg": "acg-fusion-resource-allocation",
                 "fcore-env": "[parameters('fcore-env')]"
