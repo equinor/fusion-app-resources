@@ -3,6 +3,7 @@ parameters:
   secretName: ''
   vaultName: ''
   secret: ''
+  secretMeta: ''
   condition: ''
 
 steps:
@@ -18,6 +19,8 @@ steps:
       $SECRETVAULTNAME = "${{ parameters.vaultName }}"
       $SECRET_NAME = "${{ parameters.secretName }}"
       $SECRET_VALUE = "${{ parameters.secret }}"
+      $SECRET_META = "${{ parameters.secretMeta }}"
+
       Write-Host "Key vault: $SECRETVAULTNAME"
       Write-Host "Secret name: $SECRET_NAME"
 
@@ -25,9 +28,11 @@ steps:
         throw "Secret provided is empty..."
       }
 
+      $keyId, $hint = $SECRET_META.Split(";")
+
       $secretValue = ConvertTo-SecureString -String $SECRET_VALUE -AsPlainText -Force
 
-      Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId; "hint" = $newSecret.Hint }
+      Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $keyId; "hint" = $hint }
 
       Write-Host "Key vault updated..."
 

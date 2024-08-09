@@ -50,7 +50,8 @@ steps:
 
 
       ## Detect expired keys to purge from ad app
-
+      Write-Host "----- Checking for secrets to prune -----"
+      
       $keysToDelete = @()
 
       $secretWithVersions = Get-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -IncludeVersions
@@ -64,6 +65,7 @@ steps:
 
               if ([string]::IsNullOrEmpty($keyId)) {
                   Write-Host "`tCould not locate any key id, skipping"
+                  continue
               }
 
               if ($isDeleted -eq $true) { Write-Host "`tAlready deleted @ $($s.Tags["deleted"])"; continue }
