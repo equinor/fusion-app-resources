@@ -192,7 +192,7 @@ stages:
               
     jobs:
       - deployment: DeployFPRD
-        environment: fusion-fprd
+        environment: fusion-prod
         strategy:
           runOnce:
             deploy:
@@ -252,7 +252,7 @@ stages:
               
     jobs:
       - deployment: DeployTR
-        environment: fra-tr
+        environment: fusion-tr
         strategy:
           runOnce:
             deploy:
