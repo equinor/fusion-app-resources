@@ -11,7 +11,7 @@ trigger:
     - src/Fusion.Summary.Api/*
 
 pool:
-  vmImage: windows-2022
+  vmImage: ubuntu-latest  
 
 resources:
   repositories:
