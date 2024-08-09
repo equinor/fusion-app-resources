@@ -17,7 +17,7 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: resources-api
+  name: summary-api
 spec:
   replicas: 1
   strategy:
@@ -27,11 +27,11 @@ spec:
       maxUnavailable: 50%
   selector:
     matchLabels:
-      app: resources-api
+      app: summary-api
   template:
     metadata:
       labels:
-        app: resources-api
+        app: summary-api
     spec:
       volumes:
       - name: env-secrets-volumes
@@ -39,7 +39,7 @@ spec:
           secretName: env-secrets
 
       containers:
-      - name: resources-api
+      - name: summary-api
         image: {{fusionAcr}}/{{imageName}}
         ports:
         - containerPort: 80
@@ -70,7 +70,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /_health/liveness
-            port: 80
+            port: 8080
           failureThreshold: 10
           timeoutSeconds: 30
           initialDelaySeconds: 60
@@ -79,7 +79,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /_health/ready
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           timeoutSeconds: 30
           periodSeconds: 30
@@ -87,19 +87,19 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: resources-api
+  name: summary-api
 spec:
   selector:
-    app: resources-api
+    app: summary-api
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: resources-api-fusion-ingress
+  name: summary-api-fusion-ingress
   annotations:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: nginx
@@ -112,10 +112,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - resources-api.{{ENVNAME}}.fusion-dev.net
+    - summary-api.{{ENVNAME}}.fusion-dev.net
     secretName: {{ENVNAME}}.fusion-dev.net-tls
   rules:
-    - host: resources-api.{{ENVNAME}}.fusion-dev.net
+    - host: summary-api.{{ENVNAME}}.fusion-dev.net
       http:
         paths:
         - path: /

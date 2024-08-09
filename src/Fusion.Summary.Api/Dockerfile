@@ -17,10 +17,21 @@ WORKDIR "/src/Fusion.Summary.Api"
 RUN dotnet build "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
+
+## Set an variable to indicate build 
+ENV IS_DOCKER_BUILD=true
+
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN dotnet publish "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish
+RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql" --configuration Release --no-build
+
+FROM scratch as export
+COPY --from=publish /migrations/migration.sql db-migration.sql
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=publish /migrations .
 ENTRYPOINT ["dotnet", "Fusion.Summary.Api.dll"]

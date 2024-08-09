@@ -8,7 +8,7 @@ trigger:
     - master
   paths:
     include:
-    - src/backend/api/*
+    - src/Fusion.Summary.Api/*
 
 pool:
   vmImage: ubuntu-latest  
@@ -23,12 +23,12 @@ resources:
 variables:
     imageTag: $(Build.BuildNumber)
     fusionAcr: 'fusioncr.azurecr.io'
-    imageRepo: resources/fusion-resouces-api
+    imageRepo: fra/fusion-summary-api
     imageName: $(imageRepo):$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
-    dbTagPrefix: resources
+    dbTagPrefix: summary
   
 stages:
   - stage: BuildDockerImage
@@ -44,8 +44,8 @@ stages:
       - template: templates/docker-buildx.yml@infra
         parameters:
           repository: $(imageRepo)
-          buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+          buildContext: ./src
+          dockerfile: src/Fusion.Summary.Api/Dockerfile
           dockerPush: true
           disableCache: true
           tags: |
@@ -54,8 +54,8 @@ stages:
         parameters:
           initBuilderInstance: false
           repository: ''
-          buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+          buildContext: ./src
+          dockerfile: src/Fusion.Summary.Api/Dockerfile
           arguments: |
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
@@ -64,13 +64,12 @@ stages:
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
-          SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
+          SourceFolder: 'src/Fusion.Summary.Api/Deployment/k8s'
           Contents: |
             deployment-test-env.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
-  
-      - bash: ls -acl $(Build.ArtifactStagingDirectory)
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'   
 
+      - bash: ls -acl $(Build.ArtifactStagingDirectory)
 
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
@@ -86,12 +85,12 @@ stages:
   
     jobs:
     - deployment: DeployCI
-      environment: fusion-ci.fusion-resources-app-ci
+      environment: fusion-ci
       strategy:
         runOnce:
           deploy:
             steps:
-            - task: AzurePowerShell@4
+            - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
                 azureSubscription: $(subscriptionService)
@@ -121,7 +120,7 @@ stages:
               parameters:
                 artifact: 'k8s-deployment'
                 environment: $(envName)
-                dbTagPrefix: $(dbTagPrefix)                
+                dbTagPrefix: $(dbTagPrefix)         
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
@@ -140,7 +139,7 @@ stages:
               
     jobs:
       - deployment: DeployFQA
-        environment: fusion-resources-fqa.fusion-resources-app-fqa
+        environment: fusion-fqa
         strategy:
           runOnce:
             deploy:
@@ -174,7 +173,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-                  dbTagPrefix: $(dbTagPrefix)
+                  dbTagPrefix: $(dbTagPrefix) 
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -193,7 +192,7 @@ stages:
               
     jobs:
       - deployment: DeployFPRD
-        environment: fusion-prod.fusion-resources-app-fprd
+        environment: fusion-prod
         strategy:
           runOnce:
             deploy:
@@ -227,7 +226,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-                  dbTagPrefix: $(dbTagPrefix)
+                  dbTagPrefix: $(dbTagPrefix) 
   
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -253,7 +252,7 @@ stages:
               
     jobs:
       - deployment: DeployTR
-        environment: fusion-resources-tr.fusion-resources-app-tr
+        environment: fusion-tr
         strategy:
           runOnce:
             deploy:
@@ -287,7 +286,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-                  dbTagPrefix: $(dbTagPrefix)
+                  dbTagPrefix: $(dbTagPrefix) 
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
