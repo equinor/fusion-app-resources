@@ -14,11 +14,14 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-    .AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true)
-    .AddJsonFile("/app/static/config/env.json", optional: true, reloadOnChange: true);
+if (Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN") != "true")
+{
+    builder.Configuration
+        .AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true)
+        .AddJsonFile("/app/static/config/env.json", optional: true, reloadOnChange: true);
 
-builder.AddKeyVault();
+    builder.AddKeyVault();
+}
 
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
