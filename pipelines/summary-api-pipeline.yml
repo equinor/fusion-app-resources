@@ -85,7 +85,7 @@ stages:
   
     jobs:
     - deployment: DeployCI
-      environment: fusion-ci
+      environment: fusion-ci.fusion-resources-app-ci
       strategy:
         runOnce:
           deploy:
