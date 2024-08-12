@@ -25,7 +25,8 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
     imageName: $(imageRepo):$(imageTag)
-    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    subscriptionServiceNonProd: 'FRA Automation Non-Prod'
+    subscriptionServiceProd: 'FRA Automation Prod'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
   
@@ -87,10 +88,10 @@ stages:
         runOnce:
           deploy:
             steps:
-            - task: AzurePowerShell@4
+            - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
-                azureSubscription: $(subscriptionService)
+                azureSubscription: $(subscriptionServiceNonProd)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
@@ -135,15 +136,15 @@ stages:
               
     jobs:
       - deployment: DeployFQA
-        environment: fusion-resources-fqa.fusion-resources-app-fqa
+        environment: fusion-fqa.fusion-resources-app-fqa
         strategy:
           runOnce:
             deploy:
               steps:
-              - task: AzurePowerShell@4
+              - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionService)
+                  azureSubscription: $(subscriptionServiceNonProd)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -192,10 +193,10 @@ stages:
           runOnce:
             deploy:
               steps:
-              - task: AzurePowerShell@4
+              - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionService)
+                  azureSubscription: $(subscriptionServiceProd)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -246,15 +247,15 @@ stages:
               
     jobs:
       - deployment: DeployTR
-        environment: fusion-resources-tr.fusion-resources-app-tr
+        environment: fusion-tr.fusion-resources-app-tr
         strategy:
           runOnce:
             deploy:
               steps:
-              - task: AzurePowerShell@4
+              - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionService)
+                  azureSubscription: $(subscriptionServiceNonProd)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
