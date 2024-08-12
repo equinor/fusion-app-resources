@@ -80,6 +80,7 @@ stages:
       envName: 'ci'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      subscriptionService: $(subscriptionServiceNonProd)
   
     jobs:
     - deployment: DeployCI
@@ -91,7 +92,7 @@ stages:
             - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
-                azureSubscription: $(subscriptionServiceNonProd)
+                azureSubscription: $(subscriptionService)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
@@ -133,6 +134,7 @@ stages:
       envName: 'fqa'
       fusionEnvironment: 'fqa'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      subscriptionService: $(subscriptionServiceNonProd)
               
     jobs:
       - deployment: DeployFQA
@@ -144,7 +146,7 @@ stages:
               - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionServiceNonProd)
+                  azureSubscription: $(subscriptionService)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -185,6 +187,7 @@ stages:
       envName: 'fprd'
       fusionEnvironment: 'fprd'
       clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+      subscriptionService: $(subscriptionServiceProd)
               
     jobs:
       - deployment: DeployFPRD
@@ -196,7 +199,7 @@ stages:
               - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionServiceProd)
+                  azureSubscription: $(subscriptionService)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -244,6 +247,7 @@ stages:
       envName: 'tr'
       fusionEnvironment: 'tr'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      subscriptionService: $(subscriptionServiceNonProd)
               
     jobs:
       - deployment: DeployTR
@@ -255,7 +259,7 @@ stages:
               - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionServiceNonProd)
+                  azureSubscription: $(subscriptionService)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
