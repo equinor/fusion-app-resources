@@ -52,7 +52,7 @@ public class SummaryApiClient : ISummaryApiClient
         var lastMonday = GetCurrentOrLastMondayDate();
 
         var queryString =
-            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
+            $"resource-owners-summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
 
         using var response = await summaryClient.GetAsync(queryString, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -63,6 +63,16 @@ public class SummaryApiClient : ISummaryApiClient
         return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklySummaryReport>>(contentStream,
             jsonSerializerOptions,
             cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
+    }
+
+    public async Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
+        CancellationToken cancellationToken = default)
+    {
+        using var body = new JsonContent(JsonSerializer.Serialize(report, jsonSerializerOptions));
+
+        // Error logging is handled by http middleware => FunctionHttpMessageHandler
+        using var _ = await summaryClient.PutAsync($"resource-owners-summary-reports/{departmentSapId}/weekly", body,
+            cancellationToken);
     }
 
     private static DateTime GetCurrentOrLastMondayDate()
