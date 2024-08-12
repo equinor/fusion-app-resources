@@ -26,9 +26,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
     .AddCheck("liveness", () => HealthCheckResult.Healthy())
-    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
-// TODO: Add a real health check, when database is added
-// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
+    .AddDbContextCheck<SummaryDbContext>("db", tags: new[] { "ready" });
 
 
 builder.Services
