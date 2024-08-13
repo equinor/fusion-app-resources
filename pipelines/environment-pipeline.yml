@@ -24,6 +24,7 @@ stages:
             parameters:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              clientIdDbOwner: b6dc16db-85f7-41e4-afad-5f1a07c5961c
               sqlServer: fusion-test-sqlserver
               azureSubscription: 'FRA Automation Non-Prod'
               coreAzureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
@@ -45,6 +46,7 @@ stages:
             parameters:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              clientIdDbOwner: b6dc16db-85f7-41e4-afad-5f1a07c5961c
               sqlServer: fusion-test-sqlserver
               azureSubscription: 'FRA Automation Non-Prod'
               coreAzureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
@@ -80,6 +82,7 @@ stages:
             parameters:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              clientIdDbOwner: b6dc16db-85f7-41e4-afad-5f1a07c5961c
               sqlServer: fusion-test-sqlserver
               azureSubscription: 'FRA Automation Non-Prod'
               coreAzureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
@@ -101,6 +104,7 @@ stages:
             parameters:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              clientIdDbOwner: b6dc16db-85f7-41e4-afad-5f1a07c5961c
               sqlServer: fusion-test-sqlserver
               azureSubscription: 'FRA Automation Non-Prod'
               coreAzureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
@@ -122,6 +126,7 @@ stages:
             parameters:
               environment: $(environmentName)
               clientId: 97978493-9777-4d48-b38a-67b0b9cd88d2
+              clientIdDbOwner: 3363e160-679c-48c0-8b87-022352cd565c
               sqlServer: fusion-prod-sqlserver
               clientSecretName: ClientSecret-Resources-Prod
               azureSubscription: 'FRA Automation Prod'
