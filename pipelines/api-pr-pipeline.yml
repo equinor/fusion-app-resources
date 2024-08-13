@@ -141,12 +141,14 @@ stages:
             - template: templates/get-appinsights-key.yml
               parameters:
                 environment: $(envName)
+                azureSubscription: $(subscriptionService)
 
             # Load the key vault url into variable, so it can be used when replacing tokens.
             - template: templates/get-keyvault-url.yml
               parameters:
                 environment: $(envName)
                 variableName: envKeyVaultUrl
+                azureSubscription: $(subscriptionService)
 
             - template: templates/replace-tokens.yml
               parameters:
@@ -156,6 +158,8 @@ stages:
               parameters:
                 artifact: 'k8s-deployment'
                 environment: '$(envName)-$(prNumber)'
+                azureSubscription: $(subscriptionService)
+
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
