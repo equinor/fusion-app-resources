@@ -80,7 +80,7 @@ stages:
       envName: 'ci'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-      subscriptionService: 'FRA Automation Non-Prod'
+      azureSubscription: FRA Automation Non-Prod
   
     jobs:
     - deployment: DeployCI
@@ -92,7 +92,7 @@ stages:
             - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
-                azureSubscription: FRA Automation Non-Prod
+                azureSubscription: $(azureSubscription)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
