@@ -92,7 +92,7 @@ stages:
             - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
-                azureSubscription: $(subscriptionService)
+                azureSubscription: FRA Automation Non-Prod
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
