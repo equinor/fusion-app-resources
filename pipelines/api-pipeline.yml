@@ -89,7 +89,7 @@ stages:
         runOnce:
           deploy:
             steps:
-            - task: AzurePowerShell@5
+            - task: AzurePowerShell@4
               displayName: 'Get secrets'
               inputs:
                 azureSubscription: $(azureSubscription)
