@@ -25,6 +25,7 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
     imageName: $(imageRepo):$(imageTag)
+    subscriptionService: 'FRA Automation Non-Prod'
     subscriptionServiceNonProd: 'FRA Automation Non-Prod'
     subscriptionServiceProd: 'FRA Automation Prod'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
