@@ -5,7 +5,7 @@ parameters:
   sqlDatabaseName: ''
 
 steps:
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   displayName: 'Grant DB access to Azure ad application'
   inputs:
     azureSubscription: $(subscriptionService)

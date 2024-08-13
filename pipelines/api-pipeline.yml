@@ -119,7 +119,8 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
-                environment: $(envName)                
+                environment: $(envName)
+                azureSubscription: $(azureSubscription)
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
@@ -173,6 +174,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  azureSubscription: $(azureSubscription)
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -226,6 +228,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  azureSubscription: $(azureSubscription)
   
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -286,6 +289,8 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  azureSubscription: $(azureSubscription)
+
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
