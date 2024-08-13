@@ -25,7 +25,7 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
     imageName: $(imageRepo):$(imageTag)
-    subscriptionService: 'FRA Automation Non-Prod'
+    subscriptionService: ''
     subscriptionServiceNonProd: 'FRA Automation Non-Prod'
     subscriptionServiceProd: 'FRA Automation Prod'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
@@ -120,7 +120,7 @@ stages:
               parameters:
                 artifact: 'k8s-deployment'
                 environment: $(envName)
-                azureSubscription: $(azureSubscription)
+                azureSubscription: $(subscriptionService)
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
@@ -174,7 +174,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-                  azureSubscription: $(azureSubscription)
+                  azureSubscription: $(subscriptionService)
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -228,7 +228,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-                  azureSubscription: $(azureSubscription)
+                  azureSubscription: $(subscriptionService)
   
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
@@ -289,7 +289,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-                  azureSubscription: $(azureSubscription)
+                  azureSubscription: $(subscriptionService)
 
     
               - task: KubernetesManifest@0
