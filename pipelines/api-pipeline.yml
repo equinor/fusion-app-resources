@@ -25,7 +25,6 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
     imageName: $(imageRepo):$(imageTag)
-    subscriptionService: 'FRA Automation Non-Prod'
     subscriptionServiceNonProd: 'FRA Automation Non-Prod'
     subscriptionServiceProd: 'FRA Automation Prod'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
@@ -42,33 +41,33 @@ stages:
         inputs:
           command: login
           containerRegistry: fusioncr
-      - template: templates/docker-buildx.yml@infra
-        parameters:
-          repository: $(imageRepo)
-          buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-          dockerPush: true
-          disableCache: true
-          tags: |
-            $(imageTag)
-      - template: templates/docker-buildx.yml@infra
-        parameters:
-          initBuilderInstance: false
-          repository: ''
-          buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-          arguments: |
-            --target=export
-            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
+      # - template: templates/docker-buildx.yml@infra
+      #   parameters:
+      #     repository: $(imageRepo)
+      #     buildContext: ./src/backend
+      #     dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+      #     dockerPush: true
+      #     disableCache: true
+      #     tags: |
+      #       $(imageTag)
+      # - template: templates/docker-buildx.yml@infra
+      #   parameters:
+      #     initBuilderInstance: false
+      #     repository: ''
+      #     buildContext: ./src/backend
+      #     dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+      #     arguments: |
+      #       --target=export
+      #       --output=type=local,dest=$(Build.ArtifactStagingDirectory)
+      #       --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
 
-      - task: CopyFiles@2
-        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
-        inputs:
-          SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
-          Contents: |
-            deployment-test-env.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
+      # - task: CopyFiles@2
+      #   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+      #   inputs:
+      #     SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
+      #     Contents: |
+      #       deployment-test-env.yml
+      #     TargetFolder: '$(Build.ArtifactStagingDirectory)'        
   
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
