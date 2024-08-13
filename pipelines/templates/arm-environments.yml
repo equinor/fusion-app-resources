@@ -73,14 +73,14 @@ steps:
       ScriptPath: infrastructure/scripts/grant-adapp-sql-access.ps1
       ScriptArguments: -clientId ${{ parameters.clientIdDbOwner }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SummarySqlDatabaseName)            
 
-  # - task: AzurePowerShell@5
-  #   displayName: 'Deploy ARM template'
-  #   inputs:
-  #     azureSubscription: ${{ parameters.azureSubscription }}
-  #     ScriptType: FilePath
-  #     FailOnStandardError: true
-  #     azurePowerShellVersion: 'LatestVersion'
-  #     ScriptPath: infrastructure/scripts/deploy-resources.ps1
-  #     ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
+  - task: AzurePowerShell@5
+    displayName: 'Deploy ARM template'
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: infrastructure/scripts/deploy-resources.ps1
+      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
       
   
