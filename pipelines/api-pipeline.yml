@@ -41,33 +41,33 @@ stages:
         inputs:
           command: login
           containerRegistry: fusioncr
-      # - template: templates/docker-buildx.yml@infra
-      #   parameters:
-      #     repository: $(imageRepo)
-      #     buildContext: ./src/backend
-      #     dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-      #     dockerPush: true
-      #     disableCache: true
-      #     tags: |
-      #       $(imageTag)
-      # - template: templates/docker-buildx.yml@infra
-      #   parameters:
-      #     initBuilderInstance: false
-      #     repository: ''
-      #     buildContext: ./src/backend
-      #     dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-      #     arguments: |
-      #       --target=export
-      #       --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-      #       --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
+      - template: templates/docker-buildx.yml@infra
+        parameters:
+          repository: $(imageRepo)
+          buildContext: ./src/backend
+          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+          dockerPush: true
+          disableCache: true
+          tags: |
+            $(imageTag)
+      - template: templates/docker-buildx.yml@infra
+        parameters:
+          initBuilderInstance: false
+          repository: ''
+          buildContext: ./src/backend
+          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+          arguments: |
+            --target=export
+            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
+            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
 
-      # - task: CopyFiles@2
-      #   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
-      #   inputs:
-      #     SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
-      #     Contents: |
-      #       deployment-test-env.yml
-      #     TargetFolder: '$(Build.ArtifactStagingDirectory)'        
+      - task: CopyFiles@2
+        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+        inputs:
+          SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
+          Contents: |
+            deployment-test-env.yml
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
   
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
@@ -123,178 +123,182 @@ stages:
                 environment: $(envName)
                 azureSubscription: $(subscriptionServiceNonProd)
   
-            # - task: KubernetesManifest@0
-            #   displayName: Deploy to Kubernetes cluster
-            #   inputs:
-            #     action: deploy
-            #     manifests: $(deploymentManifest) 
+            - task: KubernetesManifest@0
+              displayName: Deploy to Kubernetes cluster
+              inputs:
+                action: deploy
+                manifests: $(deploymentManifest) 
 
-  # - stage: DeployFQA
-  #   displayName: 'Deploy to FQA'
-  #   dependsOn: DeployCI
-  #   condition: succeeded()
-  #   variables: 
-  #     envName: 'fqa'
-  #     fusionEnvironment: 'fqa'
-  #     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-  #     subscriptionService: $(subscriptionServiceNonProd)
+  - stage: DeployFQA
+    displayName: 'Deploy to FQA'
+    dependsOn: DeployCI
+    condition: succeeded()
+    variables: 
+      envName: 'fqa'
+      fusionEnvironment: 'fqa'
+      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
               
-  #   jobs:
-  #     - deployment: DeployFQA
-  #       environment: fusion-fqa.fusion-resources-app-fqa
-  #       strategy:
-  #         runOnce:
-  #           deploy:
-  #             steps:
-  #             - task: AzurePowerShell@5
-  #               displayName: 'Get secrets'
-  #               inputs:
-  #                 azureSubscription: $(subscriptionService)
-  #                 ScriptType: 'InlineScript'
-  #                 FailOnStandardError: true
-  #                 azurePowerShellVersion: 'LatestVersion'
-  #                 Inline: |
-  #                   $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fqa -Name AzureAd--ClientSecret -AsPlainText
-  #                   Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
+    jobs:
+      - deployment: DeployFQA
+        environment: fusion-fqa.fusion-resources-app-fqa
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: AzurePowerShell@5
+                displayName: 'Get secrets'
+                inputs:
+                  azureSubscription: $(subscriptionServiceNonProd)
+                  ScriptType: 'InlineScript'
+                  FailOnStandardError: true
+                  azurePowerShellVersion: 'LatestVersion'
+                  Inline: |
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fqa -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
   
-  #             - template: templates/get-appinsights-key.yml
-  #               parameters:
-  #                 environment: $(envName)
+              - template: templates/get-appinsights-key.yml
+                parameters:
+                  environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
   
-  #             # Load the key vault url into variable, so it can be used when replacing tokens.
-  #             - template: templates/get-keyvault-url.yml
-  #               parameters:
-  #                 environment: $(envName)
-  #                 variableName: envKeyVaultUrl
+              # Load the key vault url into variable, so it can be used when replacing tokens.
+              - template: templates/get-keyvault-url.yml
+                parameters:
+                  environment: $(envName)
+                  variableName: envKeyVaultUrl
+                  azureSubscription: $(subscriptionServiceNonProd)
   
-  #             - template: templates/replace-tokens.yml
-  #               parameters:
-  #                 targetFiles: '$(deploymentManifest)'
+              - template: templates/replace-tokens.yml
+                parameters:
+                  targetFiles: '$(deploymentManifest)'
   
-  #             - template: templates/execute-sql-migration.yml
-  #               parameters:
-  #                 artifact: 'k8s-deployment'
-  #                 environment: $(envName)
-  #                 azureSubscription: $(subscriptionService)
+              - template: templates/execute-sql-migration.yml
+                parameters:
+                  artifact: 'k8s-deployment'
+                  environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
     
-  #             - task: KubernetesManifest@0
-  #               displayName: Deploy to Kubernetes cluster
-  #               inputs:
-  #                 action: deploy
-  #                 manifests: $(deploymentManifest) 
+              - task: KubernetesManifest@0
+                displayName: Deploy to Kubernetes cluster
+                inputs:
+                  action: deploy
+                  manifests: $(deploymentManifest) 
 
-  # - stage: DeployFPRD
-  #   displayName: 'Deploy to FPRD'
-  #   dependsOn: DeployFQA
-  #   condition: succeeded()
-  #   variables: 
-  #     envName: 'fprd'
-  #     fusionEnvironment: 'fprd'
-  #     clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
-  #     subscriptionService: $(subscriptionServiceProd)
+  - stage: DeployFPRD
+    displayName: 'Deploy to FPRD'
+    dependsOn: DeployFQA
+    condition: succeeded()
+    variables: 
+      envName: 'fprd'
+      fusionEnvironment: 'fprd'
+      clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
               
-  #   jobs:
-  #     - deployment: DeployFPRD
-  #       environment: fusion-prod.fusion-resources-app-fprd
-  #       strategy:
-  #         runOnce:
-  #           deploy:
-  #             steps:
-  #             - task: AzurePowerShell@5
-  #               displayName: 'Get secrets'
-  #               inputs:
-  #                 azureSubscription: $(subscriptionService)
-  #                 ScriptType: 'InlineScript'
-  #                 FailOnStandardError: true
-  #                 azurePowerShellVersion: 'LatestVersion'
-  #                 Inline: |
-  #                   $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fprd -Name AzureAd--ClientSecret -AsPlainText
-  #                   Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
+    jobs:
+      - deployment: DeployFPRD
+        environment: fusion-prod.fusion-resources-app-fprd
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: AzurePowerShell@5
+                displayName: 'Get secrets'
+                inputs:
+                  azureSubscription: $(subscriptionServiceProd)
+                  ScriptType: 'InlineScript'
+                  FailOnStandardError: true
+                  azurePowerShellVersion: 'LatestVersion'
+                  Inline: |
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fprd -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
   
-  #             - template: templates/get-appinsights-key.yml
-  #               parameters:
-  #                 environment: $(envName)
+              - template: templates/get-appinsights-key.yml
+                parameters:
+                  environment: $(envName)
+                  azureSubscription: $(subscriptionServiceProd)
   
-  #             # Load the key vault url into variable, so it can be used when replacing tokens.
-  #             - template: templates/get-keyvault-url.yml
-  #               parameters:
-  #                 environment: $(envName)
-  #                 variableName: envKeyVaultUrl
+              # Load the key vault url into variable, so it can be used when replacing tokens.
+              - template: templates/get-keyvault-url.yml
+                parameters:
+                  environment: $(envName)
+                  variableName: envKeyVaultUrl
+                  azureSubscription: $(subscriptionServiceProd)
   
-  #             - template: templates/replace-tokens.yml
-  #               parameters:
-  #                 targetFiles: '$(deploymentManifest)'
+              - template: templates/replace-tokens.yml
+                parameters:
+                  targetFiles: '$(deploymentManifest)'
   
-  #             - template: templates/execute-sql-migration.yml
-  #               parameters:
-  #                 artifact: 'k8s-deployment'
-  #                 environment: $(envName)
-  #                 azureSubscription: $(subscriptionService)
+              - template: templates/execute-sql-migration.yml
+                parameters:
+                  artifact: 'k8s-deployment'
+                  environment: $(envName)
+                  azureSubscription: $(subscriptionServiceProd)
   
-  #             - task: KubernetesManifest@0
-  #               displayName: Deploy to Kubernetes cluster
-  #               inputs:
-  #                 action: deploy
-  #                 manifests: $(deploymentManifest)
+              - task: KubernetesManifest@0
+                displayName: Deploy to Kubernetes cluster
+                inputs:
+                  action: deploy
+                  manifests: $(deploymentManifest)
 
-  #             - template: templates/deploy-container-app.yml
-  #               parameters:
-  #                 environment: $(envName)
-  #                 fusionEnvironment: $(fusionEnvironment)
-  #                 clientId: $(clientId)
-  #                 imageName: $(fullImageName)
+              - template: templates/deploy-container-app.yml
+                parameters:
+                  azureSubscription: $(subscriptionServiceProd)
+                  environment: $(envName)
+                  fusionEnvironment: $(fusionEnvironment)
+                  clientId: $(clientId)
+                  imageName: $(fullImageName)
 
-  # - stage: DeployTR
-  #   displayName: 'Deploy to TR'
-  #   dependsOn: DeployFPRD
-  #   condition: succeeded()
-  #   variables: 
-  #     envName: 'tr'
-  #     fusionEnvironment: 'tr'
-  #     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-  #     subscriptionService: $(subscriptionServiceNonProd)
+  - stage: DeployTR
+    displayName: 'Deploy to TR'
+    dependsOn: DeployFPRD
+    condition: succeeded()
+    variables: 
+      envName: 'tr'
+      fusionEnvironment: 'tr'
+      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
               
-  #   jobs:
-  #     - deployment: DeployTR
-  #       environment: fusion-tr.fusion-resources-app-tr
-  #       strategy:
-  #         runOnce:
-  #           deploy:
-  #             steps:
-  #             - task: AzurePowerShell@5
-  #               displayName: 'Get secrets'
-  #               inputs:
-  #                 azureSubscription: $(subscriptionService)
-  #                 ScriptType: 'InlineScript'
-  #                 FailOnStandardError: true
-  #                 azurePowerShellVersion: 'LatestVersion'
-  #                 Inline: |
-  #                   $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-tr -Name AzureAd--ClientSecret -AsPlainText
-  #                   Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
+    jobs:
+      - deployment: DeployTR
+        environment: fusion-tr.fusion-resources-app-tr
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: AzurePowerShell@5
+                displayName: 'Get secrets'
+                inputs:
+                  azureSubscription: $(subscriptionServiceNonProd)
+                  ScriptType: 'InlineScript'
+                  FailOnStandardError: true
+                  azurePowerShellVersion: 'LatestVersion'
+                  Inline: |
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-tr -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
   
-  #             - template: templates/get-appinsights-key.yml
-  #               parameters:
-  #                 environment: $(envName)
+              - template: templates/get-appinsights-key.yml
+                parameters:
+                  environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
   
-  #             # Load the key vault url into variable, so it can be used when replacing tokens.
-  #             - template: templates/get-keyvault-url.yml
-  #               parameters:
-  #                 environment: $(envName)
-  #                 variableName: envKeyVaultUrl
+              # Load the key vault url into variable, so it can be used when replacing tokens.
+              - template: templates/get-keyvault-url.yml
+                parameters:
+                  environment: $(envName)
+                  variableName: envKeyVaultUrl
+                  azureSubscription: $(subscriptionServiceNonProd)
   
-  #             - template: templates/replace-tokens.yml
-  #               parameters:
-  #                 targetFiles: '$(deploymentManifest)'
+              - template: templates/replace-tokens.yml
+                parameters:
+                  targetFiles: '$(deploymentManifest)'
   
-  #             - template: templates/execute-sql-migration.yml
-  #               parameters:
-  #                 artifact: 'k8s-deployment'
-  #                 environment: $(envName)
-  #                 azureSubscription: $(subscriptionService)
+              - template: templates/execute-sql-migration.yml
+                parameters:
+                  artifact: 'k8s-deployment'
+                  environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
 
     
-  #             - task: KubernetesManifest@0
-  #               displayName: Deploy to Kubernetes cluster
-  #               inputs:
-  #                 action: deploy
-  #                 manifests: $(deploymentManifest) 
+              - task: KubernetesManifest@0
+                displayName: Deploy to Kubernetes cluster
+                inputs:
+                  action: deploy
+                  manifests: $(deploymentManifest) 
