@@ -100,26 +100,29 @@ stages:
                     $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-ci -Name AzureAd--ClientSecret -AsPlainText
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
 
-            # - template: templates/get-appinsights-key.yml
-            #   parameters:
-            #     environment: $(envName)
+            - template: templates/get-appinsights-key.yml
+              parameters:
+                environment: $(envName)
+                azureSubscription: $(subscriptionServiceNonProd)
 
-            # # Load the key vault url into variable, so it can be used when replacing tokens.
-            # - template: templates/get-keyvault-url.yml
-            #   parameters:
-            #     environment: $(envName)
-            #     variableName: envKeyVaultUrl
+
+            # Load the key vault url into variable, so it can be used when replacing tokens.
+            - template: templates/get-keyvault-url.yml
+              parameters:
+                environment: $(envName)
+                variableName: envKeyVaultUrl
+                azureSubscription: $(subscriptionServiceNonProd)
                 
 
-            # - template: templates/replace-tokens.yml
-            #   parameters:
-            #     targetFiles: '$(deploymentManifest)'
+            - template: templates/replace-tokens.yml
+              parameters:
+                targetFiles: '$(deploymentManifest)'
 
-            # - template: templates/execute-sql-migration.yml
-            #   parameters:
-            #     artifact: 'k8s-deployment'
-            #     environment: $(envName)
-            #     azureSubscription: $(subscriptionService)
+            - template: templates/execute-sql-migration.yml
+              parameters:
+                artifact: 'k8s-deployment'
+                environment: $(envName)
+                azureSubscription: $(subscriptionService)
   
             # - task: KubernetesManifest@0
             #   displayName: Deploy to Kubernetes cluster

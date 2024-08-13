@@ -1,5 +1,5 @@
 steps:
-- task: AzurePowershell@5
+- task: AzurePowershell@4
   displayName: 'Install Fusion PS Modules'
   inputs: 
     azureSubscription: $(subscriptionService)

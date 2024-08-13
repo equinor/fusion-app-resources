@@ -2,12 +2,13 @@
 parameters:    
   environment: ''
   variableName: 'envKeyVaultUrl'
+  azureSubscription: $(subscriptionService)
 
 steps:
 - task: AzurePowerShell@5
   displayName: 'Get key vault url for environment ${{ parameters.environment }}'
   inputs:
-    azureSubscription: $(subscriptionService)
+    azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: 'InlineScript'
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'
