@@ -1,6 +1,7 @@
 {
     "displayName": "DevOps SP - Fusion resource allocation - production",
     "id": "555b9404-0898-421a-b094-41c5b671bc84",
+	// appId: 3363e160-679c-48c0-8b87-022352cd565c
     "notes": "DevOps Service Principal - Non-Production\nFusion Resource Allocation solution.\n\nShould have access to production environments/resources.\n- azure resource groups\n- fusion app creation\n- fusion infra management",
     "serviceManagementReference": "107767",
     "tags": ["fra", "fusion", "iac-automation", "production", "backup-enabled"],
