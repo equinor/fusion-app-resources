@@ -89,10 +89,10 @@ stages:
         runOnce:
           deploy:
             steps:
-            - task: AzurePowerShell@4
+            - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
-                azureSubscription: $(azureSubscription)
+                azureSubscription: $(subscriptionServiceNonProd)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
