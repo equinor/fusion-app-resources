@@ -4,6 +4,7 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240730120534_Add_state_field_to_project")]
+    partial class Add_state_field_to_project
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1537,26 +1540,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpInitialProposedPerson", "InitialProposedPerson", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid>("AzureUniqueId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Mail")
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-
                     b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpPositionInstance", "OrgPositionInstance", b1 =>
                         {
                             b1.Property<Guid>("DbResourceAllocationRequestId")
@@ -1708,8 +1691,6 @@ namespace Fusion.Resources.Database.Migrations
                         });
 
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("InitialProposedPerson");
 
                     b.Navigation("OrgPositionInstance")
                         .IsRequired();

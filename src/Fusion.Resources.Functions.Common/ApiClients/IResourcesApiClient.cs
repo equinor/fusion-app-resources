@@ -15,6 +15,7 @@ namespace Fusion.Resources.Functions.Common.ApiClients
         Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier);
         Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(string departmentIdentifier);
         Task<IEnumerable<ApiPersonAbsence>> GetLeaveForPersonnel(string personId);
+        Task<IEnumerable<DelegatedresponsibleResult>> GetDelegatedResponsibleForDepartment(string departmentIdentifier);
 
         #region Models
 
@@ -159,6 +160,17 @@ namespace Fusion.Resources.Functions.Common.ApiClients
             public double? AbsencePercentage { get; set; }
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public bool IsActive => AppliesFrom <= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
+        }
+
+        public class DelegatedresponsibleResult
+        {
+            public string Name { get; set; }
+            public Delegatedresponsible DelegatedResponsible { get; set; }
+        }
+
+        public class Delegatedresponsible
+        {
+            public string AzureUniquePersonId { get; set; }
         }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
