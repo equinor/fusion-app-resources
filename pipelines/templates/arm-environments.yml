@@ -91,6 +91,6 @@ steps:
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
       ScriptPath: infrastructure/scripts/set-default-keyvault-permissions.ps1
-      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}      
+      ScriptArguments: -environment ${{ parameters.environment }} -apiAppRegistrationClientId ${{ parameters.clientId }}      
       
   
