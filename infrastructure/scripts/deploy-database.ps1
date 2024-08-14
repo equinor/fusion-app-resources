@@ -1,7 +1,6 @@
 param(
     [string]$environment,
-    [string]$sqlServerName,
-    [string]$database
+    [string]$sqlServerName
 )
 
 Write-Host "Starting deployment of sql server"
