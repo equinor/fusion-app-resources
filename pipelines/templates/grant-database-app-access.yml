@@ -3,12 +3,13 @@ parameters:
   clientId: ''
   sqlEnvironment: 'test' ## || production
   sqlDatabaseName: ''
+  azureSubscription: $(subscriptionService)
 
 steps:
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   displayName: 'Grant DB access to Azure ad application'
   inputs:
-    azureSubscription: $(subscriptionService)
+    azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: 'InlineScript'
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'

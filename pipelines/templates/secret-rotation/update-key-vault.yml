@@ -1,0 +1,44 @@
+parameters:
+  azureSubscription: ''  
+  secretName: ''
+  vaultName: ''
+  secret: ''
+  secretMeta: ''
+  condition: ''
+
+steps:
+- task: AzurePowerShell@5
+  condition: ${{ parameters.condition }}
+  displayName: 'Persist secret to keyvault'
+  inputs:
+    azureSubscription: ${{ parameters.azureSubscription }}
+    ScriptType: InlineScript
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |
+      $SECRETVAULTNAME = "${{ parameters.vaultName }}"
+      $SECRET_NAME = "${{ parameters.secretName }}"
+      $SECRET_VALUE = "${{ parameters.secret }}"
+      $SECRET_META = "${{ parameters.secretMeta }}"
+
+      Write-Host "Key vault: $SECRETVAULTNAME"
+      Write-Host "Secret name: $SECRET_NAME"
+
+      if ([string]::IsNullOrEmpty("${{ parameters.secret }}")) {
+        throw "Secret provided is empty..."
+      }
+
+      $keyId, $hint, $endDateString = $SECRET_META.Split(";")
+
+      $secretValue = ConvertTo-SecureString -String $SECRET_VALUE -AsPlainText -Force
+      $endDate = Get-Date $endDateString
+
+      Write-Host "New secret [$hint************] generated with expiration date $endDate, key id [$keyId]"
+
+      Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $keyId; "hint" = $hint }
+
+      Write-Host "Key vault updated..."
+
+
+
+    

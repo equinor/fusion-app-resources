@@ -2,12 +2,13 @@
 parameters:    
   environment: ''
   variableName: 'instrumentationKey'
+  azureSubscription: $(subscriptionService)
 
 steps:
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   displayName: 'Get Application Insights telemetry key for ${{ parameters.environment }}'
   inputs:
-    azureSubscription: $(subscriptionService)
+    azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: 'InlineScript'
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'
