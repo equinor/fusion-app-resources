@@ -106,6 +106,7 @@ stages:
                     $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name AzureAd--ClientSecret -AsPlainText
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
 
+            ## MUST RUN THIS AS THE CORE SERVICE PRINCIPAL, UNTILL NEW DB DEPLOY IS ESTABLISHED
             - task: AzurePowerShell@5
               displayName: 'Provision database'
               inputs: 
