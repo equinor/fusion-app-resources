@@ -21,4 +21,4 @@ steps:
     } else {
       Write-Host "Was not able to remove the fusion ps repo... This can cause problems on hosted agents."
     }	
-  displayName: 'Install Fusion PS Modules'      
+  displayName: 'Install Fusion PS Modules'    
