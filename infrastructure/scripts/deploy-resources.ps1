@@ -1,6 +1,5 @@
 param(
-    [string]$environment,
-    [string]$clientId
+    [string]$environment
 )
 
 Write-Host "Starting deployment of general resources"
@@ -17,12 +16,3 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-envi
     -env-name $environment `
     -sql-connection-string $env:SQLCONNECTIONSTRING `
     -summary-sql-connection-string $env:SUMMARYSQLCONNECTIONSTRING
-
-Write-Host "Setting service principal key vault access"
-$spName = (Get-AzContext).Account.Id
-Set-AzKeyVaultAccessPolicy -VaultName $envKeyVault -ServicePrincipalName $spName -PermissionsToSecrets get,list,set,delete
-
-Write-Host "Setting ad app service principal key vault access"
-$appSpId = (Get-AzADServicePrincipal -ApplicationId $clientId).Id
-Set-AzKeyVaultAccessPolicy -VaultName $envKeyVault -ObjectId $appSpId -PermissionsToSecrets get,list
-
