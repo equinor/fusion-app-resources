@@ -17,7 +17,6 @@ pr: none
 variables:
     subscriptionServiceNonProd: 'FRA Automation Non-Prod'
     subscriptionServiceProd: 'FRA Automation Prod'
-    subscriptionServiceCore: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     webPackage: '$(Pipeline.Workspace)/drop/Fusion.Resources.Functions.zip'
   
 stages:
