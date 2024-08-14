@@ -49,10 +49,11 @@ stages:
                   parameters:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                    azureSubscription: $(subscriptionServiceNonProd)
 
                 - task: AzureFunctionApp@1
                   inputs:
-                    azureSubscription: $(subscriptionService)
+                    azureSubscription: $(subscriptionServiceNonProd)
                     appType: 'functionApp'
                     appName: $(functionServiceName)
                     package: $(webPackage)
@@ -82,10 +83,11 @@ stages:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
                     fusionEnvironment: fqa
+                    azureSubscription: $(subscriptionServiceNonProd)
                     
                 - task: AzureFunctionApp@1
                   inputs:
-                    azureSubscription: $(subscriptionService)
+                    azureSubscription: $(subscriptionServiceNonProd)
                     appType: 'functionApp'
                     appName: $(functionServiceName)
                     package: $(webPackage)
@@ -115,10 +117,11 @@ stages:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
                     fusionEnvironment: tr
+                    azureSubscription: $(subscriptionServiceNonProd)
                     
                 - task: AzureFunctionApp@1
                   inputs:
-                    azureSubscription: $(subscriptionService)
+                    azureSubscription: $(subscriptionServiceNonProd)
                     appType: 'functionApp'
                     appName: $(functionServiceName)
                     package: $(webPackage)
@@ -149,10 +152,11 @@ stages:
                     clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
                     fusionResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
                     fusionEnvironment: fprd
+                    azureSubscription: $(subscriptionServiceProd)
                     
                 - task: AzureFunctionApp@1
                   inputs:
-                    azureSubscription: $(subscriptionService)
+                    azureSubscription: $(subscriptionServiceProd)
                     appType: 'functionApp'
                     appName: $(functionServiceName)
                     package: $(webPackage)
