@@ -48,7 +48,7 @@ namespace Fusion.Resources.Api
                 Console.WriteLine($"Adding key vault using url: '{keyVaultUrl}', client id '{clientId}' and client secret {(string.IsNullOrEmpty(clientSecret) ? "[empty]" : "*****")}");
 
                 var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-                configBuilder.AddAzureKeyVault(new Uri(keyVaultUrl), credential);
+                configBuilder.AddAzureKeyVault(new Uri(keyVaultUrl), credential);  
             }
             else
             {
