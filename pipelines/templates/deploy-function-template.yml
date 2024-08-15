@@ -9,7 +9,7 @@ parameters:
 
 steps:
 - checkout: self
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   displayName: 'Deploy Function ARM template'
   inputs:
     azureSubscription: ${{ parameters.azureSubscription }}
