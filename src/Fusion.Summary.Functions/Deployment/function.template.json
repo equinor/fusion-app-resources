@@ -159,6 +159,10 @@
             {
               "name": "Endpoints_Resources_Fusion",
               "value": "[parameters('settings').resources.fusion]"
+            },
+            {
+              "name": "department_summary_weekly_queue",
+              "value": "[parameters('settings').queues.departmentSummaryWeeklyQueue]"
             }
           ]
         }
