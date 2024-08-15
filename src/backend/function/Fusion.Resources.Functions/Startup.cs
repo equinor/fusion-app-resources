@@ -10,7 +10,7 @@ namespace Fusion.Resources.Functions
     class Startup : FunctionsStartup
     {
         public override void Configure(IFunctionsHostBuilder builder)
-        {
+        {  
             builder.Services.AddAuthentication((cfg, opts) =>
             {
                 opts.ClientId = cfg.GetValue<string>("AzureAd_ClientId");
