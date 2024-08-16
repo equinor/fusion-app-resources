@@ -28,7 +28,6 @@ public class WeeklyReportWorker
     }
 
     [FunctionName("weekly-report-worker")]
-
     public async Task RunAsync([ServiceBusTrigger("", Connection = "")] ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
     {
         try
