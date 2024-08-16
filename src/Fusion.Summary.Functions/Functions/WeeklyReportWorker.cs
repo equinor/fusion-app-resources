@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Functions.Common.ApiClients;
+using Fusion.Resources.Functions.Common.Extensions;
+using Fusion.Summary.Functions.ReportCreator;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Fusion.Summary.Functions.Functions;
@@ -28,6 +27,7 @@ public class WeeklyReportWorker
         _summaryApiClient = summaryApiClient;
     }
 
+    [FunctionName("weekly-report-worker")]
 
     public async Task RunAsync([ServiceBusTrigger("", Connection = "")] ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
     {
@@ -85,7 +85,7 @@ public class WeeklyReportWorker
     {
         var report = new ApiWeeklySummaryReport()
         {
-            Period = DateTime.Now, // TODO: Is this correct?
+            Period = DateTime.UtcNow.GetPreviousWeeksMondayDate(),
             DepartmentSapId = departmentSapId,
             PositionsEnding = ResourceOwnerReportDataCreator
                 .GetPersonnelPositionsEndingWithNoFutureAllocation(personnel)

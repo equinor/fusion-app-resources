@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion.Resources.Functions.Common.ApiClients;
 
-namespace Fusion.Summary.Functions;
+namespace Fusion.Summary.Functions.ReportCreator;
 
 public abstract class ResourceOwnerReportDataCreator
 {
