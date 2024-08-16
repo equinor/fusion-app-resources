@@ -5,6 +5,7 @@ using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Services.LineOrg.ApiModels;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -129,6 +130,13 @@ namespace Fusion.Resources.Domain.Commands
                         Obs = instance.Obs,
                         Workload = instance.Workload
                     },
+                    InitialProposedPerson = proposedPerson is not null
+                        ? new DbResourceAllocationRequest.DbOpInitialProposedPerson()
+                        {
+                            AzureUniqueId = proposedPerson.AzureUniqueId,
+                            Mail = proposedPerson.Mail
+                        }
+                        : null,
 
                     IsDraft = request.IsDraft,
 

@@ -1,7 +1,7 @@
-﻿using Fusion.Resources.Database.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Logic.Workflows
 {
@@ -53,7 +53,7 @@ namespace Fusion.Resources.Logic.Workflows
             return this;
         }
 
-        public WorkflowStepFlow Complete(DbPerson completedBy, bool approved)
+        public WorkflowStepFlow Complete(DbPerson? completedBy, bool approved)
         {
             Current.Completed = DateTimeOffset.Now;
             Current.CompletedBy = completedBy;
@@ -61,9 +61,10 @@ namespace Fusion.Resources.Logic.Workflows
             return this;
         }
 
-        public WorkflowStepFlow Skip()
+        public WorkflowStepFlow Skip(DbPerson? completedBy = null)
         {
             Current.Completed = DateTimeOffset.Now;
+            Current.CompletedBy = completedBy;
             Current.State = DbWFStepState.Skipped;
             return this;
         }

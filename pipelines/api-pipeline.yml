@@ -25,7 +25,8 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
     imageName: $(imageRepo):$(imageTag)
-    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    subscriptionServiceNonProd: 'FRA Automation Non-Prod'
+    subscriptionServiceProd: 'FRA Automation Prod'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     dbTagPrefix: resources
@@ -69,9 +70,6 @@ stages:
             deployment-test-env.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
   
-      - bash: ls -acl $(Build.ArtifactStagingDirectory)
-
-
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
   
@@ -91,10 +89,10 @@ stages:
         runOnce:
           deploy:
             steps:
-            - task: AzurePowerShell@4
+            - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
-                azureSubscription: $(subscriptionService)
+                azureSubscription: $(subscriptionServiceNonProd)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
@@ -105,12 +103,15 @@ stages:
             - template: templates/get-appinsights-key.yml
               parameters:
                 environment: $(envName)
+                azureSubscription: $(subscriptionServiceNonProd)
+
 
             # Load the key vault url into variable, so it can be used when replacing tokens.
             - template: templates/get-keyvault-url.yml
               parameters:
                 environment: $(envName)
                 variableName: envKeyVaultUrl
+                azureSubscription: $(subscriptionServiceNonProd)
                 
 
             - template: templates/replace-tokens.yml
@@ -121,6 +122,7 @@ stages:
               parameters:
                 artifact: 'k8s-deployment'
                 environment: $(envName)
+                azureSubscription: $(subscriptionServiceNonProd)
                 dbTagPrefix: $(dbTagPrefix)                
   
             - task: KubernetesManifest@0
@@ -140,15 +142,15 @@ stages:
               
     jobs:
       - deployment: DeployFQA
-        environment: fusion-resources-fqa.fusion-resources-app-fqa
+        environment: fusion-fqa.fusion-resources-app-fqa
         strategy:
           runOnce:
             deploy:
               steps:
-              - task: AzurePowerShell@4
+              - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionService)
+                  azureSubscription: $(subscriptionServiceNonProd)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -159,12 +161,14 @@ stages:
               - template: templates/get-appinsights-key.yml
                 parameters:
                   environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
   
               # Load the key vault url into variable, so it can be used when replacing tokens.
               - template: templates/get-keyvault-url.yml
                 parameters:
                   environment: $(envName)
                   variableName: envKeyVaultUrl
+                  azureSubscription: $(subscriptionServiceNonProd)
   
               - template: templates/replace-tokens.yml
                 parameters:
@@ -174,6 +178,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
                   dbTagPrefix: $(dbTagPrefix)
     
               - task: KubernetesManifest@0
@@ -198,10 +203,10 @@ stages:
           runOnce:
             deploy:
               steps:
-              - task: AzurePowerShell@4
+              - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionService)
+                  azureSubscription: $(subscriptionServiceProd)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -212,12 +217,14 @@ stages:
               - template: templates/get-appinsights-key.yml
                 parameters:
                   environment: $(envName)
+                  azureSubscription: $(subscriptionServiceProd)
   
               # Load the key vault url into variable, so it can be used when replacing tokens.
               - template: templates/get-keyvault-url.yml
                 parameters:
                   environment: $(envName)
                   variableName: envKeyVaultUrl
+                  azureSubscription: $(subscriptionServiceProd)
   
               - template: templates/replace-tokens.yml
                 parameters:
@@ -227,6 +234,7 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  azureSubscription: $(subscriptionServiceProd)
                   dbTagPrefix: $(dbTagPrefix)
   
               - task: KubernetesManifest@0
@@ -237,6 +245,7 @@ stages:
 
               - template: templates/deploy-container-app.yml
                 parameters:
+                  azureSubscription: $(subscriptionServiceProd)
                   environment: $(envName)
                   fusionEnvironment: $(fusionEnvironment)
                   clientId: $(clientId)
@@ -253,15 +262,15 @@ stages:
               
     jobs:
       - deployment: DeployTR
-        environment: fusion-resources-tr.fusion-resources-app-tr
+        environment: fusion-tr.fusion-resources-app-tr
         strategy:
           runOnce:
             deploy:
               steps:
-              - task: AzurePowerShell@4
+              - task: AzurePowerShell@5
                 displayName: 'Get secrets'
                 inputs:
-                  azureSubscription: $(subscriptionService)
+                  azureSubscription: $(subscriptionServiceNonProd)
                   ScriptType: 'InlineScript'
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
@@ -272,12 +281,14 @@ stages:
               - template: templates/get-appinsights-key.yml
                 parameters:
                   environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
   
               # Load the key vault url into variable, so it can be used when replacing tokens.
               - template: templates/get-keyvault-url.yml
                 parameters:
                   environment: $(envName)
                   variableName: envKeyVaultUrl
+                  azureSubscription: $(subscriptionServiceNonProd)
   
               - template: templates/replace-tokens.yml
                 parameters:
@@ -287,6 +298,8 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
+                  azureSubscription: $(subscriptionServiceNonProd)
+
                   dbTagPrefix: $(dbTagPrefix)
     
               - task: KubernetesManifest@0

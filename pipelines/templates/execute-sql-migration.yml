@@ -1,5 +1,5 @@
 parameters:
-    azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    azureSubscription: ''
     sqlFile: ''
     artifact: 'drop'
     environment: ''

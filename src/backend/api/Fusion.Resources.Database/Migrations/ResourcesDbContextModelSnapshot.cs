@@ -17,7 +17,7 @@ namespace Fusion.Resources.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.12")
+                .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -640,6 +640,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid>("OrgProjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("State")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -1534,6 +1537,26 @@ namespace Fusion.Resources.Database.Migrations
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpInitialProposedPerson", "InitialProposedPerson", b1 =>
+                        {
+                            b1.Property<Guid>("DbResourceAllocationRequestId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("AzureUniqueId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Mail")
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.HasKey("DbResourceAllocationRequestId");
+
+                            b1.ToTable("ResourceAllocationRequests");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbResourceAllocationRequestId");
+                        });
+
                     b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpPositionInstance", "OrgPositionInstance", b1 =>
                         {
                             b1.Property<Guid>("DbResourceAllocationRequestId")
@@ -1685,6 +1708,8 @@ namespace Fusion.Resources.Database.Migrations
                         });
 
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("InitialProposedPerson");
 
                     b.Navigation("OrgPositionInstance")
                         .IsRequired();
