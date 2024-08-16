@@ -27,6 +27,7 @@
           "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
         },
         "queues": {
+          "departmentSummaryWeeklyQueue": "department-summary-weekly-queue"
         }
       }
     },
