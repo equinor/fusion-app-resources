@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+﻿﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
@@ -66,6 +66,7 @@ namespace Fusion.Resources.Api.Controllers
                 // Must resolve the subType to use when allocation request.
                 if (string.IsNullOrEmpty(request.SubType))
                     request.SubType = await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceId));
+
             }
             // Create all requests as draft
             var command = new CreateInternalRequest(InternalRequestOwner.Project, request.ResolveType())
@@ -995,6 +996,11 @@ namespace Fusion.Resources.Api.Controllers
                 await scope.RollbackAsync();
                 return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
+            catch (InvalidWorkflowError ex)
+            {
+                await scope.RollbackAsync();
+                return ApiErrors.InvalidOperation(ex);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -1036,6 +1042,11 @@ namespace Fusion.Resources.Api.Controllers
             {
                 await scope.RollbackAsync();
                 return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
+            }
+            catch (InvalidWorkflowError ex)
+            {
+                await scope.RollbackAsync();
+                return ApiErrors.InvalidOperation(ex);
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));

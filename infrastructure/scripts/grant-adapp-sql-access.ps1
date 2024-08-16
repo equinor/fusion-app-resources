@@ -38,7 +38,7 @@ function ConvertTo-Sid {
     return "0x" + $byteGuid
 }
 
-$sqlpasswordSecret = Get-AzKeyVaultSecret -VaultName $sqlPasswordKeyVault -Name fusion-sql-password -AsPlainText
+$token = Get-AzAccessToken -ResourceUrl "https://database.windows.net/"
 
 $sqlServer = Get-SqlServer 
 $sp = Get-AzADApplication -ApplicationId $clientId
@@ -53,7 +53,6 @@ END
 
 Invoke-Sqlcmd -ServerInstance $sqlServer.FullyQualifiedDomainName `
         -Database $sqlDatabaseName `
-        -Username $sqlServer.SqlAdministratorLogin `
-        -Password $sqlpasswordSecret `
+        -AccessToken $token.Token `
         -Query $sql `
         -ConnectionTimeout 120

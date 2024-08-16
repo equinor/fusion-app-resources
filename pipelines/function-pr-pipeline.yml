@@ -15,7 +15,7 @@ pr:
     - src/backend/integration/*
   
 variables:
-    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    subscriptionService: 'FRA Automation Non-Prod'
     webPackage: '$(Pipeline.Workspace)/drop/Fusion.Resources.Functions.zip'
     prNumber: $(System.PullRequest.PullRequestNumber)
   
@@ -38,7 +38,7 @@ stages:
       - deployment: Deploy
     
         displayName: 'Deploy function app'
-        environment: fusion-pr
+        environment: fra-pr
     
         strategy:
           runOnce:
