@@ -11,5 +11,7 @@ public class SendNotificationsRequest
 
     [JsonProperty("description")] public string Description { get; set; }
 
+    [JsonProperty("appKey")] public string AppKey { get; set; }
+
     [JsonProperty("card")] public AdaptiveCard Card { get; set; }
 }

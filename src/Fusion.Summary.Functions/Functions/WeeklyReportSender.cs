@@ -161,6 +161,7 @@ public class WeeklyReportSender
             Title = $"Weekly summary - {department.FullDepartmentName}",
             EmailPriority = 1,
             Card = card,
+            AppKey = "resources",
             Description = $"Weekly report for department - {department.FullDepartmentName}"
         };
     }
