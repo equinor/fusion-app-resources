@@ -33,6 +33,16 @@ namespace Fusion.Resources.Domain
         /// <param name="person"></param>
         /// <returns></returns>
         Task<FusionPersonProfile?> ResolveProfileAsync(PersonId person);
+
+        /// <summary>
+        ///     Ensures that the local system account is present in the database. AzureId is set to Guid.Empty and Mail is set to
+        ///     "system@FRA"
+        /// </summary>
+        Task<DbPerson> EnsureLocalSystemAccountAsync();
+
+        /// <summary>
+        ///     Ensures that the system account Pro View is present in the database. Azure id is set to object id.
+        /// </summary>
         Task<DbPerson> EnsureSystemAccountAsync();
     }
 }

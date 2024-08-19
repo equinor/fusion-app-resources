@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
-using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.IdentityModel.Tokens.Jwt;
+using Fusion.Integration.Configuration;
 
 #nullable enable
 namespace Fusion.Resources.Domain.Services
@@ -19,12 +19,14 @@ namespace Fusion.Resources.Domain.Services
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
+        private readonly IFusionTokenProvider tokenProvider;
         private static readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 
-        public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb)
+        public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb, IFusionTokenProvider tokenProvider)
         {
             this.profileResolver = profileResolver;
             this.resourcesDb = resourcesDb;
+            this.tokenProvider = tokenProvider;
         }
 
         public async Task<DbPerson?> EnsurePersonAsync(PersonId personId)
@@ -123,7 +125,7 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
-        public async Task<DbPerson> EnsureSystemAccountAsync()
+        public async Task<DbPerson> EnsureLocalSystemAccountAsync()
         {
             await locker.WaitAsync();
 
@@ -155,6 +157,21 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
+        public async Task<DbPerson> EnsureSystemAccountAsync()
+        {
+            var token = await tokenProvider.GetApplicationTokenAsync();
+            var securityToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+            var claim = securityToken.Claims.FirstOrDefault(x => x.Type == "oid");
+            if (claim == null)
+                throw new InvalidOperationException("Could not locate azure unique object id claim");
+
+            if (!Guid.TryParse(claim.Value, out Guid azureUniqueId) || azureUniqueId == Guid.Empty)
+                throw new InvalidOperationException("Azure object id claim does not contain valid Guid");
+
+            return await EnsureApplicationAsync(azureUniqueId) ?? throw new InvalidOperationException("Could not determine system account");
+        }
+
         public async Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId)
         {
             await locker.WaitAsync();
@@ -174,7 +191,7 @@ namespace Fusion.Resources.Domain.Services
                 person = new DbPerson
                 {
                     AccountType = $"{FusionAccountType.Application}",
-                    AzureUniqueId = Guid.Empty,
+                    AzureUniqueId = azureUniqueId,
                     JobTitle = "Azure AD Application",
                     Mail = $"{profile.ServicePrincipalId}@{profile.ApplicationId}",
                     Name = profile.DisplayName,

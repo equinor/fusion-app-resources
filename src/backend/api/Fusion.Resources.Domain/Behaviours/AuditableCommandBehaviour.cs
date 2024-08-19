@@ -44,7 +44,7 @@ namespace Fusion.Resources.Domain.Behaviours
                 else if (SystemEditorScope.IsEnabled.Value == true)
                 {
                     // Ensure system account in db. 
-                    var editor = await profileServices.EnsureSystemAccountAsync();
+                    var editor = await profileServices.EnsureLocalSystemAccountAsync();
 
                     trackableRequest.SetEditor(Guid.Empty, editor);
                 }
