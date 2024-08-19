@@ -16,6 +16,7 @@ using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Resources.Domain;
 using Fusion.Services.LineOrg.ApiModels;
 using Fusion.Integration.LineOrg;
+using Fusion.Testing.Mocks.ProfileService.Api;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Api.Tests.Fixture
@@ -24,6 +25,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
     {
         public readonly ResourcesApiWebAppFactory ApiFactory;
 
+        public ApiFusionApplicationProfile ProViewTestApplication { get; }
         public ApiPersonProfileV3 AdminUser { get; }
         public ApiPersonProfileV3 ExternalAdminUser { get; }
 
@@ -45,6 +47,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
             ExternalAdminUser = PeopleServiceMock.AddTestProfile()
                 .WithRoles("Fusion.Resources.External.FullControl")
                 .SaveProfile();
+
+            ProViewTestApplication = PeopleServiceMock.AddApplication(Guid.Parse("8d5147e1-8f73-4ad1-99b4-8efb55edf741"), "Statoil ProView Test", Guid.Empty);
         }
 
         public ContextResolverMock ContextResolver => ApiFactory.contextResolverMock;

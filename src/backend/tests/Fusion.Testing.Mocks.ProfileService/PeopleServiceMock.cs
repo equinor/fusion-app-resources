@@ -17,6 +17,7 @@ namespace Fusion.Testing.Mocks.ProfileService
 
         internal static ConcurrentBag<ApiPersonProfileV3> profiles = new ConcurrentBag<ApiPersonProfileV3>();
         internal static ConcurrentBag<ApiCompanyInfo> companies = new ConcurrentBag<ApiCompanyInfo>();
+        internal static ConcurrentBag<ApiFusionApplicationProfile> applications = new ConcurrentBag<ApiFusionApplicationProfile>();
 
         public PeopleServiceMock()
         {
@@ -30,6 +31,18 @@ namespace Fusion.Testing.Mocks.ProfileService
         }
 
         public static FusionTestUserBuilder AddTestProfile() => new();
+
+        public static ApiFusionApplicationProfile AddApplication(Guid servicePrincipalId, string displayName, Guid applicationId)
+        {
+            var application = new ApiFusionApplicationProfile
+            {
+                ServicePrincipalId = servicePrincipalId,
+                DisplayName = displayName,
+                ApplicationId = applicationId
+            };
+            applications.Add(application);
+            return application;
+        }
         public static void AddCompany(Guid id, string name) => companies.Add(new ApiCompanyInfo { Id = id, Name = name });
     }
 
@@ -46,6 +59,13 @@ namespace Fusion.Testing.Mocks.ProfileService
         {
             profile = FusionTestProfiles.CreateTestUser(type, classification);
         }
+
+        public FusionTestUserBuilder WithAzureId(Guid azureId)
+        {
+            profile.AzureUniqueId = azureId;
+            return this;
+        }
+
 
         public FusionTestUserBuilder WithUpn(string upn)
         {

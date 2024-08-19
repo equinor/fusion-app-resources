@@ -106,6 +106,22 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
                       });
         }
 
+        [HttpGet("/serviceprincipals/{servicePrincipalId}")]
+        [MapToApiVersion("1.0")]
+        public ActionResult<ApiFusionApplicationProfile> LoadServicePrincipalInformation(string servicePrincipalId)
+        {
+            var profile = default(ApiFusionApplicationProfile);
+
+            if (Guid.TryParse(servicePrincipalId, out var uniqueId))
+                profile = PeopleServiceMock.applications.FirstOrDefault(p => p.ServicePrincipalId == uniqueId);
+
+            if (profile == null)
+                return NotFound();
+
+            // Must take a copy, as we don't want to change the "database"
+            return JsonConvert.DeserializeObject<ApiFusionApplicationProfile>(JsonConvert.SerializeObject(profile));
+        }
+
         private static Func<ApiPersonProfileV3, object> PeopleSelector(PropertyInfo[] props)
         {
             return profile =>
