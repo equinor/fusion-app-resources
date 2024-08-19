@@ -1,4 +1,5 @@
 parameters:
+  azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
   environment: ''
   clientId: ''
   imageName: ''
@@ -7,10 +8,10 @@ parameters:
 
 steps:
 - checkout: self
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   displayName: 'Deploy ARM template'
   inputs:
-    azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: FilePath
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'

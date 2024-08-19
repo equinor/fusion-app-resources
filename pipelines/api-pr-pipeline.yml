@@ -22,7 +22,8 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
     imageName: $(imageRepo):$(prNumber)
-    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    subscriptionService: 'FRA Automation Non-Prod'
+    subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     buildNr: $(Build.BuildNumber)
@@ -87,14 +88,14 @@ stages:
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      environment: fusion-resources-pr.fusion-resources-app-pr
+      environment: fra-pr.fusion-resources-app-pr
       strategy:
         runOnce:
           deploy:
             steps:
             - template: templates/install-fusion-ps.yml
 
-            - task: AzurePowerShell@4
+            - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
                 azureSubscription: $(subscriptionService)
@@ -105,10 +106,11 @@ stages:
                     $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name AzureAd--ClientSecret -AsPlainText
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
 
-            - task: AzurePowerShell@4
+            ## MUST RUN THIS AS THE CORE SERVICE PRINCIPAL, UNTILL NEW DB DEPLOY IS ESTABLISHED
+            - task: AzurePowerShell@5
               displayName: 'Provision database'
               inputs: 
-                azureSubscription: $(subscriptionService)
+                azureSubscription: $(subscriptionServiceCore)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
@@ -140,12 +142,14 @@ stages:
             - template: templates/get-appinsights-key.yml
               parameters:
                 environment: $(envName)
+                azureSubscription: $(subscriptionService)
 
             # Load the key vault url into variable, so it can be used when replacing tokens.
             - template: templates/get-keyvault-url.yml
               parameters:
                 environment: $(envName)
                 variableName: envKeyVaultUrl
+                azureSubscription: $(subscriptionService)
 
             - template: templates/replace-tokens.yml
               parameters:
@@ -155,6 +159,8 @@ stages:
               parameters:
                 artifact: 'k8s-deployment'
                 environment: '$(envName)-$(prNumber)'
+                azureSubscription: $(subscriptionService)
+
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
