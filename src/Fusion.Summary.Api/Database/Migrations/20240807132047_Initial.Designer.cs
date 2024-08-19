@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Summary.Api.Database.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
-    [Migration("20240731103149_Initial")]
+    [Migration("20240807132047_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -127,7 +127,7 @@ namespace Fusion.Summary.Api.Database.Migrations
 
                             b1.ToTable("WeeklySummaryReports");
 
-                            b1.ToJson("PersonnelMoreThan100PercentFTEs");
+                            b1.ToJson("PositionsEnding");
 
                             b1.WithOwner()
                                 .HasForeignKey("DbWeeklySummaryReportId");
@@ -153,7 +153,7 @@ namespace Fusion.Summary.Api.Database.Migrations
 
                             b1.ToTable("WeeklySummaryReports");
 
-                            b1.ToJson("EndingPositions");
+                            b1.ToJson("PersonnelMoreThan100PercentFTE");
 
                             b1.WithOwner()
                                 .HasForeignKey("DbWeeklySummaryReportId");

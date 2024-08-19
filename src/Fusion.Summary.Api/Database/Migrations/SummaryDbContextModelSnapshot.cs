@@ -124,7 +124,7 @@ namespace Fusion.Summary.Api.Database.Migrations
 
                             b1.ToTable("WeeklySummaryReports");
 
-                            b1.ToJson("PersonnelMoreThan100PercentFTEs");
+                            b1.ToJson("PositionsEnding");
 
                             b1.WithOwner()
                                 .HasForeignKey("DbWeeklySummaryReportId");
@@ -150,7 +150,7 @@ namespace Fusion.Summary.Api.Database.Migrations
 
                             b1.ToTable("WeeklySummaryReports");
 
-                            b1.ToJson("EndingPositions");
+                            b1.ToJson("PersonnelMoreThan100PercentFTE");
 
                             b1.WithOwner()
                                 .HasForeignKey("DbWeeklySummaryReportId");
