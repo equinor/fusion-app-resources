@@ -31,18 +31,17 @@ public class DbWeeklySummaryReport
 
             report.Property(r => r.Period)
                 // Strip time from date and retrieve as UTC
-                .HasConversion(d => d.Date,
-                    d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+                .HasConversion(d => d.Date, d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
 
 
             report.HasIndex(r => new { r.DepartmentSapId, r.Period })
                 .IsUnique();
 
-            report.OwnsMany(r => r.PositionsEnding, pe
-                => pe.ToJson("PersonnelMoreThan100PercentFTEs"));
+            report.OwnsMany(r => r.PositionsEnding,
+                pe => pe.ToJson());
 
-            report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE, pm
-                => pm.ToJson("EndingPositions"));
+            report.OwnsMany(r => r.PersonnelMoreThan100PercentFTE,
+                pm => pm.ToJson());
 
 
             report.HasOne(r => r.Department)
