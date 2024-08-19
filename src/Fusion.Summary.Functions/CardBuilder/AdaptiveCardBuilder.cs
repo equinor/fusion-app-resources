@@ -24,14 +24,30 @@ public class AdaptiveCardBuilder
         return this;
     }
 
-    public AdaptiveCardBuilder AddColumnSet(params AdaptiveCardColumn[] columns)
+    public AdaptiveCardBuilder AddTextRow(string valueText, string headerText, string customText = "")
     {
-        var columnSet = new AdaptiveColumnSet
+        var container = new AdaptiveContainer()
         {
-            Columns = columns.Select(col => col.Column).ToList(),
-            Separator = true
+            Separator = true,
+            Items = new List<AdaptiveElement>()
+            {
+                new AdaptiveTextBlock
+                {
+                    Text = $"{valueText} {customText}",
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
+                    Size = AdaptiveTextSize.ExtraLarge
+                },
+                new AdaptiveTextBlock
+                {
+                    Text = headerText,
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+                }
+            }
         };
-        _adaptiveCard.Body.Add(columnSet);
+
+        _adaptiveCard.Body.Add(container);
         return this;
     }
 
@@ -41,31 +57,45 @@ public class AdaptiveCardBuilder
         var listContainer = new AdaptiveContainer
         {
             Separator = true,
-            Items = new List<AdaptiveElement>
+        };
+
+        var header = new AdaptiveTextBlock
+        {
+            Weight = AdaptiveTextWeight.Bolder,
+            Text = headerText,
+            Wrap = true,
+            Size = AdaptiveTextSize.Large,
+            HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+        };
+
+        var rows = new List<AdaptiveColumnSet>();
+
+        foreach (var listObject in objectLists)
+        {
+            var row = new AdaptiveColumnSet()
             {
-                new AdaptiveTextBlock
+                Columns = listObject.Select(o => new AdaptiveColumn()
                 {
-                    Weight = AdaptiveTextWeight.Bolder,
-                    Text = headerText,
-                    Wrap = true,
-                    Size = AdaptiveTextSize.Large
-                },
-                new AdaptiveColumnSet
-                {
-                    Columns = new List<AdaptiveColumn>
+                    Width = AdaptiveColumnWidth.Stretch,
+                    Items = new List<AdaptiveElement>
                     {
-                        new()
+                        new AdaptiveTextBlock
                         {
-                            Width = AdaptiveColumnWidth.Stretch,
-                            Items = new List<AdaptiveElement>
-                            {
-                                new AdaptiveCardList(objectLists).List
-                            }
+                            Text = o.Value,
+                            Wrap = true,
+                            HorizontalAlignment = o.Alignment
                         }
                     }
-                }
-            }
-        };
+                }).ToList()
+            };
+
+            rows.Add(row);
+        }
+
+        listContainer.Items.Add(header);
+        listContainer.Items.AddRange(rows);
+
+
         _adaptiveCard.Body.Add(listContainer);
         return this;
     }
@@ -100,76 +130,6 @@ public class AdaptiveCardBuilder
         return _adaptiveCard;
     }
 
-    public class AdaptiveCardColumn
-    {
-        public AdaptiveColumn Column { get; }
-
-        public AdaptiveCardColumn(string numberText, string headerText, string customText = "")
-        {
-            Column = new AdaptiveColumn
-            {
-                Width = AdaptiveColumnWidth.Stretch,
-                Separator = true,
-                Spacing = AdaptiveSpacing.Medium,
-                Items = new List<AdaptiveElement>
-                {
-                    new AdaptiveTextBlock
-                    {
-                        Text = $"{numberText} {customText}",
-                        Wrap = true,
-                        HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
-                        Size = AdaptiveTextSize.ExtraLarge
-                    },
-                    new AdaptiveTextBlock
-                    {
-                        Text = headerText,
-                        Wrap = true,
-                        HorizontalAlignment = AdaptiveHorizontalAlignment.Center
-                    }
-                }
-            };
-        }
-    }
-
-    private class AdaptiveCardList
-    {
-        public AdaptiveContainer List { get; }
-
-        public AdaptiveCardList(List<List<ListObject>> objectLists)
-        {
-            var listItems = new List<AdaptiveElement>();
-            foreach (var objects in objectLists)
-            {
-                var columns = new List<AdaptiveColumn>();
-                foreach (var o in objects)
-                {
-                    var column = new AdaptiveColumn()
-                    {
-                        Width = AdaptiveColumnWidth.Stretch,
-                        Items = new List<AdaptiveElement>
-                        {
-                            new AdaptiveTextBlock
-                            {
-                                Text = $"{o.Value} ", Wrap = true,
-                                HorizontalAlignment = o.Alignment
-                            }
-                        }
-                    };
-                    columns.Add(column);
-                }
-
-                listItems.Add(new AdaptiveColumnSet()
-                {
-                    Columns = columns
-                });
-            }
-
-            List = new AdaptiveContainer
-            {
-                Items = listItems
-            };
-        }
-    }
 
     public class ListObject
     {
