@@ -16,24 +16,28 @@ namespace Fusion.Summary.Functions.Functions;
 public class WeeklyReportSender
 {
     private readonly ISummaryApiClient summaryApiClient;
+    private readonly IResourcesApiClient resourcesApiClient;
     private readonly INotificationApiClient notificationApiClient;
     private readonly ILogger<WeeklyReportSender> logger;
     private readonly IConfiguration configuration;
 
 
     public WeeklyReportSender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
-        ILogger<WeeklyReportSender> logger, IConfiguration configuration)
+        ILogger<WeeklyReportSender> logger, IConfiguration configuration, IResourcesApiClient resourcesApiClient)
     {
         this.summaryApiClient = summaryApiClient;
         this.notificationApiClient = notificationApiClient;
         this.logger = logger;
         this.configuration = configuration;
+        this.resourcesApiClient = resourcesApiClient;
     }
 
     [FunctionName("weekly-report-sender")]
     public async Task RunAsync([TimerTrigger("0 0 8 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
     {
-        var departments = await summaryApiClient.GetDepartmentsAsync();
+        var departments = 
+            (await summaryApiClient.GetDepartmentsAsync())?
+            .Where(d => d.FullDepartmentName!.Contains("PRD"));
 
         if (departments is null)
         {
@@ -70,7 +74,18 @@ public class WeeklyReportSender
                 throw;
             }
 
-            await notificationApiClient.SendNotification(notification, department.ResourceOwnerAzureUniqueId);
+            var reportReceivers =
+                (await resourcesApiClient.GetDelegatedResponsibleForDepartment(department.DepartmentSapId))
+                .Select(d => Guid.Parse(d.DelegatedResponsible.AzureUniquePersonId))
+                .Concat(new[] { department.ResourceOwnerAzureUniqueId })
+                .Distinct();
+
+            foreach (var azureId in reportReceivers)
+            {
+                var result = await notificationApiClient.SendNotification(notification, azureId);
+                if (!result)
+                    logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {@ReportId}", azureId, summaryReport);
+            }
         });
     }
 
@@ -173,4 +188,3 @@ public class WeeklyReportSender
         return portalUri;
     }
 }
-
