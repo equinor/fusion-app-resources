@@ -28,16 +28,15 @@ public class WeeklyReportWorker
     }
 
     [FunctionName("weekly-report-worker")]
-    public async Task RunAsync([ServiceBusTrigger("", Connection = "")] ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
+    public async Task RunAsync(
+        [ServiceBusTrigger("%scheduled_notification_report_queue%", Connection = "AzureWebJobsServiceBus")]
+        ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
     {
         try
         {
-            var dto = await JsonSerializer.DeserializeAsync<ScheduledNotificationQueueDto>(message.Body.ToStream());
+            var dto = await JsonSerializer.DeserializeAsync<ApiResourceOwnerDepartment>(message.Body.ToStream());
 
-            if (!dto.AzureUniqueId.Any())
-                throw new Exception("There are no recipients. This should have been filtered");
-
-            if (string.IsNullOrEmpty(dto.FullDepartment))
+            if (string.IsNullOrEmpty(dto.FullDepartmentName))
                 throw new Exception("FullDepartmentIdentifier not valid.");
 
             await CreateAndStoreReportAsync(dto);
@@ -54,11 +53,11 @@ public class WeeklyReportWorker
         }
     }
 
-    private async Task CreateAndStoreReportAsync(ScheduledNotificationQueueDto message)
+    private async Task CreateAndStoreReportAsync(ApiResourceOwnerDepartment message)
     {
-        var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(message.FullDepartment)).ToList();
+        var departmentRequests = (await _resourceClient.GetAllRequestsForDepartment(message.FullDepartmentName)).ToList();
 
-        var departmentPersonnel = (await _resourceClient.GetAllPersonnelForDepartment(message.FullDepartment))
+        var departmentPersonnel = (await _resourceClient.GetAllPersonnelForDepartment(message.FullDepartmentName))
             .Where(per =>
                 per.AccountType != FusionAccountType.Consultant.ToString() &&
                 per.AccountType != FusionAccountType.External.ToString())
