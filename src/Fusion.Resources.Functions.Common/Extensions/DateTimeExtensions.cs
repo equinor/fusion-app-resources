@@ -22,9 +22,9 @@ public static class DateTimeExtensions
             {
                 // Calculate days until previous monday
                 // Go one week back and then remove the days until the monday
-                var daysUntilLastWeeksMonday = -7 - (int)date.DayOfWeek - 1;
+                var daysUntilLastWeeksMonday = (1 - (int)date.DayOfWeek) - 7;
 
-                return date.AddDays(-daysUntilLastWeeksMonday);
+                return date.AddDays(daysUntilLastWeeksMonday);
             }
         }
     }
