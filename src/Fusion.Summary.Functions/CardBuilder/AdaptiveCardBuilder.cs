@@ -7,7 +7,7 @@ namespace Fusion.Summary.Functions.CardBuilder;
 
 public class AdaptiveCardBuilder
 {
-    private readonly AdaptiveCard _adaptiveCard = new(new AdaptiveSchemaVersion(1, 0));
+    private readonly AdaptiveCard _adaptiveCard = new(new AdaptiveSchemaVersion(1, 2));
 
     public AdaptiveCardBuilder AddHeading(string text)
     {

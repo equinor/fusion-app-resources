@@ -166,7 +166,7 @@ public class WeeklyReportSender
             Title = $"Weekly summary - {department.FullDepartmentName}",
             EmailPriority = 1,
             Card = card,
-            // AppKey = "resources", // This does not work, get 400 from notification api
+            AppKey = "personnel-allocation",
             Description = $"Weekly report for department - {department.FullDepartmentName}"
         };
     }
