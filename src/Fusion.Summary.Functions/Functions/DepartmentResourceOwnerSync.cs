@@ -41,7 +41,7 @@ public class DepartmentResourceOwnerSync
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    [FunctionName("department-resource-owner-sync")]
+    [FunctionName("weekly-department-recipients-sync")]
     public async Task RunAsync(
         [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
         TimerInfo timerInfo, CancellationToken cancellationToken

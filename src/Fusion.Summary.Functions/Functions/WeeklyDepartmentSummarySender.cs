@@ -13,17 +13,17 @@ using static Fusion.Summary.Functions.CardBuilder.AdaptiveCardBuilder;
 
 namespace Fusion.Summary.Functions.Functions;
 
-public class WeeklyReportSender
+public class WeeklyDepartmentSummarySender
 {
     private readonly ISummaryApiClient summaryApiClient;
     private readonly IResourcesApiClient resourcesApiClient;
     private readonly INotificationApiClient notificationApiClient;
-    private readonly ILogger<WeeklyReportSender> logger;
+    private readonly ILogger<WeeklyDepartmentSummarySender> logger;
     private readonly IConfiguration configuration;
 
 
-    public WeeklyReportSender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
-        ILogger<WeeklyReportSender> logger, IConfiguration configuration, IResourcesApiClient resourcesApiClient)
+    public WeeklyDepartmentSummarySender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
+        ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration, IResourcesApiClient resourcesApiClient)
     {
         this.summaryApiClient = summaryApiClient;
         this.notificationApiClient = notificationApiClient;
@@ -32,7 +32,7 @@ public class WeeklyReportSender
         this.resourcesApiClient = resourcesApiClient;
     }
 
-    [FunctionName("weekly-report-sender")]
+    [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 8 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
     {
         var departments = 
