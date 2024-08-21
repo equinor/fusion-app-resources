@@ -115,10 +115,3 @@ public class WeeklyReportWorker
         return Task.FromResult(report);
     }
 }
-
-public class ScheduledNotificationQueueDto
-{
-    public Guid[] AzureUniqueId { get; init; }
-    public string FullDepartment { get; init; }
-    public string DepartmentSapId { get; init; }
-}
