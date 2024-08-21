@@ -35,11 +35,9 @@ public class WeeklyDepartmentSummarySender
     [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 8 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
     {
-        var departments = 
-            (await summaryApiClient.GetDepartmentsAsync())?
-            .Where(d => d.FullDepartmentName!.Contains("PRD"));
+        var departments = await summaryApiClient.GetDepartmentsAsync();
 
-        if (departments is null)
+        if (departments is null || !departments.Any())
         {
             logger.LogCritical("No departments found. Exiting");
             return;
@@ -74,11 +72,7 @@ public class WeeklyDepartmentSummarySender
                 throw;
             }
 
-            var reportReceivers =
-                (await resourcesApiClient.GetDelegatedResponsibleForDepartment(department.DepartmentSapId))
-                .Select(d => Guid.Parse(d.DelegatedResponsible.AzureUniquePersonId))
-                .Concat(new[] { department.ResourceOwnerAzureUniqueId })
-                .Distinct();
+            var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId);
 
             foreach (var azureId in reportReceivers)
             {

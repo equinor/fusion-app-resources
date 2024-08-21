@@ -23,23 +23,17 @@ public interface ISummaryApiClient
 
 public class ApiResourceOwnerDepartment
 {
-    public ApiResourceOwnerDepartment(string departmentSapId, string fullDepartmentName,
-        Guid resourceOwnerAzureUniqueId)
-    {
-        DepartmentSapId = departmentSapId;
-        FullDepartmentName = fullDepartmentName;
-        ResourceOwnerAzureUniqueId = resourceOwnerAzureUniqueId;
-    }
-
     public ApiResourceOwnerDepartment()
     {
     }
 
-    public string DepartmentSapId { get; init; } = string.Empty;
+    public string DepartmentSapId { get; init; } = null!;
+    public string FullDepartmentName { get; init; } = null!;
 
-    public string FullDepartmentName { get; init; } = string.Empty;
+    public Guid[] ResourceOwnersAzureUniqueId { get; init; } = null!;
 
-    public Guid ResourceOwnerAzureUniqueId { get; init; }
+    public Guid[] DelegateResourceOwnersAzureUniqueId { get; init; } = null!;
+
 }
 
 public record ApiCollection<T>(ICollection<T> Items);
