@@ -29,7 +29,7 @@ public class WeeklyReportWorker
 
     [FunctionName("weekly-report-worker")]
     public async Task RunAsync(
-        [ServiceBusTrigger("%scheduled_notification_report_queue%", Connection = "AzureWebJobsServiceBus")]
+        [ServiceBusTrigger("%department_summary_weekly_queue%", Connection = "AzureWebJobsServiceBus")]
         ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
     {
         try
