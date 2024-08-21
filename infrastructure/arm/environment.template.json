@@ -185,6 +185,22 @@
                 "maxDeliveryCount": 2
             }
         },
+		{
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(variables('sb-name'), '/scheduled-departments-weekly-report')]",
+            "location": "North Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', variables('sb-name'))]"
+            ],
+            "properties": {
+                "maxSizeInMegabytes": 1024,
+                "duplicateDetectionHistoryTimeWindow": "PT5M30S",
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": true,
+                "maxDeliveryCount": 2
+            }
+        },
 
         /* SECRETS */
         {
