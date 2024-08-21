@@ -9,6 +9,9 @@ public record PutDepartmentRequest(string FullDepartmentName, Guid[] ResourceOwn
         public Validator()
         {
             RuleFor(x => x.FullDepartmentName).NotEmpty();
+            RuleFor(x => x.ResourceOwnersAzureUniqueId.Concat(x.DelegateResourceOwnersAzureUniqueId))
+                .NotEmpty()
+                .WithMessage($"Either {nameof(ResourceOwnersAzureUniqueId)} or {nameof(DelegateResourceOwnersAzureUniqueId)} must contain at least one element.");
         }
     }
 };
