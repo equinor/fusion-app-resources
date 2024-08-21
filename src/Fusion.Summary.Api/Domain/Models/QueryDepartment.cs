@@ -6,16 +6,19 @@ namespace Fusion.Summary.Api.Domain.Models;
 public class QueryDepartment
 {
     public string SapDepartmentId { get; set; } = string.Empty;
-    public Guid ResourceOwnerAzureUniqueId { get; set; }
     public string FullDepartmentName { get; set; } = string.Empty;
+    public List<Guid> ResourceOwnersAzureUniqueId { get; set; } = null!;
+
+    public List<Guid> DelegateResourceOwnersAzureUniqueId { get; set; } = null!;
 
     public static QueryDepartment FromDbDepartment(DbDepartment dbDepartment)
     {
         return new QueryDepartment
         {
             SapDepartmentId = dbDepartment.DepartmentSapId,
-            ResourceOwnerAzureUniqueId = dbDepartment.ResourceOwnerAzureUniqueId,
-            FullDepartmentName = dbDepartment.FullDepartmentName
+            FullDepartmentName = dbDepartment.FullDepartmentName,
+            ResourceOwnersAzureUniqueId = dbDepartment.ResourceOwnersAzureUniqueId.ToList(),
+            DelegateResourceOwnersAzureUniqueId = dbDepartment.DelegateResourceOwnersAzureUniqueId.ToList()
         };
     }
 
@@ -24,7 +27,9 @@ public class QueryDepartment
         return new QueryDepartment
         {
             SapDepartmentId = apiDepartment.DepartmentSapId,
-            FullDepartmentName = apiDepartment.FullDepartmentName
+            FullDepartmentName = apiDepartment.FullDepartmentName,
+            ResourceOwnersAzureUniqueId = apiDepartment.ResourceOwnersAzureUniqueId.ToList(),
+            DelegateResourceOwnersAzureUniqueId = apiDepartment.DelegateResourceOwnersAzureUniqueId.ToList()
         };
     }
 }
