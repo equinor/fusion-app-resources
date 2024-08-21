@@ -12,16 +12,19 @@ public static class ConfigurationExtensions
         var clientSecret = configuration["AzureAd:ClientSecret"];
         var keyVaultUrl = configuration["KEYVAULT_URL"];
 
-        if (!string.IsNullOrEmpty(keyVaultUrl))
+        if (string.IsNullOrWhiteSpace(keyVaultUrl))
         {
-            Console.WriteLine($"Adding key vault using url: '{keyVaultUrl}', client id '{clientId}' and client secret {(string.IsNullOrEmpty(clientSecret) ? "[empty]" : "*****")}");
+            Console.WriteLine("Skipping key vault as url is empty or whitespace.");
+            return;
+        }
 
-            var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            configuration.AddAzureKeyVault(new Uri(keyVaultUrl), credential);
-        }
-        else
+        if (string.IsNullOrWhiteSpace(clientSecret))
         {
-            Console.WriteLine("Skipping key vault as url is empty.");
+            Console.WriteLine("Skipping key vault as clientSecret is empty or whitespace.");
+            return;
         }
+
+        var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+        configuration.AddAzureKeyVault(new Uri(keyVaultUrl), credential);
     }
 }
