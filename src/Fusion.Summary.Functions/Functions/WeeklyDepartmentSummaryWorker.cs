@@ -14,20 +14,20 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Fusion.Summary.Functions.Functions;
 
-public class WeeklyReportWorker
+public class WeeklyDepartmentSummaryWorker
 {
     private readonly IResourcesApiClient _resourceClient;
     private readonly ISummaryApiClient _summaryApiClient;
-    private readonly ILogger<WeeklyReportWorker> _logger;
+    private readonly ILogger<WeeklyDepartmentSummaryWorker> _logger;
 
-    public WeeklyReportWorker(IResourcesApiClient resourceClient, ILogger<WeeklyReportWorker> logger, ISummaryApiClient summaryApiClient)
+    public WeeklyDepartmentSummaryWorker(IResourcesApiClient resourceClient, ILogger<WeeklyDepartmentSummaryWorker> logger, ISummaryApiClient summaryApiClient)
     {
         _resourceClient = resourceClient;
         _logger = logger;
         _summaryApiClient = summaryApiClient;
     }
 
-    [FunctionName("weekly-report-worker")]
+    [FunctionName("weekly-department-summary-worker")]
     public async Task RunAsync(
         [ServiceBusTrigger("%department_summary_weekly_queue%", Connection = "AzureWebJobsServiceBus")]
         ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
