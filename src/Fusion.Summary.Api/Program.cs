@@ -26,6 +26,7 @@ if (Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN") != "true")
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
 var certThumbprint = builder.Configuration["Config:CertThumbprint"];
+var environment = builder.Configuration["Environment"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
 var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
@@ -60,7 +61,7 @@ builder.Services.AddSwagger(builder.Configuration);
 builder.Services.AddFusionIntegration(f =>
 {
     f.AddFusionAuthorization();
-    f.UseServiceInformation("Fusion.Summary.Api", "Dev");
+    f.UseServiceInformation("Fusion.Summary.Api", environment);
     f.UseDefaultEndpointResolver(fusionEnvironment ?? "ci");
     f.UseDefaultTokenProvider(opts =>
     {
