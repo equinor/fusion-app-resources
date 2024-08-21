@@ -14,13 +14,13 @@ public static class ConfigurationExtensions
 
         if (string.IsNullOrWhiteSpace(keyVaultUrl))
         {
-            Console.WriteLine("Skipping key vault as url is empty or whitespace.");
+            Console.WriteLine("Skipping key vault as url is null, empty or whitespace.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(clientSecret))
         {
-            Console.WriteLine("Skipping key vault as clientSecret is empty or whitespace.");
+            Console.WriteLine("Skipping key vault as clientSecret is null, empty or whitespace.");
             return;
         }
 
