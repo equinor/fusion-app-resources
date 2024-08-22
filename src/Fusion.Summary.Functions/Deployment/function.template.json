@@ -27,6 +27,7 @@
           "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
         },
         "queues": {
+          "departmentSummaryWeeklyQueue": "department-summary-weekly-queue"
         }
       }
     },
@@ -159,6 +160,10 @@
             {
               "name": "Endpoints_Resources_Fusion",
               "value": "[parameters('settings').resources.fusion]"
+            },
+            {
+              "name": "department_summary_weekly_queue",
+              "value": "[parameters('settings').queues.departmentSummaryWeeklyQueue]"
             }
           ]
         }
