@@ -2,7 +2,6 @@ using System.Reflection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Fusion.AspNetCore.Versioning;
-using Fusion.Infrastructure.Configuration;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api;
 using Fusion.Summary.Api.Database;
@@ -23,8 +22,6 @@ if (Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN") != "true")
 
     builder.AddKeyVault();
 }
-
-Environment.SetEnvironmentVariable(EnvironmentVariables.PULL_REQUEST_ID, "69");
 
 var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
