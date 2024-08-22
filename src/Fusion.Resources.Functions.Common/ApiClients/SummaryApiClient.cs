@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Fusion.Resources.Functions.Common.Extensions;
 using Fusion.Resources.Functions.Common.Integration.Http;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
@@ -47,12 +48,10 @@ public class SummaryApiClient : ISummaryApiClient
     public async Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default)
     {
-        // Get the date of the last monday or today if today is monday
-        // So the weekly report is based on the week that has passed
-        var lastMonday = GetCurrentOrLastMondayDate();
+        var lastMonday = DateTime.UtcNow.GetPreviousWeeksMondayDate();
 
         var queryString =
-            $"summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
+            $"resource-owners-summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
 
         using var response = await summaryClient.GetAsync(queryString, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -65,26 +64,13 @@ public class SummaryApiClient : ISummaryApiClient
             cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
     }
 
-    private static DateTime GetCurrentOrLastMondayDate()
+    public async Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
+        CancellationToken cancellationToken = default)
     {
-        var date = DateTime.UtcNow;
-        switch (date.DayOfWeek)
-        {
-            case DayOfWeek.Sunday:
-                return date.AddDays(-6);
-            case DayOfWeek.Monday:
-                return date;
-            case DayOfWeek.Tuesday:
-            case DayOfWeek.Wednesday:
-            case DayOfWeek.Thursday:
-            case DayOfWeek.Friday:
-            case DayOfWeek.Saturday:
-            default:
-            {
-                var daysUntilMonday = (int)date.DayOfWeek - 1;
+        using var body = new JsonContent(JsonSerializer.Serialize(report, jsonSerializerOptions));
 
-                return date.AddDays(-daysUntilMonday);
-            }
-        }
+        // Error logging is handled by http middleware => FunctionHttpMessageHandler
+        using var _ = await summaryClient.PutAsync($"resource-owners-summary-reports/{departmentSapId}/weekly", body,
+            cancellationToken);
     }
 }
