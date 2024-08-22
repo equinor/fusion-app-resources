@@ -14,6 +14,9 @@ public interface ISummaryApiClient
     /// </summary>
     public Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default);
+
+    public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
+        CancellationToken cancellationToken = default);
 }
 
 #region Models
@@ -65,7 +68,7 @@ public record ApiWeeklySummaryReport
 public record ApiPersonnelMoreThan100PercentFTE
 {
     public string FullName { get; set; } = "-";
-    public int FTE { get; set; } = -1;
+    public double FTE { get; set; } = -1;
 }
 
 public record ApiEndingPosition

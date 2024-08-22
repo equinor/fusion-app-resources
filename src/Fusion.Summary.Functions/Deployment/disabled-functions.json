@@ -3,7 +3,8 @@
     "environment": "pr",
     "disabledFunctions": [
       "weekly-department-recipients-sync",
-      "weekly-department-summary-sender"
+      "weekly-department-summary-sender",
+      "weekly-department-summary-worker"
     ]
   }
 ]
