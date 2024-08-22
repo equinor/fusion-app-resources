@@ -117,7 +117,7 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 app.Run();
 
 /// <summary>
-///     For testing
+///     For testing.
 /// </summary>
 public partial class Program
 {

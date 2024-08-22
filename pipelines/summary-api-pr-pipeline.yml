@@ -88,7 +88,7 @@ stages:
             steps:
             - template: templates/install-fusion-ps.yml
 
-            - task: AzurePowerShell@4
+            - task: AzurePowerShell@5
               displayName: 'Get secrets'
               inputs:
                 azureSubscription: $(subscriptionService)
