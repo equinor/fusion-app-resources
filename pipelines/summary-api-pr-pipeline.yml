@@ -22,7 +22,8 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-summary-api
     imageName: $(imageRepo):$(prNumber)
-    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    subscriptionService: 'FRA Automation Non-Prod'
+    subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     buildNr: $(Build.BuildNumber)
@@ -97,6 +98,39 @@ stages:
                 Inline: |
                     $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name AzureAd--ClientSecret -AsPlainText
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
+
+            ## MUST RUN THIS AS THE CORE SERVICE PRINCIPAL, UNTILL NEW DB DEPLOY IS ESTABLISHED
+            - task: AzurePowerShell@5
+              displayName: 'Provision database'
+              inputs: 
+                azureSubscription: $(subscriptionServiceCore)
+                ScriptType: 'InlineScript'
+                FailOnStandardError: true
+                azurePowerShellVersion: 'LatestVersion'
+                Inline: |
+                    Import-Module FusionPS
+
+                    $dbName = "sqldb-fapp-fra-summary-db-PR-$(prNumber)"
+                    $tags = @{ 
+                        "pr" = "$(prNumber)"
+                        "fusion-app-component-id" = "summary-api-db-pr-$(prNumber)"
+                        "fusion-app" = "summary"
+                        "fusion-app-env" = "pr"
+                    }
+
+                    New-FusionSqlDatabaseV2 `
+                      -InfraEnv Test `
+                      -DatabaseName $dbName `
+                      -SourceDatabase sqldb-fapp-fra-summary-db-CI `
+                      -Tags $tags
+
+                    Set-FusionAzSqlDatabaseAccess `
+                      -InfraEnv Test `
+                      -Environment PR `
+                      -DatabaseName $dbName
+                    
+                    $connectionString = Get-FusionSqlServerConnectionString -InfraEnv Test -DatabaseName $dbName
+                    Write-Output "##vso[task.setvariable variable=dbConnectionString]$($connectionString)"
 
             - template: templates/get-appinsights-key.yml
               parameters:
