@@ -76,7 +76,7 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString, enablePullRequestEnv: false)
+builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString)
     .AddSqlTokenProvider<SqlTokenProvider>()
     .AddAccessTokenSupport();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
