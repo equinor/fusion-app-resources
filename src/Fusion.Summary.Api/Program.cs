@@ -18,7 +18,7 @@ if (Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN") != "true")
 {
     builder.Configuration
         .AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true)
-        .AddJsonFile("/app/static/config/env.json", optional: true, reloadOnChange: true);
+        .AddJsonFile("/app/config/appsettings.json", optional: true); // to be able to override settings by using a config map in kubernetes
 
     builder.AddKeyVault();
 }
