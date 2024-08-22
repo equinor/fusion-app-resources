@@ -151,6 +151,7 @@ stages:
                 artifact: 'k8s-deployment'
                 environment: '$(envName)-$(prNumber)'
                 azureSubscription: $(subscriptionService)
+                dbTagPrefix: 'summary'
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
