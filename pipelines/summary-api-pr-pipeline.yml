@@ -81,7 +81,7 @@ stages:
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      environment: fusion-summary-pr.fusion-summary-app-pr
+      environment: fra-pr.fusion-resources-app-pr
       strategy:
         runOnce:
           deploy:
