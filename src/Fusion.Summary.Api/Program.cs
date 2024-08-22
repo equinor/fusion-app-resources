@@ -30,6 +30,10 @@ var environment = builder.Configuration["Environment"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
 var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
+// TESTING
+Console.WriteLine(databaseConnectionString);
+// TESTING
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
@@ -117,7 +121,7 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 app.Run();
 
 /// <summary>
-///     For testing
+///     For testing.
 /// </summary>
 public partial class Program
 {
