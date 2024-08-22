@@ -38,9 +38,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
     .AddCheck("liveness", () => HealthCheckResult.Healthy())
-    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
-// TODO: Add a real health check, when database is added in deployment pipelines and PR pipelines
-// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
+    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"])
+    .AddDbContextCheck<SummaryDbContext>("db", tags: new[] { "ready" });
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -117,6 +116,14 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 });
 
 #endregion Health probes
+
+// TESTING
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<SummaryDbContext>();
+Console.WriteLine(dbContext.Database.GetConnectionString());
+
+// TESTING
+
 
 app.Run();
 

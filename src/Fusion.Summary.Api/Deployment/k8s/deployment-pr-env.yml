@@ -66,8 +66,6 @@ spec:
           value: "{{clientId}}"
         - name: BuildNr
           value: "{{buildNr}}"
-        - name: ConnectionStrings__SummaryDbContext
-          value: "{{dbConnectionString}}"
         args:
         - /server
 
