@@ -46,6 +46,7 @@ stages:
         inputs:
           command: login
           containerRegistry: fusioncachecr
+
       - template: templates/docker-buildx.yml@infra
         parameters:
           repository: $(imageRepo)
@@ -58,6 +59,17 @@ stages:
             $(prNumber)
           tags: |
             $(prNumber)
+
+      - template: templates/docker-buildx.yml@infra
+        parameters:
+          initBuilderInstance: false
+          repository: ''
+          buildContext: ./src
+          dockerfile: src/Fusion.Summary.Api/Dockerfile
+          arguments: |
+            --target=export
+            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
+            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(prNumber)
 
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
