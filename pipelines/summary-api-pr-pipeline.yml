@@ -145,6 +145,12 @@ stages:
             - template: templates/replace-tokens.yml
               parameters:
                 targetFiles: '$(deploymentManifest)'
+
+            - template: templates/execute-sql-migration.yml
+              parameters:
+                artifact: 'k8s-deployment'
+                environment: '$(envName)-$(prNumber)'
+                azureSubscription: $(subscriptionService)
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
