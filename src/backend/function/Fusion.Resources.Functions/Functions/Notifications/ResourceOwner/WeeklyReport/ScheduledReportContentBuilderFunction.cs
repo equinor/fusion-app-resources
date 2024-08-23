@@ -209,37 +209,36 @@ public class ScheduledReportContentBuilderFunction
         var averageTimeToHandleRequests = ResourceOwnerReportDataCreator.GetAverageTimeToHandleRequests(requests);
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {departmentIdentifier}**")
-            .AddColumnSet(new AdaptiveCardColumn(
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(),
-                "Number of personnel (employees and external hire)"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Number of personnel (employees and external hire)")
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.GetCapacityInUse(personnel).ToString(),
                 "Capacity in use",
-                "%"))
-            .AddColumnSet(
-                new AdaptiveCardColumn(
+                "%")
+            .AddTextRow(
                     ResourceOwnerReportDataCreator.GetNumberOfRequestsLastWeek(requests).ToString(),
-                    "New requests last week"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                    "New requests last week")
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.GetNumberOfOpenRequests(requests).ToString(),
-                "Open requests"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Open requests")
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInLessThanThreeMonths(requests).ToString(),
-                "Requests with start date < 3 months"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Requests with start date < 3 months")
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInMoreThanThreeMonths(requests).ToString(),
-                "Requests with start date > 3 months"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Requests with start date > 3 months")
+            .AddTextRow(
                 averageTimeToHandleRequests > 0
                     ? averageTimeToHandleRequests + " day(s)"
                     : "Less than a day",
-                "Average time to handle request (last 12 months)"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Average time to handle request (last 12 months)")
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.GetAllocationChangesAwaitingTaskOwnerAction(requests).ToString(),
-                "Allocation changes awaiting task owner action"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Allocation changes awaiting task owner action")
+            .AddTextRow(
                 ResourceOwnerReportDataCreator.CalculateDepartmentChangesLastWeek(personnel).ToString(),
-                "Project changes last week affecting next 3 months"))
+                "Project changes last week affecting next 3 months")
             .AddListContainer("Allocations ending soon with no future allocation:", endingPositionsObjectList)
             .AddListContainer("Personnel with more than 100% workload:", personnelMoreThan100PercentObjectList)
             .AddNewLine()
