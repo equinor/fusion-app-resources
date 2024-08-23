@@ -23,6 +23,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using SixLabors.ImageSharp;
 using System.Reflection;
+using Fusion.AspNetCore.Versioning;
 
 namespace Fusion.Resources.Api
 {
@@ -58,7 +59,7 @@ namespace Fusion.Resources.Api
                 s.ReportApiVersions = true;
                 s.AssumeDefaultVersionWhenUnspecified = true;
                 s.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
-                s.ApiVersionReader = new Fusion.AspNetCore.Mvc.Versioning.HeaderOrQueryVersionReader("api-version");
+                s.ApiVersionReader = new HeaderOrQueryVersionReader("api-version");
             });
 
             services.AddHttpContextAccessor();
