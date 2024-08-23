@@ -30,10 +30,6 @@ var environment = builder.Configuration["Environment"];
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
 var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
-// TESTING
-Console.WriteLine(databaseConnectionString);
-// TESTING
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
@@ -116,7 +112,7 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 
 #endregion Health probes
 
-// TESTING
+// TODO: TESTING
 using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<SummaryDbContext>();
 Console.WriteLine(dbContext.Database.GetConnectionString());

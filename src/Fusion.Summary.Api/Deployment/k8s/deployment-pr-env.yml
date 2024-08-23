@@ -66,6 +66,8 @@ spec:
           value: "{{clientId}}"
         - name: BuildNr
           value: "{{buildNr}}"
+        - name: PULL_REQUEST_ID
+          value: "{{prNumber}}"
         args:
         - /server
 
