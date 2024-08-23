@@ -7,12 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Fusion.AspNetCore" Version="7.0.1"/>
-        <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.0"/>
+        <PackageReference Include="Fusion.AspNetCore" Version="8.0.4"/>
+        <PackageReference Include="Fusion.AspNetCore.Versioning" Version="8.1.0"/>
+        <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.6"/>
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
-        <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.6.2"/>
-        <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.6.2"/>
-        <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.6.2"/>
+        <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.7.1"/>
+        <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.7.1"/>
+        <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.7.1"/>
     </ItemGroup>
     
 

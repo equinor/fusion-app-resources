@@ -23,11 +23,11 @@ if (Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN") != "true")
     builder.AddKeyVault();
 }
 
-var azureAdClientId = builder.Configuration["AzureAd:ClientId"];
+var azureAdClientId = builder.Configuration["AzureAd:ClientId"] ?? throw new InvalidOperationException("Missing AzureAd:ClientId");
 var azureAdClientSecret = builder.Configuration["AzureAd:ClientSecret"];
 var certThumbprint = builder.Configuration["Config:CertThumbprint"];
-var environment = builder.Configuration["Environment"];
-var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"];
+var environment = builder.Configuration["Environment"] ?? "Development";
+var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"] ?? "ci";
 var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
 builder.Services.AddControllers();
@@ -62,10 +62,10 @@ builder.Services.AddFusionIntegration(f =>
 {
     f.AddFusionAuthorization();
     f.UseServiceInformation("Fusion.Summary.Api", environment);
-    f.UseDefaultEndpointResolver(fusionEnvironment ?? "ci");
+    f.UseDefaultEndpointResolver(fusionEnvironment);
     f.UseDefaultTokenProvider(opts =>
     {
-        opts.ClientId = azureAdClientId ?? throw new InvalidOperationException("Missing AzureAd:ClientId");
+        opts.ClientId = azureAdClientId;
         opts.ClientSecret = azureAdClientSecret;
         opts.CertificateThumbprint = certThumbprint;
     });
