@@ -195,7 +195,7 @@
             ],
             "properties": {
                 "maxSizeInMegabytes": 1024,
-                "duplicateDetectionHistoryTimeWindow": "PT5M30S",
+                "duplicateDetectionHistoryTimeWindow": "P1D",
                 "defaultMessageTimeToLive": "P1H",
                 "deadLetteringOnMessageExpiration": true,
                 "maxDeliveryCount": 2
