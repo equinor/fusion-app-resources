@@ -112,14 +112,6 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 
 #endregion Health probes
 
-// TODO: TESTING
-using var scope = app.Services.CreateScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<SummaryDbContext>();
-Console.WriteLine(dbContext.Database.GetConnectionString());
-
-// TESTING
-
-
 app.Run();
 
 /// <summary>
