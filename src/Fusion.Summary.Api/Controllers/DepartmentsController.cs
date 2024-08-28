@@ -126,8 +126,13 @@ public class DepartmentsController : BaseController
             .Concat(request.DelegateResourceOwnersAzureUniqueId)
             .Select(p => new PersonIdentifier(p));
 
-        if ((await ResolvePersonsAsync(personIdentifiers)).FirstOrDefault(r => !r.Success) is { } unresolvedProfile)
-            return BadRequest($"{unresolvedProfile.Identifier} could not be resolved");
+        var unresolvedProfiles = (await ResolvePersonsAsync(personIdentifiers))
+            .Where(r => !r.Success)
+            .ToList();
+
+        if (unresolvedProfiles.Count != 0)
+            return BadRequest($"Profiles: {string.Join(',', unresolvedProfiles)} could not be resolved");
+
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
