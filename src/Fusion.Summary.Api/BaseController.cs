@@ -31,4 +31,10 @@ public class BaseController : ControllerBase
         var profileResolver = HttpContext.RequestServices.GetRequiredService<IFusionProfileResolver>();
         return await profileResolver.ResolvePersonBasicProfileAsync(personId);
     }
+
+    protected async Task<IEnumerable<ResolvedPersonProfile>> ResolvePersonsAsync(IEnumerable<PersonIdentifier> personIdentifiers)
+    {
+        var profileResolver = HttpContext.RequestServices.GetRequiredService<IFusionProfileResolver>();
+        return await profileResolver.ResolvePersonsAsync(personIdentifiers);
+    }
 }
