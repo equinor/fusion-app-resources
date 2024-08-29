@@ -14,6 +14,9 @@ public interface ISummaryApiClient
     /// </summary>
     public Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default);
+
+    public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
+        CancellationToken cancellationToken = default);
 }
 
 #region Models
@@ -23,23 +26,17 @@ public interface ISummaryApiClient
 
 public class ApiResourceOwnerDepartment
 {
-    public ApiResourceOwnerDepartment(string departmentSapId, string fullDepartmentName,
-        Guid resourceOwnerAzureUniqueId)
-    {
-        DepartmentSapId = departmentSapId;
-        FullDepartmentName = fullDepartmentName;
-        ResourceOwnerAzureUniqueId = resourceOwnerAzureUniqueId;
-    }
-
     public ApiResourceOwnerDepartment()
     {
     }
 
-    public string DepartmentSapId { get; init; } = string.Empty;
+    public string DepartmentSapId { get; init; } = null!;
+    public string FullDepartmentName { get; init; } = null!;
 
-    public string FullDepartmentName { get; init; } = string.Empty;
+    public Guid[] ResourceOwnersAzureUniqueId { get; init; } = null!;
 
-    public Guid ResourceOwnerAzureUniqueId { get; init; }
+    public Guid[] DelegateResourceOwnersAzureUniqueId { get; init; } = null!;
+
 }
 
 public record ApiCollection<T>(ICollection<T> Items);
@@ -71,7 +68,7 @@ public record ApiWeeklySummaryReport
 public record ApiPersonnelMoreThan100PercentFTE
 {
     public string FullName { get; set; } = "-";
-    public int FTE { get; set; } = -1;
+    public double FTE { get; set; } = -1;
 }
 
 public record ApiEndingPosition

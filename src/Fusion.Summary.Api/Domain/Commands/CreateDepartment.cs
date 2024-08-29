@@ -9,13 +9,15 @@ public class CreateDepartment : IRequest
 {
     private QueryDepartment _queryDepartment;
 
-    public CreateDepartment(string SapDepartmentId, Guid ResourceOwnerAzureUniqueId, string FullDepartmentName)
+    public CreateDepartment(string sapDepartmentId, string fullDepartmentName,
+        IEnumerable<Guid> resourceOwnersAzureUniqueId, IEnumerable<Guid> delegateResourceOwnersAzureUniqueId)
     {
         _queryDepartment = new QueryDepartment
         {
-            SapDepartmentId = SapDepartmentId,
-            ResourceOwnerAzureUniqueId = ResourceOwnerAzureUniqueId,
-            FullDepartmentName = FullDepartmentName
+            SapDepartmentId = sapDepartmentId,
+            FullDepartmentName = fullDepartmentName,
+            ResourceOwnersAzureUniqueId = resourceOwnersAzureUniqueId.ToList(),
+            DelegateResourceOwnersAzureUniqueId = delegateResourceOwnersAzureUniqueId.ToList()
         };
     }
 

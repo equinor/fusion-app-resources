@@ -27,12 +27,17 @@ namespace Fusion.Summary.Api.Database.Migrations
                     b.Property<string>("DepartmentSapId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("DelegateResourceOwnersAzureUniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FullDepartmentName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ResourceOwnerAzureUniqueId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ResourceOwnersAzureUniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DepartmentSapId");
 
