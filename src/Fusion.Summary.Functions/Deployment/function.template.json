@@ -40,7 +40,7 @@
     },
     "netFrameworkVersion": {
       "type": "string",
-      "defaultValue": "v6.0"
+      "defaultValue": "v8.0"
     }
   },
   "variables": {
