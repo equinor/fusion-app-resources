@@ -12,6 +12,7 @@
         <PackageReference Include="Fusion.Integration" Version="8.0.6"/>
         <PackageReference Include="Fusion.Events.Azure.Functions.Extensions" Version="6.0.5"/>
         <PackageReference Include="Fusion.Events.Services" Version="8.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0"/>
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.8"/>
 
