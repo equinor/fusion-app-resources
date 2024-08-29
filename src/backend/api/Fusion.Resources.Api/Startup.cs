@@ -182,7 +182,7 @@ namespace Fusion.Resources.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseMiddleware<RequestResponseLoggingMiddleware>();
+            //app.UseMiddleware<RequestResponseLoggingMiddleware>(); 
             app.UseMiddleware<TraceMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
 
