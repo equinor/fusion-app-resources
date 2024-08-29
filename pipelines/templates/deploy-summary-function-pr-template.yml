@@ -12,13 +12,15 @@ parameters:
   fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
   templateFile: $(Build.SourcesDirectory)/src/Fusion.Summary.Functions/Deployment/function.template.json
   disabledFunctionsFile: $(Build.SourcesDirectory)/src/Fusion.Summary.Functions/Deployment/disabled-functions.json
+  azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+
 
 steps:
 - checkout: self
 - task: AzurePowerShell@5
   displayName: 'Deploy Function ARM template'
   inputs:
-    azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    azureSubscription: ${{ parameters.azureSubscription }}
     ScriptType: 'InlineScript'
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'

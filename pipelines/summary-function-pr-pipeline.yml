@@ -49,6 +49,7 @@ stages:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
                     pullRequestNumber: $(prNumber)
+                    azureSubscription: $(subscriptionService)
 
                 - task: AzureFunctionApp@1
                   inputs:
