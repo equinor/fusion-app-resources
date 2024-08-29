@@ -56,7 +56,7 @@ steps:
               org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
               people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
               resources = "$resourcesFunctionUri"
-			  summary = "$summaryFunctionUri"
+              summary = "$summaryFunctionUri"
               notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
               context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
               portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
