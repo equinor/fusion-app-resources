@@ -196,7 +196,7 @@
             "properties": {
                 "maxSizeInMegabytes": 1024,
                 "duplicateDetectionHistoryTimeWindow": "P1D",
-                "defaultMessageTimeToLive": "P1H",
+                "defaultMessageTimeToLive": "P1D",
                 "deadLetteringOnMessageExpiration": true,
                 "maxDeliveryCount": 2
             }
