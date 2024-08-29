@@ -160,6 +160,7 @@ stages:
                 artifact: 'k8s-deployment'
                 environment: '$(envName)-$(prNumber)'
                 azureSubscription: $(subscriptionService)
+                dbTagPrefix: resources
 
   
             - task: KubernetesManifest@0
