@@ -98,6 +98,10 @@
               "value": "~4"
             },
             {
+              "name": "FUNCTIONS_INPROC_NET8_ENABLED",
+              "value": "1"
+            },
+            {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
               "value": "~10"
             },
