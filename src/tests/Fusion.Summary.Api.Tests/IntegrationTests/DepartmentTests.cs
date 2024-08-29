@@ -66,8 +66,8 @@ public class DepartmentTests : TestBase
         updatedDepartment.DepartmentSapId.Should()
             .Be(department.DepartmentSapId, "It is still the same department with the same sap id");
 
-        updatedDepartment.ResourceOwnerAzureUniqueId.Should()
-            .Be(newOwner.AzureUniqueId!.Value, "The owner should be updated");
+        updatedDepartment.ResourceOwnersAzureUniqueId.Should()
+            .Contain(newOwner.AzureUniqueId!.Value, "The owner should be updated");
 
         updatedDepartment.FullDepartmentName.Should()
             .Be(department.FullDepartmentName, "It is still the same department with the same full department name");
