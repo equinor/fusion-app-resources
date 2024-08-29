@@ -6,16 +6,20 @@ namespace Fusion.Summary.Api.Database.Models;
 public class DbDepartment
 {
     public string DepartmentSapId { get; set; } = string.Empty;
-    public Guid ResourceOwnerAzureUniqueId { get; set; }
     public string FullDepartmentName { get; set; } = string.Empty;
+
+    public List<Guid> ResourceOwnersAzureUniqueId { get; set; } = [];
+
+    public List<Guid> DelegateResourceOwnersAzureUniqueId { get; set; } = [];
 
     public static DbDepartment FromQueryDepartment(QueryDepartment queryDepartment)
     {
         return new DbDepartment
         {
             DepartmentSapId = queryDepartment.SapDepartmentId,
-            ResourceOwnerAzureUniqueId = queryDepartment.ResourceOwnerAzureUniqueId,
-            FullDepartmentName = queryDepartment.FullDepartmentName
+            FullDepartmentName = queryDepartment.FullDepartmentName,
+            ResourceOwnersAzureUniqueId = queryDepartment.ResourceOwnersAzureUniqueId.ToList(),
+            DelegateResourceOwnersAzureUniqueId = queryDepartment.DelegateResourceOwnersAzureUniqueId.ToList()
         };
     }
 
