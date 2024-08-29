@@ -3,6 +3,7 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "FUNCTIONS_INPROC_NET8_ENABLED": "1",
     "provision_position_queue": "provision-position-[REPLACE WITH DEV QUEUE]",
     "scheduled_notification_report_queue": "scheduled-notification-[REPLACE WITH DEV QUEUE]",
     "department_summary_weekly_queue": "department-summary-weekly-queue-[REPLACE WITH DEV QUEUE]",
