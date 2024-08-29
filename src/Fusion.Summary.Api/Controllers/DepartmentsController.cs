@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Integration.Profile;
 using Fusion.Summary.Api.Authorization.Extensions;
 using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Requests;
@@ -121,8 +122,17 @@ public class DepartmentsController : BaseController
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
             return BadRequest("SapDepartmentId route parameter is required");
 
-        if (await ResolvePersonAsync(request.ResourceOwnerAzureUniqueId) is null)
-            return BadRequest("Resource owner not found in azure ad");
+        var personIdentifiers = request.ResourceOwnersAzureUniqueId
+            .Concat(request.DelegateResourceOwnersAzureUniqueId)
+            .Select(p => new PersonIdentifier(p));
+
+        var unresolvedProfiles = (await ResolvePersonsAsync(personIdentifiers))
+            .Where(r => !r.Success)
+            .ToList();
+
+        if (unresolvedProfiles.Count != 0)
+            return BadRequest($"Profiles: {string.Join(',', unresolvedProfiles)} could not be resolved");
+
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
@@ -132,19 +142,23 @@ public class DepartmentsController : BaseController
             await DispatchAsync(
                 new CreateDepartment(
                     sapDepartmentId,
-                    request.ResourceOwnerAzureUniqueId,
-                    request.FullDepartmentName));
+                    request.FullDepartmentName,
+                    request.ResourceOwnersAzureUniqueId,
+                    request.DelegateResourceOwnersAzureUniqueId));
 
             return Created();
         }
-        // Check if department owner has changed
-        else if (department.ResourceOwnerAzureUniqueId != request.ResourceOwnerAzureUniqueId)
+
+        // Check if department owners has changed
+        if (!department.ResourceOwnersAzureUniqueId.SequenceEqual(request.ResourceOwnersAzureUniqueId) ||
+            !department.DelegateResourceOwnersAzureUniqueId.SequenceEqual(request.DelegateResourceOwnersAzureUniqueId))
         {
             await DispatchAsync(
                 new UpdateDepartment(
                     sapDepartmentId,
-                    request.ResourceOwnerAzureUniqueId,
-                    request.FullDepartmentName));
+                    request.FullDepartmentName,
+                    request.ResourceOwnersAzureUniqueId,
+                    request.DelegateResourceOwnersAzureUniqueId));
 
             return Ok();
         }

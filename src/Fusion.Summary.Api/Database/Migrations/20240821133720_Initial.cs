@@ -16,8 +16,9 @@ namespace Fusion.Summary.Api.Database.Migrations
                 columns: table => new
                 {
                     DepartmentSapId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ResourceOwnerAzureUniqueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FullDepartmentName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    FullDepartmentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResourceOwnersAzureUniqueId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DelegateResourceOwnersAzureUniqueId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
