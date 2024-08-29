@@ -20,7 +20,7 @@ variables:
   webPackage: "$(Pipeline.Workspace)/drop/Fusion.Summary.Functions.zip"
 
 stages:
-  - template: templates/build-function.yml
+  - template: templates/build-summary-function.yml
     parameters:
       project: "Fusion.Summary.Functions"
 
