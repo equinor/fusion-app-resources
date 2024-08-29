@@ -41,10 +41,9 @@ steps:
       $summaryFunctionUri =  "https://summary-api.$environment.fusion-dev.net/"
 
       if ($environment -eq "fprd") {
-            $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"
-            $summaryFunctionUri = "https://fap-summary-api-fprd.azurewebsites.net/"
-      
-       }
+          $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"
+          $summaryFunctionUri = "https://fap-summary-api-fprd.azurewebsites.net/"
+      }
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
