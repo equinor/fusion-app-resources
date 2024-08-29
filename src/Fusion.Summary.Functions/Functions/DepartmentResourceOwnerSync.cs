@@ -18,6 +18,7 @@ public class DepartmentResourceOwnerSync
     private readonly ILineOrgApiClient lineOrgApiClient;
     private readonly ISummaryApiClient summaryApiClient;
     private readonly IConfiguration configuration;
+    private readonly IResourcesApiClient resourcesApiClient;
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
@@ -25,11 +26,13 @@ public class DepartmentResourceOwnerSync
     public DepartmentResourceOwnerSync(
         ILineOrgApiClient lineOrgApiClient, 
         ISummaryApiClient summaryApiClient,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IResourcesApiClient resourcesApiClient)
     {
         this.lineOrgApiClient = lineOrgApiClient;
         this.summaryApiClient = summaryApiClient;
         this.configuration = configuration;
+        this.resourcesApiClient = resourcesApiClient;
     }
 
     /// <summary>
@@ -41,7 +44,7 @@ public class DepartmentResourceOwnerSync
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    [FunctionName("department-resource-owner-sync")]
+    [FunctionName("weekly-department-recipients-sync")]
     public async Task RunAsync(
         [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
         TimerInfo timerInfo, CancellationToken cancellationToken
@@ -54,32 +57,31 @@ public class DepartmentResourceOwnerSync
         var sender = client.CreateSender(_weeklySummaryQueueName);
 
         // Fetch all departments
-        var departments = await lineOrgApiClient.GetOrgUnitDepartmentsAsync();
+        var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
+            .DistinctBy(d => d.SapId)
+            .Where(d => d.FullDepartment != null && d.SapId != null)
+            .Where(d => d.FullDepartment!.Contains("PRD"))
+            .Where(d => d.Management.Persons.Length > 0);
 
-        var selectedDepartments = departments
-            .Where(d => d.FullDepartment != null).DistinctBy(d => d.SapId).ToList();
 
-        if (!selectedDepartments.Any())
-            throw new Exception("No departments found.");
+        var apiDepartments = new List<ApiResourceOwnerDepartment>();
 
-        // TODO: Retrieving resource-owners wil be refactored later
-        var resourceOwners = new List<LineOrgPerson>();
-        foreach (var orgUnitsChunk in selectedDepartments.Chunk(10))
+        foreach (var orgUnit in departments)
         {
-            var chunkedResourceOwners =
-                await lineOrgApiClient.GetResourceOwnersFromFullDepartment(orgUnitsChunk);
-            resourceOwners.AddRange(chunkedResourceOwners);
+            var delegatedResponsibles = (await resourcesApiClient
+                    .GetDelegatedResponsibleForDepartment(orgUnit.SapId!))
+                .Select(d => Guid.Parse(d.DelegatedResponsible.AzureUniquePersonId))
+                .Distinct()
+                .ToArray();
+
+            apiDepartments.Add(new ApiResourceOwnerDepartment()
+            {
+                DepartmentSapId = orgUnit.SapId!,
+                FullDepartmentName = orgUnit.FullDepartment!,
+                ResourceOwnersAzureUniqueId = orgUnit.Management.Persons.Select(p => Guid.Parse(p.AzureUniqueId)).Distinct().ToArray(),
+                DelegateResourceOwnersAzureUniqueId = delegatedResponsibles
+            });
         }
-
-        if (!resourceOwners.Any())
-            throw new Exception("No resource-owners found.");
-
-        var resourceOwnerDepartments = resourceOwners
-            .Where(ro => ro.DepartmentSapId is not null && Guid.TryParse(ro.AzureUniqueId, out _))
-            .Select(resourceOwner => new
-                ApiResourceOwnerDepartment(resourceOwner.DepartmentSapId!, resourceOwner.FullDepartment,
-                    Guid.Parse(resourceOwner.AzureUniqueId)));
-
 
         var parallelOptions = new ParallelOptions()
         {
@@ -88,7 +90,7 @@ public class DepartmentResourceOwnerSync
         };
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
-        await Parallel.ForEachAsync(resourceOwnerDepartments, parallelOptions,
+        await Parallel.ForEachAsync(apiDepartments, parallelOptions,
             async (ownerDepartment, token) =>
             {
                 // Update the database

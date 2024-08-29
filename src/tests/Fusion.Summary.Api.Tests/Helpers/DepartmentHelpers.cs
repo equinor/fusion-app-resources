@@ -10,7 +10,8 @@ public static class DepartmentHelpers
         {
             FullDepartmentName = $"Test FullDepartmentName {Guid.NewGuid()}",
             DepartmentSapId = $"Test DepartmentSapId {Guid.NewGuid()}",
-            ResourceOwnerAzureUniqueId = resourceOwnerAzureUniqueId
+            ResourceOwnersAzureUniqueId = [resourceOwnerAzureUniqueId],
+            DelegateResourceOwnersAzureUniqueId = []
         };
 
     public static async Task<ApiDepartment> PutDepartmentAsync(this HttpClient client, Guid resourceOwnerAzureUniqueId,

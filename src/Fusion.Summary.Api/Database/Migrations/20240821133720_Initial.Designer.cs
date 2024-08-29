@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Summary.Api.Database.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
-    [Migration("20240807132047_Initial")]
+    [Migration("20240821133720_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -30,12 +30,17 @@ namespace Fusion.Summary.Api.Database.Migrations
                     b.Property<string>("DepartmentSapId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("DelegateResourceOwnersAzureUniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FullDepartmentName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ResourceOwnerAzureUniqueId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ResourceOwnersAzureUniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DepartmentSapId");
 
