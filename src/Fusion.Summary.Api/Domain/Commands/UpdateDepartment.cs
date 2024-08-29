@@ -10,13 +10,15 @@ public class UpdateDepartment : IRequest
 {
     private QueryDepartment _queryDepartment;
 
-    public UpdateDepartment(string SapDepartmentId, Guid ResourceOwnerAzureUniqueId, string FullDepartmentName)
+    public UpdateDepartment(string sapDepartmentId, string fullDepartmentName,
+        IEnumerable<Guid> resourceOwnersAzureUniqueId, IEnumerable<Guid> delegateResourceOwnersAzureUniqueId)
     {
         _queryDepartment = new QueryDepartment
         {
-            SapDepartmentId = SapDepartmentId,
-            ResourceOwnerAzureUniqueId = ResourceOwnerAzureUniqueId,
-            FullDepartmentName = FullDepartmentName
+            SapDepartmentId = sapDepartmentId,
+            FullDepartmentName = fullDepartmentName,
+            ResourceOwnersAzureUniqueId = resourceOwnersAzureUniqueId.ToList(),
+            DelegateResourceOwnersAzureUniqueId = delegateResourceOwnersAzureUniqueId.ToList()
         };
     }
 
@@ -35,12 +37,10 @@ public class UpdateDepartment : IRequest
 
             if (existingDepartment != null)
             {
-                if (existingDepartment.ResourceOwnerAzureUniqueId != request._queryDepartment.ResourceOwnerAzureUniqueId)
-                {
-                    existingDepartment.ResourceOwnerAzureUniqueId = request._queryDepartment.ResourceOwnerAzureUniqueId;
+                existingDepartment.ResourceOwnersAzureUniqueId = request._queryDepartment.ResourceOwnersAzureUniqueId.ToList();
+                existingDepartment.DelegateResourceOwnersAzureUniqueId = request._queryDepartment.DelegateResourceOwnersAzureUniqueId.ToList();
 
-                    await _context.SaveChangesAsync();
-                }
+                await _context.SaveChangesAsync();
             }
         }
     }

@@ -42,7 +42,7 @@ namespace Fusion.Summary.Api.Tests.HandlerTests
             var department = new DbDepartment { DepartmentSapId = "1001", FullDepartmentName = "Department A" };
 
             // Act
-            await handler.Handle(new CreateDepartment(department.DepartmentSapId, department.ResourceOwnerAzureUniqueId, department.FullDepartmentName), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(department.DepartmentSapId, department.FullDepartmentName, [], []), CancellationToken.None);
 
             // Assert
             var dbDepartment = _context.Departments.FirstOrDefault(d => d.DepartmentSapId == department.DepartmentSapId);
@@ -58,11 +58,11 @@ namespace Fusion.Summary.Api.Tests.HandlerTests
             var handler = new CreateDepartment.Handler(_context);
             var queryHandler = new GetAllDepartments.Handler(_context);
 
-            var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = Guid.Empty };
-            var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = Guid.Empty };
+            var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A", ResourceOwnersAzureUniqueId = [], DelegateResourceOwnersAzureUniqueId = [] };
+            var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B", ResourceOwnersAzureUniqueId = [], DelegateResourceOwnersAzureUniqueId = [] };
 
-            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.ResourceOwnerAzureUniqueId, departmentA.FullDepartmentName), CancellationToken.None);
-            await handler.Handle(new CreateDepartment(departmentB.SapDepartmentId, departmentB.ResourceOwnerAzureUniqueId, departmentB.FullDepartmentName), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.FullDepartmentName, departmentA.ResourceOwnersAzureUniqueId, departmentA.DelegateResourceOwnersAzureUniqueId), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(departmentB.SapDepartmentId, departmentB.FullDepartmentName, departmentB.ResourceOwnersAzureUniqueId, departmentB.DelegateResourceOwnersAzureUniqueId), CancellationToken.None);
 
             // Act
             var result = await queryHandler.Handle(new GetAllDepartments(), CancellationToken.None);
@@ -84,8 +84,8 @@ namespace Fusion.Summary.Api.Tests.HandlerTests
             var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A" };
             var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B" };
 
-            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.ResourceOwnerAzureUniqueId, departmentA.FullDepartmentName), CancellationToken.None);
-            await handler.Handle(new CreateDepartment(departmentB.SapDepartmentId, departmentB.ResourceOwnerAzureUniqueId, departmentB.FullDepartmentName), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.FullDepartmentName, [], []), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(departmentB.SapDepartmentId, departmentB.FullDepartmentName, [], []), CancellationToken.None);
 
             // Act
             var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
@@ -118,22 +118,22 @@ namespace Fusion.Summary.Api.Tests.HandlerTests
             var updateHandler = new UpdateDepartment.Handler(_context);
             var queryHandler = new GetDepartment.Handler(_context);
 
-            var resourceOwner1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var resourceOwner2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            Guid[] resourceOwners1 = [Guid.Parse("00000000-0000-0000-0000-000000000001")];
+            Guid[] resourceOwners2 = [Guid.Parse("00000000-0000-0000-0000-000000000002")];
 
             var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A" };
             var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B" };
 
-            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, resourceOwner1, departmentA.FullDepartmentName), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.FullDepartmentName, resourceOwners1, []), CancellationToken.None);
 
             // Act
-            await updateHandler.Handle(new UpdateDepartment(departmentA.SapDepartmentId, resourceOwner2, departmentA.FullDepartmentName), CancellationToken.None);
+            await updateHandler.Handle(new UpdateDepartment(departmentA.SapDepartmentId, departmentA.FullDepartmentName, resourceOwners2, []), CancellationToken.None);
 
             var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(resourceOwner2, result.ResourceOwnerAzureUniqueId);
+            Assert.Equal(resourceOwners2, result.ResourceOwnersAzureUniqueId);
         }
 
         [Fact]
@@ -144,22 +144,22 @@ namespace Fusion.Summary.Api.Tests.HandlerTests
             var updateHandler = new UpdateDepartment.Handler(_context);
             var queryHandler = new GetDepartment.Handler(_context);
 
-            var resourceOwner1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var resourceOwner2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            List<Guid> resourceOwner1 = [Guid.Parse("00000000-0000-0000-0000-000000000001")];
+            List<Guid> resourceOwner2 = [Guid.Parse("00000000-0000-0000-0000-000000000002")];
 
-            var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A", ResourceOwnerAzureUniqueId = resourceOwner1 };
-            var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B", ResourceOwnerAzureUniqueId = resourceOwner2 };
+            var departmentA = new QueryDepartment { SapDepartmentId = "1001", FullDepartmentName = "Department A", ResourceOwnersAzureUniqueId = resourceOwner1 };
+            var departmentB = new QueryDepartment { SapDepartmentId = "1002", FullDepartmentName = "Department B", ResourceOwnersAzureUniqueId = resourceOwner2 };
 
-            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.ResourceOwnerAzureUniqueId, departmentA.FullDepartmentName), CancellationToken.None);
+            await handler.Handle(new CreateDepartment(departmentA.SapDepartmentId, departmentA.FullDepartmentName, departmentA.ResourceOwnersAzureUniqueId, []), CancellationToken.None);
 
             // Act
-            await updateHandler.Handle(new UpdateDepartment(departmentB.SapDepartmentId, resourceOwner2, departmentB.FullDepartmentName), CancellationToken.None);
+            await updateHandler.Handle(new UpdateDepartment(departmentB.SapDepartmentId, departmentB.FullDepartmentName, departmentB.ResourceOwnersAzureUniqueId, []), CancellationToken.None);
 
             var result = await queryHandler.Handle(new GetDepartment(departmentA.SapDepartmentId), CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(resourceOwner1, result.ResourceOwnerAzureUniqueId);
+            Assert.Equal(resourceOwner1, result.ResourceOwnersAzureUniqueId);
         }
     }
 }
