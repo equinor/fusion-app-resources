@@ -43,7 +43,7 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: templates/deploy-function-template.yml
+                - template: templates/deploy-summary-function-template.yml
                   parameters:
                     envName: $(environment)
                     clientId: "5a842df8-3238-415d-b168-9f16a6a6031b"
@@ -76,7 +76,7 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: templates/deploy-function-template.yml
+                - template: templates/deploy-summary-function-template.yml
                   parameters:
                     envName: $(environment)
                     clientId: "5a842df8-3238-415d-b168-9f16a6a6031b"
@@ -110,7 +110,7 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: templates/deploy-function-template.yml
+                - template: templates/deploy-summary-function-template.yml
                   parameters:
                     envName: $(environment)
                     clientId: "5a842df8-3238-415d-b168-9f16a6a6031b"
@@ -144,7 +144,7 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: templates/deploy-function-template.yml
+                - template: templates/deploy-summary-function-template.yml
                   parameters:
                     envName: $(environment)
                     clientId: "97978493-9777-4d48-b38a-67b0b9cd88d2"
