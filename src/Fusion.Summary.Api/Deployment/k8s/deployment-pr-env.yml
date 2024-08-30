@@ -65,7 +65,9 @@ spec:
         - name: AzureAd__ClientId
           value: "{{clientId}}"
         - name: BuildNr
-          value: "{{buildNr}}"        
+          value: "{{buildNr}}"
+        - name: PULL_REQUEST_ID
+          value: "{{prNumber}}"
         args:
         - /server
 

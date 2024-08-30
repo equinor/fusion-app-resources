@@ -1,0 +1,161 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+
+pool:
+  vmImage: "ubuntu-latest"
+
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - src/Fusion.Summary.Functions/*
+      - src/Fusion.Resources.Functions.Common/*
+
+pr: none
+
+variables:
+  subscriptionServiceNonProd: "FRA Automation Non-Prod"
+  subscriptionServiceProd: "FRA Automation Prod"
+  webPackage: "$(Pipeline.Workspace)/drop/Fusion.Summary.Functions.zip"
+
+stages:
+  - template: templates/build-summary-function.yml
+    parameters:
+      project: "Fusion.Summary.Functions"
+
+  - stage: DeployCI
+    displayName: CI
+    dependsOn: BuildFunction
+    condition: succeeded()
+
+    variables:
+      environment: "ci"
+      functionServiceName: func-fap-summary-$(environment)
+
+    jobs:
+      - deployment: Deploy
+
+        displayName: "Deploy function app"
+        environment: fusion-ci
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-summary-function-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: "5a842df8-3238-415d-b168-9f16a6a6031b"
+                    azureSubscription: $(subscriptionServiceNonProd)
+
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionServiceNonProd)
+                    appType: "functionApp"
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: "runFromPackage"
+
+  - stage: DeployFQA
+    displayName: FQA
+    dependsOn: DeployCI
+    condition: succeeded()
+
+    variables:
+      environment: "fqa"
+      functionServiceName: func-fap-summary-$(environment)
+
+    jobs:
+      - deployment: Deploy
+
+        displayName: "Deploy function app"
+        environment: fusion-resources-fqa
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-summary-function-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: "5a842df8-3238-415d-b168-9f16a6a6031b"
+                    fusionEnvironment: fqa
+                    azureSubscription: $(subscriptionServiceNonProd)
+
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionServiceNonProd)
+                    appType: "functionApp"
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: "runFromPackage"
+
+  - stage: DeployTR
+    displayName: TR
+    dependsOn: DeployCI
+    condition: succeeded()
+
+    variables:
+      environment: "tr"
+      functionServiceName: func-fap-summary-$(environment)
+
+    jobs:
+      - deployment: Deploy
+
+        displayName: "Deploy function app"
+        environment: fusion-resources-tr
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-summary-function-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: "5a842df8-3238-415d-b168-9f16a6a6031b"
+                    fusionEnvironment: tr
+                    azureSubscription: $(subscriptionServiceNonProd)
+
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionServiceNonProd)
+                    appType: "functionApp"
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: "runFromPackage"
+
+  - stage: DeployFPRD
+    displayName: FPRD
+    dependsOn: DeployFQA
+    condition: succeeded()
+
+    variables:
+      environment: "fprd"
+      functionServiceName: func-fap-summary-$(environment)
+
+    jobs:
+      - deployment: Deploy
+
+        displayName: "Deploy function app"
+        environment: fusion-prod
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-summary-function-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: "97978493-9777-4d48-b38a-67b0b9cd88d2"
+                    fusionResource: "97978493-9777-4d48-b38a-67b0b9cd88d2"
+                    fusionEnvironment: fprd
+                    azureSubscription: $(subscriptionServiceProd)
+
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionServiceProd)
+                    appType: "functionApp"
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: "runFromPackage"

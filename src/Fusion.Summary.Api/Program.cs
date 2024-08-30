@@ -34,9 +34,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
     .AddCheck("liveness", () => HealthCheckResult.Healthy())
-    .AddCheck("db", () => HealthCheckResult.Healthy(), tags: ["ready"]);
-// TODO: Add a real health check, when database is added in deployment pipelines and PR pipelines
-// .AddDbContextCheck<DatabaseContext>("db", tags: new[] { "ready" });
+    .AddDbContextCheck<SummaryDbContext>("db", tags: new[] { "ready" });
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -72,7 +70,7 @@ builder.Services.AddFusionIntegration(f =>
 });
 
 builder.Services.AddApplicationInsightsTelemetry();
-builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString, enablePullRequestEnv: false)
+builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString)
     .AddSqlTokenProvider<SqlTokenProvider>()
     .AddAccessTokenSupport();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
@@ -117,7 +115,7 @@ app.UseHealthChecks("/_health/readiness", new HealthCheckOptions
 app.Run();
 
 /// <summary>
-///     For testing
+///     For testing.
 /// </summary>
 public partial class Program
 {

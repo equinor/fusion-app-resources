@@ -14,6 +14,7 @@
         "ai-name": "[concat('ai-fap-resources-', variables('env-name'))]",
         "sb-name": "[concat('sb-fap-resources-', variables('env-name'))]",
         "function-name": "[concat('func-fap-resources-', variables('env-name'))]",
+        "summary-function-name": "[concat('func-fap-summary-', variables('env-name'))]",
         "function-hosting-plan-name": "[concat('fhplan-fap-resources-', variables('env-name'))]"
         // "id-rg-infra": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', 'plant-query-infra')]",
     },
@@ -148,7 +149,37 @@
                 }
             }
         },
-
+		/* FUNCTION APP SUMMARY */
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('summary-function-name')]",
+            "tags": {
+                "fusion-app": "summary",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "azFunc",
+                "fusion-app-component-id": "[concat('summary-func-', variables('env-name'))]",
+                "kv-msi-access": "true"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                    "phpVersion": "off",
+                    "ftpsState": "FtpsOnly",
+                    "minTlsVersion": "1.2",
+                    "webSocketsEnabled": false
+                }
+            }
+        },
         /* SERVICE BUS */
         {
             "type": "Microsoft.ServiceBus/namespaces",
@@ -181,6 +212,22 @@
                 "maxSizeInMegabytes": 1024,
                 "duplicateDetectionHistoryTimeWindow": "PT5M30S",
                 "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": true,
+                "maxDeliveryCount": 2
+            }
+        },
+		{
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(variables('sb-name'), '/scheduled-weekly-department-report')]",
+            "location": "North Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', variables('sb-name'))]"
+            ],
+            "properties": {
+                "maxSizeInMegabytes": 1024,
+                "duplicateDetectionHistoryTimeWindow": "P1D",
+                "defaultMessageTimeToLive": "PT1H",
                 "deadLetteringOnMessageExpiration": true,
                 "maxDeliveryCount": 2
             }
