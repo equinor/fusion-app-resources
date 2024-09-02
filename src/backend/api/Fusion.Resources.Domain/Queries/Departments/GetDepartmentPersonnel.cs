@@ -99,7 +99,7 @@ namespace Fusion.Resources.Domain
                 departmentPersonnel.ForEach(p =>
                 {
                     // Filter out all positions of type products
-                    p.PositionInstances = p.PositionInstances.Where(pis => !pis.BasePosition.ProjectType.Equals("Product")).ToList();
+                    p.PositionInstances = p.PositionInstances.Where(pis => pis.BasePosition != null && pis.BasePosition.ProjectType != null && !pis.BasePosition.ProjectType.Equals("Product")).ToList();
 
                     p.Absence = departmentAbsence[p.AzureUniqueId];
                     if (departmentRequests.ContainsKey(p.AzureUniqueId))
@@ -221,8 +221,6 @@ namespace Fusion.Resources.Domain
 
                 if (managers.Any())
                     queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}' and isResourceOwner eq true"));
-
-
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
