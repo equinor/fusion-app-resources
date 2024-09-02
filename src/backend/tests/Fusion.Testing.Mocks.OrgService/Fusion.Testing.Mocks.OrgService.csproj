@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Bogus" Version="35.6.0" />
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.0.6" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="7.0.4" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.0.6"/>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.1" />
