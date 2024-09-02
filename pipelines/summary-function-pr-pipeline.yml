@@ -12,9 +12,10 @@ pr:
   paths:
     include:
     - src/Fusion.Summary.Functions/*
+    - src/Fusion.Resources.Functions.Common/*
   
 variables:
-    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    subscriptionService: 'FRA Automation Non-Prod'
     webPackage: '$(Pipeline.Workspace)/drop/Fusion.Summary.Functions.zip'
     prNumber: $(System.PullRequest.PullRequestNumber)
   
@@ -37,7 +38,7 @@ stages:
       - deployment: Deploy
     
         displayName: 'Deploy function app'
-        environment: fusion-pr
+        environment: fra-pr
     
         strategy:
           runOnce:
@@ -48,6 +49,7 @@ stages:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
                     pullRequestNumber: $(prNumber)
+                    azureSubscription: $(subscriptionService)
 
                 - task: AzureFunctionApp@1
                   inputs:
