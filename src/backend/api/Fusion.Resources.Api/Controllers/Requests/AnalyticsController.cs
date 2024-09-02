@@ -14,6 +14,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     [Authorize]
     [ApiController]
     public class AnalyticsController : ResourceControllerBase
