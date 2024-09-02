@@ -11,7 +11,7 @@
     <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
-    <PackageReference Include="Fusion.AspNetCore" Version="7.0.1" />
+      <PackageReference Include="Fusion.AspNetCore" Version="8.0.5"/>
     <PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
 
   </ItemGroup>

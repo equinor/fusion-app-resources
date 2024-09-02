@@ -31,13 +31,14 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8"/>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.6" />
+    <PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.8"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="TimePeriodCore" Version="1.0.0" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj"/><ProjectReference Include="..\..\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />

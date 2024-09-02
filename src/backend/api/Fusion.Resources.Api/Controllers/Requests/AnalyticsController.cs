@@ -45,6 +45,7 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
+        [MapToApiVersion("1.0")]
         [HttpGet("/analytics/absence/internal")]
         public async Task<ActionResult<ApiCollection<ApiPersonAbsenceForAnalytics>>> GetPersonsAbsence([FromQuery] ODataQueryParams query)
         {
