@@ -34,7 +34,7 @@ namespace Fusion.Resources.Domain
             private readonly IHttpClientFactory httpClientFactory;
             private readonly IMediator mediator;
             private readonly IFusionProfileResolver profileResolver;
-            
+
             public Handler(ILogger<Handler> logger, ResourcesDbContext db, IHttpClientFactory httpClientFactory, IMediator mediator, IFusionProfileResolver profileResolver)
             {
                 this.logger = logger;
@@ -64,12 +64,18 @@ namespace Fusion.Resources.Domain
 
                 personWithAllocations.Absence = absence.Select(a => new QueryPersonAbsenceBasic(a)).ToList();
 
+                personWithAllocations.PositionInstances = personWithAllocations.PositionInstances
+                    .Where(instance => instance.BasePosition != null
+                                        && instance.BasePosition.ProjectType != null
+                                        && !instance.BasePosition.ProjectType.Equals("Product"))
+                    .ToList();
+
                 if (!request.includeCurrentAllocations)
                     return personWithAllocations;
 
                 personWithAllocations.PositionInstances = personWithAllocations.PositionInstances
-                                                                               .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
-                                                                               .ToList();
+                    .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
+                    .ToList();
 
                 personWithAllocations.Absence = personWithAllocations.Absence
                                                                      .Where(instance => (instance.AppliesTo == null || instance.AppliesTo >= DateTime.Now) && instance.AppliesFrom <= DateTime.Now)
