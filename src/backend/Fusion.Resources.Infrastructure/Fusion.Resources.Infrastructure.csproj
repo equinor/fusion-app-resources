@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Fusion.AspNetCore" Version="8.0.4"/>
+        <PackageReference Include="Fusion.AspNetCore" Version="7.0.1"/>
         <PackageReference Include="Fusion.AspNetCore.Versioning" Version="8.1.0"/>
         <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.6"/>
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>

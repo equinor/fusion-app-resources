@@ -9,7 +9,7 @@
     <PackageReference Include="Fusion.Integration.LineOrg" Version="8.0.6"/>
     <PackageReference Include="Fusion.Integration.Notification" Version="8.0.7" />
     <PackageReference Include="MediatR" Version="12.4.0"/>
-    <PackageReference Include="Fusion.AspNetCore" Version="8.0.4"/>
+    <PackageReference Include="Fusion.AspNetCore" Version="7.0.1"/>
     <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.1"/>
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.0.6"/>
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.0.6"/>
