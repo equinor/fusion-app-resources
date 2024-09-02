@@ -7,7 +7,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class AdaptiveCardBuilder
 {
-    private readonly AdaptiveCard _adaptiveCard = new(new AdaptiveSchemaVersion(1, 0));
+    private readonly AdaptiveCard _adaptiveCard = new(new AdaptiveSchemaVersion(1, 2));
 
     public AdaptiveCardBuilder AddHeading(string text)
     {
@@ -18,53 +18,84 @@ public class AdaptiveCardBuilder
             HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
             Separator = true,
             Size = AdaptiveTextSize.Large,
-            Weight = AdaptiveTextWeight.Bolder,
+            Weight = AdaptiveTextWeight.Bolder
         };
         _adaptiveCard.Body.Add(heading);
         return this;
     }
 
-    public AdaptiveCardBuilder AddColumnSet(params AdaptiveCardColumn[] columns)
+    public AdaptiveCardBuilder AddTextRow(string valueText, string headerText, string customText = "")
     {
-        var columnSet = new AdaptiveColumnSet
+        var container = new AdaptiveContainer()
         {
-            Columns = columns.Select(col => col.Column).ToList(),
-            Separator = true
+            Separator = true,
+            Items = new List<AdaptiveElement>()
+            {
+                new AdaptiveTextBlock
+                {
+                    Text = $"{valueText} {customText}",
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
+                    Size = AdaptiveTextSize.ExtraLarge
+                },
+                new AdaptiveTextBlock
+                {
+                    Text = headerText,
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+                }
+            }
         };
-        _adaptiveCard.Body.Add(columnSet);
+
+        _adaptiveCard.Body.Add(container);
         return this;
     }
 
-    public AdaptiveCardBuilder AddListContainer(string headerText, List<List<ListObject>> objectLists)
+    public AdaptiveCardBuilder AddListContainer(string headerText,
+        List<List<ListObject>> objectLists)
     {
         var listContainer = new AdaptiveContainer
         {
             Separator = true,
-            Items = new List<AdaptiveElement>
+        };
+
+        var header = new AdaptiveTextBlock
+        {
+            Weight = AdaptiveTextWeight.Bolder,
+            Text = headerText,
+            Wrap = true,
+            Size = AdaptiveTextSize.Large,
+            HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+        };
+
+        var rows = new List<AdaptiveColumnSet>();
+
+        foreach (var listObject in objectLists)
+        {
+            var row = new AdaptiveColumnSet()
             {
-                new AdaptiveTextBlock
+                Columns = listObject.Select(o => new AdaptiveColumn()
                 {
-                    Weight = AdaptiveTextWeight.Bolder,
-                    Text = headerText,
-                    Wrap = true,
-                    Size = AdaptiveTextSize.Large,
-                },
-                new AdaptiveColumnSet
-                {
-                    Columns = new List<AdaptiveColumn>
+                    Width = AdaptiveColumnWidth.Stretch,
+                    Items = new List<AdaptiveElement>
                     {
-                        new()
+                        new AdaptiveTextBlock
                         {
-                            Width = AdaptiveColumnWidth.Stretch,
-                            Items = new List<AdaptiveElement>
-                            {
-                                new AdaptiveCardList(objectLists).List
-                            }
+                            Text = o.Value,
+                            Wrap = true,
+                            HorizontalAlignment = o.Alignment
                         }
                     }
-                }
-            }
-        };
+                }).ToList()
+            };
+
+            rows.Add(row);
+        }
+
+        listContainer.Items.Add(header);
+        listContainer.Items.AddRange(rows);
+
+
         _adaptiveCard.Body.Add(listContainer);
         return this;
     }
@@ -86,7 +117,7 @@ public class AdaptiveCardBuilder
     {
         var container = new AdaptiveContainer()
         {
-            Separator = true,
+            Separator = true
         };
 
         _adaptiveCard.Body.Add(container);
@@ -99,80 +130,10 @@ public class AdaptiveCardBuilder
         return _adaptiveCard;
     }
 
-    public class AdaptiveCardColumn
+
+    public class ListObject
     {
-        public AdaptiveColumn Column { get; }
-
-        public AdaptiveCardColumn(string numberText, string headerText, string? customText = null)
-        {
-            Column = new AdaptiveColumn
-            {
-                Width = AdaptiveColumnWidth.Stretch,
-                Separator = true,
-                Spacing = AdaptiveSpacing.Medium,
-                Items = new List<AdaptiveElement>
-                {
-                    new AdaptiveTextBlock
-                    {
-                        Text = $"{numberText} {customText ?? ""}",
-                        Wrap = true,
-                        HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
-                        Size = AdaptiveTextSize.ExtraLarge
-                    },
-                    new AdaptiveTextBlock
-                    {
-                        Text = headerText,
-                        Wrap = true,
-                        HorizontalAlignment = AdaptiveHorizontalAlignment.Center
-                    }
-                }
-            };
-        }
+        public string Value { get; set; }
+        public AdaptiveHorizontalAlignment Alignment { get; set; }
     }
-
-    private class AdaptiveCardList
-    {
-        public AdaptiveContainer List { get; }
-
-        public AdaptiveCardList(List<List<ListObject>> objectLists)
-        {
-            var listItems = new List<AdaptiveElement>();
-            foreach (var objects in objectLists)
-            {
-                var columns = new List<AdaptiveColumn>();
-                foreach (var o in objects)
-                {
-                    var column = new AdaptiveColumn()
-                    {
-                        Width = AdaptiveColumnWidth.Stretch,
-                        Items = new List<AdaptiveElement>
-                        {
-                            new AdaptiveTextBlock
-                            {
-                                Text = $"{o.Value} ", Wrap = true,
-                                HorizontalAlignment = o.Alignment
-                            },
-                        }
-                    };
-                    columns.Add(column);
-                }
-
-                listItems.Add(new AdaptiveColumnSet()
-                {
-                    Columns = columns
-                });
-            }
-
-            List = new AdaptiveContainer
-            {
-                Items = listItems
-            };
-        }
-    }
-}
-
-public class ListObject
-{
-    public string Value { get; set; }
-    public AdaptiveHorizontalAlignment Alignment { get; set; }
 }

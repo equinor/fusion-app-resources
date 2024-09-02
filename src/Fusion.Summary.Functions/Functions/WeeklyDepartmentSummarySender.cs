@@ -127,37 +127,36 @@ public class WeeklyDepartmentSummarySender
 
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {department.FullDepartmentName}**")
-            .AddColumnSet(new AdaptiveCardColumn(
+            .AddTextRow(
                 report.NumberOfPersonnel,
-                "Number of personnel (employees and external hire)"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Number of personnel (employees and external hire)")
+            .AddTextRow(
                 report.CapacityInUse,
                 "Capacity in use",
-                "%"))
-            .AddColumnSet(
-                new AdaptiveCardColumn(
+                "%")
+            .AddTextRow(
                     report.NumberOfRequestsLastPeriod,
-                    "New requests last week"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                    "New requests last week")
+            .AddTextRow(
                 report.NumberOfOpenRequests,
-                "Open requests"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Open requests")
+            .AddTextRow(
                 report.NumberOfRequestsStartingInLessThanThreeMonths,
-                "Requests with start date < 3 months"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Requests with start date < 3 months")
+            .AddTextRow(
                 report.NumberOfRequestsStartingInMoreThanThreeMonths,
-                "Requests with start date > 3 months"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Requests with start date > 3 months")
+            .AddTextRow(
                 averageTimeToHandleRequests > 0
                     ? averageTimeToHandleRequests + " day(s)"
                     : "Less than a day",
-                "Average time to handle request (last 12 months)"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Average time to handle request (last 12 months)")
+            .AddTextRow(
                 report.AllocationChangesAwaitingTaskOwnerAction,
-                "Allocation changes awaiting task owner action"))
-            .AddColumnSet(new AdaptiveCardColumn(
+                "Allocation changes awaiting task owner action")
+            .AddTextRow(
                 report.ProjectChangesAffectingNextThreeMonths,
-                "Project changes last week affecting next 3 months"))
+                "Project changes last week affecting next 3 months")
             .AddListContainer("Allocations ending soon with no future allocation:", endingPositionsObjectList)
             .AddListContainer("Personnel with more than 100% workload:", personnelMoreThan100PercentObjectList)
             .AddNewLine()
@@ -170,6 +169,7 @@ public class WeeklyDepartmentSummarySender
             Title = $"Weekly summary - {department.FullDepartmentName}",
             EmailPriority = 1,
             Card = card,
+            AppKey = "personnel-allocation",
             Description = $"Weekly report for department - {department.FullDepartmentName}"
         };
     }
