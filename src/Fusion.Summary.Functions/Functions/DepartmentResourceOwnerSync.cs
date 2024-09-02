@@ -53,7 +53,7 @@ public class DepartmentResourceOwnerSync
     {
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
-        _departmentFilter = configuration["department_filter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
 
         var client = new ServiceBusClient(_serviceBusConnectionString);
         var sender = client.CreateSender(_weeklySummaryQueueName);

@@ -8,7 +8,7 @@
     "AzureAd_Secret": "[REPLACE WITH SECRET]",
     "department_summary_weekly_queue": "department-summary-weekly-queue-[REPLACE WITH DEV QUEUE]",
     "AzureWebJobsServiceBus": "[REPLACE WITH SB CONNECTION STRING]",
-    "department_filter": "PRD",
+    "departmentFilter": "PRD",
     "Endpoints_lineorg": "https://fusion-s-lineorg-ci.azurewebsites.net",
     "Endpoints_people": "https://fusion-s-people-ci.azurewebsites.net",
     "Endpoints_org": "https://fusion-s-org-ci.azurewebsites.net",
