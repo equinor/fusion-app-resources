@@ -22,6 +22,7 @@ public class DepartmentResourceOwnerSync
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
+    private string[] _departmentFilter;
 
     public DepartmentResourceOwnerSync(
         ILineOrgApiClient lineOrgApiClient, 
@@ -52,6 +53,7 @@ public class DepartmentResourceOwnerSync
     {
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
+        _departmentFilter = configuration["department_filter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
 
         var client = new ServiceBusClient(_serviceBusConnectionString);
         var sender = client.CreateSender(_weeklySummaryQueueName);
@@ -60,7 +62,7 @@ public class DepartmentResourceOwnerSync
         var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
             .DistinctBy(d => d.SapId)
             .Where(d => d.FullDepartment != null && d.SapId != null)
-            .Where(d => d.FullDepartment!.Contains("PRD"))
+            .Where(d => _departmentFilter.Any(df => d.FullDepartment.Contains(df)))
             .Where(d => d.Management.Persons.Length > 0);
 
 

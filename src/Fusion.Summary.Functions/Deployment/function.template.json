@@ -13,6 +13,7 @@
           "clientSecret": "",
           "serviceBus": ""
         },
+        "department_filter": "PRD",
         "endpoints": {
           "lineorg": "https://fusion-s-lineorg-ci.azurewebsites.net",
           "org": "https://fusion-s-org-ci.azurewebsites.net",
@@ -168,6 +169,10 @@
             {
               "name": "department_summary_weekly_queue",
               "value": "[parameters('settings').queues.departmentSummaryWeeklyQueue]"
+            },
+            {
+              "name": "department_filter",
+              "value": "[parameters('settings').department_filter]"
             }
           ]
         }
