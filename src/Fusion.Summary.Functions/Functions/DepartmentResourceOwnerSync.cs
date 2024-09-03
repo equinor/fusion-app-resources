@@ -46,7 +46,7 @@ public class DepartmentResourceOwnerSync
     /// <exception cref="Exception"></exception>
     [FunctionName("weekly-department-recipients-sync")]
     public async Task RunAsync(
-        [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
+        [TimerTrigger("0 05 00 * * MON", RunOnStartup = false)]
         TimerInfo timerInfo, CancellationToken cancellationToken
     )
     {
