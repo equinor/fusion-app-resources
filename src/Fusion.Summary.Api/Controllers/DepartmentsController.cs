@@ -6,29 +6,22 @@ using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HttpRequestExtensions = Microsoft.ApplicationInsights.AspNetCore.Extensions.HttpRequestExtensions;
 
 namespace Fusion.Summary.Api.Controllers;
 
-/// <summary>
-/// TODO: Add summary
-/// </summary>
 [ApiVersion("1.0")]
 [Authorize]
 [ApiController]
 public class DepartmentsController : BaseController
 {
-    /// <summary />
-    /// TODO: Add summary
-    /// <returns></returns>
     [HttpGet("departments")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(typeof(ApiDepartment[]), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetDepartmentsV1()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiDepartment[]>> GetDepartmentsV1()
     {
         #region Authorization
 
@@ -43,31 +36,19 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
-        var ret = new List<ApiDepartment>();
+        var departments = await DispatchAsync(new GetAllDepartments());
 
-        // Query
-        var departments = (await DispatchAsync(new GetAllDepartments())).ToArray();
+        var apiDepartments = departments.Select(ApiDepartment.FromQueryDepartment);
 
-        if (departments.Length == 0)
-            return NotFound();
-        else
-        {
-            foreach (var d in departments) ret.Add(ApiDepartment.FromQueryDepartment(d));
-        }
-
-        return Ok(ret);
+        return Ok(apiDepartments);
     }
 
-    /// <summary />
-    /// TODO: Add summary
-    /// <returns></returns>
     [HttpGet("departments/{sapDepartmentId}")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(typeof(ApiDepartment), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetDepartmentV1(string sapDepartmentId)
+    public async Task<ActionResult<ApiDepartment>> GetDepartmentV1(string sapDepartmentId)
     {
         #region Authorization
 
@@ -83,7 +64,7 @@ public class DepartmentsController : BaseController
         #endregion Authorization
 
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return BadRequest("SapDepartmentId route parameter is required");
+            return SapDepartmentIdRequired();
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
@@ -94,15 +75,12 @@ public class DepartmentsController : BaseController
         return Ok(ApiDepartment.FromQueryDepartment(department));
     }
 
-    /// <summary />
-    /// TODO: Add summary
-    /// <returns></returns>
+
     [HttpPut("departments/{sapDepartmentId}")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutV1(string sapDepartmentId, [FromBody] PutDepartmentRequest request)
     {
@@ -120,7 +98,7 @@ public class DepartmentsController : BaseController
         #endregion Authorization
 
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return BadRequest("SapDepartmentId route parameter is required");
+            return SapDepartmentIdRequired();
 
         var personIdentifiers = request.ResourceOwnersAzureUniqueId
             .Concat(request.DelegateResourceOwnersAzureUniqueId)
@@ -131,7 +109,7 @@ public class DepartmentsController : BaseController
             .ToList();
 
         if (unresolvedProfiles.Count != 0)
-            return BadRequest($"Profiles: {string.Join(',', unresolvedProfiles)} could not be resolved");
+            return FusionApiError.NotFound(string.Join(',', unresolvedProfiles), "Profiles could not be resolved");
 
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
@@ -146,7 +124,7 @@ public class DepartmentsController : BaseController
                     request.ResourceOwnersAzureUniqueId,
                     request.DelegateResourceOwnersAzureUniqueId));
 
-            return Created();
+            return Created(Request.GetUri(), null);
         }
 
         // Check if department owners has changed
@@ -160,10 +138,10 @@ public class DepartmentsController : BaseController
                     request.ResourceOwnersAzureUniqueId,
                     request.DelegateResourceOwnersAzureUniqueId));
 
-            return Ok();
+            return NoContent();
         }
 
         // No change
-        return Ok();
+        return NoContent();
     }
 }
