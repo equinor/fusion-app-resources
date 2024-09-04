@@ -145,20 +145,20 @@ public class DepartmentResourceOwnerSync
     {
         var minutesPerReportSlice = _totalBatchTime.TotalMinutes / apiDepartments.Count;
 
-        var delayForDepartment = new Dictionary<ApiResourceOwnerDepartment, double>();
+        var departmentDelayMapping = new Dictionary<ApiResourceOwnerDepartment, double>();
         foreach (var department in apiDepartments)
         {
             // First department has no delay
-            if (delayForDepartment.Count == 0)
+            if (departmentDelayMapping.Count == 0)
             {
-                delayForDepartment.Add(department, 0);
+                departmentDelayMapping.Add(department, 0);
                 continue;
             }
 
-            var delay = delayForDepartment.Last().Value + minutesPerReportSlice;
-            delayForDepartment.Add(department, delay);
+            var delay = departmentDelayMapping.Last().Value + minutesPerReportSlice;
+            departmentDelayMapping.Add(department, delay);
         }
 
-        return delayForDepartment;
+        return departmentDelayMapping;
     }
 }
