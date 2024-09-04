@@ -22,7 +22,6 @@ public class DepartmentResourceOwnerSync
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
-    private int _maxDegreeOfParallelism;
     private TimeSpan _totalBatchTime;
 
     public DepartmentResourceOwnerSync(
@@ -39,7 +38,6 @@ public class DepartmentResourceOwnerSync
 
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
-        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-recipients-sync-parallelism"], out var result) ? result : 10;
 
         var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
 
@@ -108,22 +106,15 @@ public class DepartmentResourceOwnerSync
 
         logger.LogInformation("Syncing departments {Departments}", JsonConvert.SerializeObject(enqueueTimeForDepartmentMapping, Formatting.Indented));
 
-        var parallelOptions = new ParallelOptions()
+
+        foreach (var department in apiDepartments)
         {
-            CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = _maxDegreeOfParallelism
-        };
+            // Update the database
+            await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
 
-        // Use Parallel.ForEachAsync to easily limit the number of parallel requests
-        await Parallel.ForEachAsync(apiDepartments, parallelOptions,
-            async (department, token) =>
-            {
-                // Update the database
-                await summaryApiClient.PutDepartmentAsync(department, token);
-
-                // Send queue message
-                await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
-            });
+            // Send queue message
+            await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
+        }
     }
 
 
