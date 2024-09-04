@@ -71,7 +71,8 @@ public class WeeklyDepartmentSummarySender
             catch (Exception e)
             {
                 logger.LogError(e, "Failed to create notification for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
-                throw;
+                // Don't stop the entire execution if one notification fails
+                return;
             }
 
             var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId).Distinct();
