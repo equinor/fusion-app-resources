@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Common.ApiClients;
-using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Fusion.Summary.Functions.Functions;
@@ -19,20 +19,41 @@ public class DepartmentResourceOwnerSync
     private readonly ISummaryApiClient summaryApiClient;
     private readonly IConfiguration configuration;
     private readonly IResourcesApiClient resourcesApiClient;
+    private readonly ILogger<DepartmentResourceOwnerSync> logger;
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
+    private TimeSpan _totalBatchTime;
 
     public DepartmentResourceOwnerSync(
-        ILineOrgApiClient lineOrgApiClient, 
+        ILineOrgApiClient lineOrgApiClient,
         ISummaryApiClient summaryApiClient,
         IConfiguration configuration,
-        IResourcesApiClient resourcesApiClient)
+        IResourcesApiClient resourcesApiClient,
+        ILogger<DepartmentResourceOwnerSync> logger)
     {
         this.lineOrgApiClient = lineOrgApiClient;
         this.summaryApiClient = summaryApiClient;
         this.configuration = configuration;
         this.resourcesApiClient = resourcesApiClient;
+        this.logger = logger;
+
+        _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
+        _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
+
+        var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
+
+        if (!string.IsNullOrWhiteSpace(totalBatchTimeInMinutesStr))
+        {
+            _totalBatchTime = TimeSpan.FromMinutes(double.Parse(totalBatchTimeInMinutesStr));
+            logger.LogInformation("Batching messages over {BatchTime}", _totalBatchTime);
+        }
+        else
+        {
+            _totalBatchTime = TimeSpan.FromHours(4.5);
+
+            logger.LogWarning("Configuration variable 'total_batch_time_in_minutes' not found, batching messages over {BatchTime}", _totalBatchTime);
+        }
     }
 
     /// <summary>
@@ -42,17 +63,12 @@ public class DepartmentResourceOwnerSync
     /// </summary>
     /// <param name="timerInfo">The running date & time</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns></returns>
-    /// <exception cref="Exception"></exception>
     [FunctionName("weekly-department-recipients-sync")]
     public async Task RunAsync(
         [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
         TimerInfo timerInfo, CancellationToken cancellationToken
     )
     {
-        _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
-        _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
-
         var client = new ServiceBusClient(_serviceBusConnectionString);
         var sender = client.CreateSender(_weeklySummaryQueueName);
 
@@ -68,6 +84,11 @@ public class DepartmentResourceOwnerSync
 
         foreach (var orgUnit in departments)
         {
+            var resourceOwners = orgUnit.Management.Persons
+                .Select(p => Guid.Parse(p.AzureUniqueId))
+                .Distinct()
+                .ToArray();
+
             var delegatedResponsibles = (await resourcesApiClient
                     .GetDelegatedResponsibleForDepartment(orgUnit.SapId!))
                 .Select(d => Guid.Parse(d.DelegatedResponsible.AzureUniquePersonId))
@@ -78,10 +99,12 @@ public class DepartmentResourceOwnerSync
             {
                 DepartmentSapId = orgUnit.SapId!,
                 FullDepartmentName = orgUnit.FullDepartment!,
-                ResourceOwnersAzureUniqueId = orgUnit.Management.Persons.Select(p => Guid.Parse(p.AzureUniqueId)).Distinct().ToArray(),
+                ResourceOwnersAzureUniqueId = resourceOwners,
                 DelegateResourceOwnersAzureUniqueId = delegatedResponsibles
             });
         }
+
+        var messageDelayForDepartmentMapping = CalculateDepartmentDelay(apiDepartments);
 
         var parallelOptions = new ParallelOptions()
         {
@@ -91,15 +114,16 @@ public class DepartmentResourceOwnerSync
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
         await Parallel.ForEachAsync(apiDepartments, parallelOptions,
-            async (ownerDepartment, token) =>
+            async (department, token) =>
             {
                 // Update the database
-                await summaryApiClient.PutDepartmentAsync(ownerDepartment, token);
+                await summaryApiClient.PutDepartmentAsync(department, token);
 
                 // Send queue message
-                await SendDepartmentToQueue(sender, ownerDepartment);
+                await SendDepartmentToQueue(sender, department, messageDelayForDepartmentMapping[department]);
             });
     }
+
 
     private async Task SendDepartmentToQueue(ServiceBusSender sender, ApiResourceOwnerDepartment department, double delayInMinutes = 0)
     {
@@ -111,5 +135,30 @@ public class DepartmentResourceOwnerSync
         };
 
         await sender.SendMessageAsync(message);
+    }
+
+    /// <summary>
+    ///     Calculate the delay for each department based on the total batch time and amount of departments. This should spread
+    ///     the work over the total batch time.
+    /// </summary>
+    private Dictionary<ApiResourceOwnerDepartment, double> CalculateDepartmentDelay(List<ApiResourceOwnerDepartment> apiDepartments)
+    {
+        var minutesPerReportSlice = _totalBatchTime.TotalMinutes / apiDepartments.Count;
+
+        var delayForDepartment = new Dictionary<ApiResourceOwnerDepartment, double>();
+        foreach (var department in apiDepartments)
+        {
+            // First department has no delay
+            if (delayForDepartment.Count == 0)
+            {
+                delayForDepartment.Add(department, 0);
+                continue;
+            }
+
+            var delay = delayForDepartment.Last().Value + minutesPerReportSlice;
+            delayForDepartment.Add(department, delay);
+        }
+
+        return delayForDepartment;
     }
 }
