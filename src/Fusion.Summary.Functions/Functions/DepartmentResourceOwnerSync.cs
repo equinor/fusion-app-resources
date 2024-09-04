@@ -19,10 +19,10 @@ public class DepartmentResourceOwnerSync
     private readonly ISummaryApiClient summaryApiClient;
     private readonly IConfiguration configuration;
     private readonly IResourcesApiClient resourcesApiClient;
-    private readonly ILogger<DepartmentResourceOwnerSync> logger;
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
+    private int _maxDegreeOfParallelism;
     private TimeSpan _totalBatchTime;
 
     public DepartmentResourceOwnerSync(
@@ -36,10 +36,10 @@ public class DepartmentResourceOwnerSync
         this.summaryApiClient = summaryApiClient;
         this.configuration = configuration;
         this.resourcesApiClient = resourcesApiClient;
-        this.logger = logger;
 
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
+        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-recipients-sync-parallelism"], out var result) ? result : 10;
 
         var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
 
@@ -109,7 +109,7 @@ public class DepartmentResourceOwnerSync
         var parallelOptions = new ParallelOptions()
         {
             CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = 10,
+            MaxDegreeOfParallelism = _maxDegreeOfParallelism
         };
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests

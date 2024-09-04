@@ -16,20 +16,21 @@ namespace Fusion.Summary.Functions.Functions;
 public class WeeklyDepartmentSummarySender
 {
     private readonly ISummaryApiClient summaryApiClient;
-    private readonly IResourcesApiClient resourcesApiClient;
     private readonly INotificationApiClient notificationApiClient;
     private readonly ILogger<WeeklyDepartmentSummarySender> logger;
     private readonly IConfiguration configuration;
 
+    private int _maxDegreeOfParallelism;
 
     public WeeklyDepartmentSummarySender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
-        ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration, IResourcesApiClient resourcesApiClient)
+        ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration)
     {
         this.summaryApiClient = summaryApiClient;
         this.notificationApiClient = notificationApiClient;
         this.logger = logger;
         this.configuration = configuration;
-        this.resourcesApiClient = resourcesApiClient;
+
+        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 10;
     }
 
     [FunctionName("weekly-department-summary-sender")]
@@ -45,7 +46,7 @@ public class WeeklyDepartmentSummarySender
 
         var options = new ParallelOptions()
         {
-            MaxDegreeOfParallelism = 10
+            MaxDegreeOfParallelism = _maxDegreeOfParallelism
         };
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
@@ -135,8 +136,8 @@ public class WeeklyDepartmentSummarySender
                 "Capacity in use",
                 "%")
             .AddTextRow(
-                    report.NumberOfRequestsLastPeriod,
-                    "New requests last week")
+                report.NumberOfRequestsLastPeriod,
+                "New requests last week")
             .AddTextRow(
                 report.NumberOfOpenRequests,
                 "Open requests")
