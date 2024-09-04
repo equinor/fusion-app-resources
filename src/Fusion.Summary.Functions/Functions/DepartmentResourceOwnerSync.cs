@@ -17,8 +17,8 @@ public class DepartmentResourceOwnerSync
 {
     private readonly ILineOrgApiClient lineOrgApiClient;
     private readonly ISummaryApiClient summaryApiClient;
-    private readonly IConfiguration configuration;
     private readonly IResourcesApiClient resourcesApiClient;
+    private readonly ILogger<DepartmentResourceOwnerSync> logger;
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
@@ -34,8 +34,8 @@ public class DepartmentResourceOwnerSync
     {
         this.lineOrgApiClient = lineOrgApiClient;
         this.summaryApiClient = summaryApiClient;
-        this.configuration = configuration;
         this.resourcesApiClient = resourcesApiClient;
+        this.logger = logger;
 
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
@@ -50,7 +50,7 @@ public class DepartmentResourceOwnerSync
         }
         else
         {
-            _totalBatchTime = TimeSpan.FromHours(4.5);
+            _totalBatchTime = TimeSpan.FromHours(5);
 
             logger.LogWarning("Configuration variable 'total_batch_time_in_minutes' not found, batching messages over {BatchTime}", _totalBatchTime);
         }
@@ -104,7 +104,9 @@ public class DepartmentResourceOwnerSync
             });
         }
 
-        var messageDelayForDepartmentMapping = CalculateDepartmentDelay(apiDepartments);
+        var enqueueTimeForDepartmentMapping = CalculateDepartmentEnqueueTime(apiDepartments);
+
+        logger.LogInformation("Syncing departments {@Departments}", enqueueTimeForDepartmentMapping);
 
         var parallelOptions = new ParallelOptions()
         {
@@ -120,43 +122,44 @@ public class DepartmentResourceOwnerSync
                 await summaryApiClient.PutDepartmentAsync(department, token);
 
                 // Send queue message
-                await SendDepartmentToQueue(sender, department, messageDelayForDepartmentMapping[department]);
+                await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
             });
     }
 
 
-    private async Task SendDepartmentToQueue(ServiceBusSender sender, ApiResourceOwnerDepartment department, double delayInMinutes = 0)
+    private async Task SendDepartmentToQueue(ServiceBusSender sender, ApiResourceOwnerDepartment department, DateTimeOffset enqueueTime)
     {
         var serializedDto = JsonConvert.SerializeObject(department);
 
         var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto))
         {
-            ScheduledEnqueueTime = DateTime.UtcNow.AddMinutes(delayInMinutes)
+            ScheduledEnqueueTime = enqueueTime
         };
 
         await sender.SendMessageAsync(message);
     }
 
     /// <summary>
-    ///     Calculate the delay for each department based on the total batch time and amount of departments. This should spread
+    ///     Calculate the enqueue time for each department based on the total batch time and amount of departments. This should spread
     ///     the work over the total batch time.
     /// </summary>
-    private Dictionary<ApiResourceOwnerDepartment, double> CalculateDepartmentDelay(List<ApiResourceOwnerDepartment> apiDepartments)
+    private Dictionary<ApiResourceOwnerDepartment, DateTimeOffset> CalculateDepartmentEnqueueTime(List<ApiResourceOwnerDepartment> apiDepartments)
     {
+        var currentTime = DateTimeOffset.UtcNow;
         var minutesPerReportSlice = _totalBatchTime.TotalMinutes / apiDepartments.Count;
 
-        var departmentDelayMapping = new Dictionary<ApiResourceOwnerDepartment, double>();
+        var departmentDelayMapping = new Dictionary<ApiResourceOwnerDepartment, DateTimeOffset>();
         foreach (var department in apiDepartments)
         {
             // First department has no delay
             if (departmentDelayMapping.Count == 0)
             {
-                departmentDelayMapping.Add(department, 0);
+                departmentDelayMapping.Add(department, currentTime);
                 continue;
             }
 
-            var delay = departmentDelayMapping.Last().Value + minutesPerReportSlice;
-            departmentDelayMapping.Add(department, delay);
+            var enqueueTime = departmentDelayMapping.Last().Value.AddMinutes(minutesPerReportSlice);
+            departmentDelayMapping.Add(department, enqueueTime);
         }
 
         return departmentDelayMapping;
