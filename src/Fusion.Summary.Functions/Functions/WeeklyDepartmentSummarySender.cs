@@ -9,6 +9,7 @@ using Fusion.Summary.Functions.CardBuilder;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using static Fusion.Summary.Functions.CardBuilder.AdaptiveCardBuilder;
 
 namespace Fusion.Summary.Functions.Functions;
@@ -57,8 +58,8 @@ public class WeeklyDepartmentSummarySender
             if (summaryReport is null)
             {
                 logger.LogCritical(
-                    "No summary report found for department {@Department}. Unable to send report notification",
-                    department);
+                    "No summary report found for department {Department}. Unable to send report notification",
+                    JsonConvert.SerializeObject(department, Formatting.Indented));
                 return;
             }
 
@@ -69,7 +70,7 @@ public class WeeklyDepartmentSummarySender
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Failed to create notification for department {@Department}", department);
+                logger.LogError(e, "Failed to create notification for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
                 throw;
             }
 
@@ -79,7 +80,7 @@ public class WeeklyDepartmentSummarySender
             {
                 var result = await notificationApiClient.SendNotification(notification, azureId);
                 if (!result)
-                    logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {@ReportId}", azureId, summaryReport);
+                    logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
             }
         });
     }

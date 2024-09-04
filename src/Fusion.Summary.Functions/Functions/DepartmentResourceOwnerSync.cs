@@ -106,7 +106,7 @@ public class DepartmentResourceOwnerSync
 
         var enqueueTimeForDepartmentMapping = CalculateDepartmentEnqueueTime(apiDepartments);
 
-        logger.LogInformation("Syncing departments {@Departments}", enqueueTimeForDepartmentMapping);
+        logger.LogInformation("Syncing departments {Departments}", JsonConvert.SerializeObject(enqueueTimeForDepartmentMapping, Formatting.Indented));
 
         var parallelOptions = new ParallelOptions()
         {
