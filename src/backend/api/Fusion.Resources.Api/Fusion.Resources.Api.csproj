@@ -38,6 +38,7 @@
     </PackageReference>
     <PackageReference Include="TimePeriodCore" Version="1.0.0" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\Fusion.Resources.Infrastructure\Fusion.Resources.Infrastructure.csproj"/><ProjectReference Include="..\..\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />
