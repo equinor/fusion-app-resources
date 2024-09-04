@@ -48,7 +48,7 @@ public class DepartmentResourceOwnerSync
         }
         else
         {
-            _totalBatchTime = TimeSpan.FromHours(5);
+            _totalBatchTime = TimeSpan.FromHours(4.5);
 
             logger.LogWarning("Configuration variable 'total_batch_time_in_minutes' not found, batching messages over {BatchTime}", _totalBatchTime);
         }
@@ -63,7 +63,7 @@ public class DepartmentResourceOwnerSync
     /// <param name="cancellationToken">Cancellation token</param>
     [FunctionName("weekly-department-recipients-sync")]
     public async Task RunAsync(
-        [TimerTrigger("0 05 00 * * *", RunOnStartup = false)]
+        [TimerTrigger("0 5 0 * * MON", RunOnStartup = false)]
         TimerInfo timerInfo, CancellationToken cancellationToken
     )
     {

@@ -31,11 +31,11 @@ public class WeeklyDepartmentSummarySender
         this.logger = logger;
         this.configuration = configuration;
 
-        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 10;
+        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 4;
     }
 
     [FunctionName("weekly-department-summary-sender")]
-    public async Task RunAsync([TimerTrigger("0 0 8 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
+    public async Task RunAsync([TimerTrigger("0 0 5 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
     {
         var departments = await summaryApiClient.GetDepartmentsAsync();
 
