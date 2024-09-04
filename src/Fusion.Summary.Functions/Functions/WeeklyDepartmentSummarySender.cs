@@ -72,7 +72,7 @@ public class WeeklyDepartmentSummarySender
                 throw;
             }
 
-            var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId);
+            var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId).Distinct();
 
             foreach (var azureId in reportReceivers)
             {
