@@ -31,7 +31,7 @@ public class WeeklyDepartmentSummarySender
         this.logger = logger;
         this.configuration = configuration;
 
-        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 4;
+        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
     }
 
     [FunctionName("weekly-department-summary-sender")]
