@@ -42,11 +42,44 @@ public class SummaryReportTests : TestBase
 
 
         var response = await _client.PutWeeklySummaryReportAsync(department.DepartmentSapId);
-        response.Should().BeNoContent();
+        response.Should().BeCreated();
 
         var getResponse = await _client.GetWeeklySummaryReportsAsync(department.DepartmentSapId);
         getResponse.Should().BeSuccessfull();
         getResponse.Value!.Items.Should().HaveCount(1);
     }
 
+    [Fact]
+    public async Task PutAndUpdateWeeklySummaryReport_ShouldReturnNoContent()
+    {
+        using var adminScope = _fixture.AdminScope();
+        var testUser = _fixture.Fusion.CreateUser().AsEmployee().AzureUniqueId!.Value;
+
+        var department = await _client.PutDepartmentAsync(testUser);
+
+        var response = await _client.PutWeeklySummaryReportAsync(department.DepartmentSapId);
+        response.Should().BeCreated();
+
+        response = await _client.PutWeeklySummaryReportAsync(department.DepartmentSapId);
+        response.Should().BeNoContent();
+    }
+
+    [Fact]
+    public async Task PutWeeklySummaryReport_WithInvalidPeriodDate_ShouldReturnBadRequest()
+    {
+        using var adminScope = _fixture.AdminScope();
+        var testUser = _fixture.Fusion.CreateUser().AsEmployee().AzureUniqueId!.Value;
+
+        var department = await _client.PutDepartmentAsync(testUser);
+
+        var response = await _client.PutWeeklySummaryReportAsync(department.DepartmentSapId, (report) =>
+        {
+            var nowDate = DateTime.UtcNow;
+            if (nowDate.DayOfWeek == DayOfWeek.Monday)
+                report.Period = nowDate.AddDays(1);
+            report.Period = nowDate;
+        });
+
+        response.Should().BeBadRequest();
+    }
 }
