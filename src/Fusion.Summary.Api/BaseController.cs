@@ -7,9 +7,11 @@ namespace Fusion.Summary.Api;
 
 public class BaseController : ControllerBase
 {
-    // TODO: Transition to ProblemDetails
-    protected NotFoundObjectResult DepartmentNotFound(string sapDepartmentId) =>
-        NotFound(new { message = $"Department with id '{sapDepartmentId}' was not found" });
+    protected ActionResult DepartmentNotFound(string sapDepartmentId) =>
+        FusionApiError.NotFound(sapDepartmentId, $"Department with sap id '{sapDepartmentId}' was not found");
+
+    protected ActionResult SapDepartmentIdRequired() =>
+        FusionApiError.InvalidOperation("SapDepartmentIdRequired", "SapDepartmentId route parameter is required");
 
 
     protected Task DispatchAsync(IRequest command)

@@ -35,7 +35,7 @@ public class WeeklyDepartmentSummarySender
     }
 
     [FunctionName("weekly-department-summary-sender")]
-    public async Task RunAsync([TimerTrigger("0 0 5 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
+    public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
         var departments = await summaryApiClient.GetDepartmentsAsync();
 
