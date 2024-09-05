@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
@@ -7,6 +8,7 @@ using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,14 +20,13 @@ namespace Fusion.Summary.Api.Controllers;
 public class SummaryReportsController : BaseController
 {
     [HttpGet("resource-owners-summary-reports/{sapDepartmentId}/weekly")]
-    [Produces(MediaTypeNames.Application.Json)]
+    [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ODataFilter(nameof(ApiWeeklySummaryReport.Period))]
     [ODataOrderBy(nameof(ApiWeeklySummaryReport.Period), nameof(ApiWeeklySummaryReport.Id))]
     [ODataTop(100), ODataSkip]
-    [ApiVersion("1.0")]
     public async Task<ActionResult<ApiCollection<ApiWeeklySummaryReport>>> GetWeeklySummaryReportsV1(
         [FromRoute] string sapDepartmentId, ODataQueryParams query)
     {
@@ -44,7 +45,7 @@ public class SummaryReportsController : BaseController
         #endregion
 
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return BadRequest("SapDepartmentId route parameter is required");
+            return SapDepartmentIdRequired();
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
@@ -55,12 +56,16 @@ public class SummaryReportsController : BaseController
             .FromQueryCollection(queryReports, ApiWeeklySummaryReport.FromQuerySummaryReport));
     }
 
+    /// <summary>
+    ///     Summary report key is composed of the department sap id and the period date.
+    ///     If a report already exists for the given period, it will be replaced.
+    /// </summary>
     [HttpPut("resource-owners-summary-reports/{sapDepartmentId}/weekly")]
-    [Produces(MediaTypeNames.Application.Json)]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutWeeklySummaryReportV1([FromRoute] string sapDepartmentId,
         [FromBody] PutWeeklySummaryReportRequest request)
     {
@@ -79,18 +84,18 @@ public class SummaryReportsController : BaseController
         #endregion
 
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return BadRequest("SapDepartmentId route parameter is required");
+            return SapDepartmentIdRequired();
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
 
         if (request.Period.DayOfWeek != DayOfWeek.Monday)
-            return BadRequest("Period date must be the first day of the week");
+            return FusionApiError.InvalidOperation("InvalidPeriod", "Weekly summary report period date must be a monday");
 
         var command = new PutWeeklySummaryReport(sapDepartmentId, request);
 
-        await DispatchAsync(command);
+        var newReportCreated = await DispatchAsync(command);
 
-        return NoContent();
+        return newReportCreated ? Created(Request.GetUri(), null) : NoContent();
     }
 }
