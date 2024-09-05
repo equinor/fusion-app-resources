@@ -51,9 +51,16 @@ public class WeeklyDepartmentSummarySender
         };
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
-        await Parallel.ForEachAsync(departments, options, async (department, ct) =>
+        await Parallel.ForEachAsync(departments, options, async (department, _) => await CreateAndSendNotificationsAsync(department));
+    }
+
+    private async Task CreateAndSendNotificationsAsync(ApiResourceOwnerDepartment department)
+    {
+        ApiWeeklySummaryReport summaryReport;
+
+        try
         {
-            var summaryReport = await summaryApiClient.GetLatestWeeklyReportAsync(department.DepartmentSapId, ct);
+            summaryReport = await summaryApiClient.GetLatestWeeklyReportAsync(department.DepartmentSapId);
 
             if (summaryReport is null)
             {
@@ -62,28 +69,39 @@ public class WeeklyDepartmentSummarySender
                     JsonConvert.SerializeObject(department, Formatting.Indented));
                 return;
             }
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to get summary report for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+            return;
+        }
 
-            SendNotificationsRequest notification;
+        SendNotificationsRequest notification;
+        try
+        {
+            notification = CreateNotification(summaryReport, department);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to create notification for department {DepartmentSapId} | Report {Report}", department.DepartmentSapId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+            return;
+        }
+
+        var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId).Distinct();
+
+        foreach (var azureId in reportReceivers)
+        {
             try
-            {
-                notification = CreateNotification(summaryReport, department);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Failed to create notification for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
-                // Don't stop the entire execution if one notification fails
-                return;
-            }
-
-            var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId).Distinct();
-
-            foreach (var azureId in reportReceivers)
             {
                 var result = await notificationApiClient.SendNotification(notification, azureId);
                 if (!result)
                     logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
             }
-        });
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+            }
+        }
     }
 
 

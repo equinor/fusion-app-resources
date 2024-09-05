@@ -109,11 +109,26 @@ public class DepartmentResourceOwnerSync
 
         foreach (var department in apiDepartments)
         {
-            // Update the database
-            await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
+            try
+            {
+                // Update the database
+                await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to PUT department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+                continue;
+            }
 
-            // Send queue message
-            await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
+            try
+            {
+                // Send queue message
+                await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to send department to queue {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+            }
         }
     }
 
