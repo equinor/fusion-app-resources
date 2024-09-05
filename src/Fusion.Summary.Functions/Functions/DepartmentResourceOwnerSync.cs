@@ -22,6 +22,7 @@ public class DepartmentResourceOwnerSync
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
+    private string[] _departmentFilter;
     private TimeSpan _totalBatchTime;
 
     public DepartmentResourceOwnerSync(
@@ -38,6 +39,7 @@ public class DepartmentResourceOwnerSync
 
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _weeklySummaryQueueName = configuration["department_summary_weekly_queue"];
+        _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
 
         var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
 
@@ -74,7 +76,7 @@ public class DepartmentResourceOwnerSync
         var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
             .DistinctBy(d => d.SapId)
             .Where(d => d.FullDepartment != null && d.SapId != null)
-            .Where(d => d.FullDepartment!.Contains("PRD"))
+            .Where(d => _departmentFilter.Any(df => d.FullDepartment.Contains(df)))
             .Where(d => d.Management.Persons.Length > 0);
 
 

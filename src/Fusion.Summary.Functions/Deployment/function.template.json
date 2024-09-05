@@ -9,6 +9,7 @@
       "type": "object",
       "defaultValue": {
         "clientId": "",
+        "departmentFilter": "",
         "secretIds": {
           "clientSecret": "",
           "serviceBus": ""
@@ -168,6 +169,10 @@
             {
               "name": "department_summary_weekly_queue",
               "value": "[parameters('settings').queues.departmentSummaryWeeklyQueue]"
+            },
+            {
+              "name": "departmentFilter",
+              "value": "[parameters('settings').departmentFilter]"
             }
           ]
         }
