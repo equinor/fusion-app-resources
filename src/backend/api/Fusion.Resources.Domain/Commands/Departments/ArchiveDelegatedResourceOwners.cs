@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Commands.Departments;
 
+/// Archive delegated resource owners for the department and remove their roles.
 public class ArchiveDelegatedResourceOwners : TrackableRequest
 {
     public LineOrgId DepartmentId { get; private init; }
@@ -25,7 +26,8 @@ public class ArchiveDelegatedResourceOwners : TrackableRequest
         DepartmentId = departmentId;
     }
 
-    public ArchiveDelegatedResourceOwners WhenResourceOwners(ICollection<Guid> resourceOwners)
+    /// Only archive the resource owners with the provided Azure Object Ids
+    public ArchiveDelegatedResourceOwners WhereResourceOwnersAzureId(ICollection<Guid> resourceOwners)
     {
         ArgumentNullException.ThrowIfNull(resourceOwners);
         ResourceOwnersToArchive = resourceOwners;
