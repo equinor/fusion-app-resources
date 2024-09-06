@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Commands.Departments;
 
 namespace Fusion.Resources.Domain.Notifications.System;
 
@@ -20,55 +21,25 @@ public partial class OrgUnitDeleted
     public class ArchiveDelegatedResourceOwnersHandler : INotificationHandler<OrgUnitDeleted>
     {
         private readonly ILogger<ArchiveDelegatedResourceOwnersHandler> logger;
-        private readonly ResourcesDbContext db;
-        private readonly IFusionRolesClient rolesClient;
+        private readonly IMediator mediator;
 
-
-        public ArchiveDelegatedResourceOwnersHandler(ILogger<ArchiveDelegatedResourceOwnersHandler> logger, ResourcesDbContext db, IFusionRolesClient rolesClient)
+        public ArchiveDelegatedResourceOwnersHandler(ILogger<ArchiveDelegatedResourceOwnersHandler> logger, IMediator mediator)
         {
             this.logger = logger;
-            this.db = db;
-            this.rolesClient = rolesClient;
+            this.mediator = mediator;
         }
 
         public async Task Handle(OrgUnitDeleted notification, CancellationToken cancellationToken)
         {
-            var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
-                .Where(r => r.DepartmentId == notification.FullDepartment)
-                .ToListAsync(cancellationToken);
+            logger.LogInformation("Archiving delegated resource owners for deleted department {FullDepartment}", notification.FullDepartment);
 
-            if (delegatedResourceOwners.Count == 0)
-                return;
+            using var systemAccountScope = mediator.SystemAccountScope();
 
-            logger.LogInformation("Archiving {Count} delegated resource owners for deleted department {FullDepartment}", delegatedResourceOwners.Count, notification.FullDepartment);
-
-
-            foreach (var resourceOwner in delegatedResourceOwners)
+            await mediator.Send(new ArchiveDelegatedResourceOwners(new LineOrgId()
             {
-                try
-                {
-                    await rolesClient.DeleteRolesAsync(
-                        new PersonIdentifier(resourceOwner.ResponsibleAzureObjectId),
-                        q => q.WhereRoleName(AccessRoles.ResourceOwner).WhereScopeValue(notification.FullDepartment)
-                    );
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Failed to delete role for delegated resource owner {AzureUniqueId} in department {FullDepartment}", resourceOwner.ResponsibleAzureObjectId, notification.FullDepartment);
-                    // TODO: Should we stop the execution here? Use transactions?
-                    // throw;
-                }
-            }
-
-
-            db.DelegatedDepartmentResponsibles.RemoveRange(delegatedResourceOwners);
-
-            var archivedDelegateResourceOwners = delegatedResourceOwners
-                .Select(res => new DbDelegatedDepartmentResponsibleHistory(res));
-
-            db.DelegatedDepartmentResponsiblesHistory.AddRange(archivedDelegateResourceOwners);
-
-            await db.SaveChangesAsync(CancellationToken.None);
+                FullDepartment = notification.FullDepartment,
+                SapId = notification.SapId
+            }), cancellationToken);
         }
     }
 }
