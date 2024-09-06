@@ -7,7 +7,8 @@ namespace Fusion.Resources.Database.Entities;
 public class DbDelegatedDepartmentResponsibleHistory
 {
     public Guid Id { get; set; }
-    [MaxLength(200)] public string DepartmentId { get; set; } = null!;
+    [MaxLength(200)]
+    public string DepartmentId { get; set; } = null!;
     public Guid ResponsibleAzureObjectId { get; set; }
     public DateTimeOffset DateFrom { get; set; }
     public DateTimeOffset DateTo { get; set; }
