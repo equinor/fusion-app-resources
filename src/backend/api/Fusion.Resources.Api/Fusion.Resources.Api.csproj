@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Data\personnel-import-template.xlsx" />
   </ItemGroup>
+  
   <ItemGroup>
     <EmbeddedResource Include="Data\personnel-import-template.xlsx" />
   </ItemGroup>
