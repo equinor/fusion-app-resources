@@ -9,6 +9,7 @@ using Fusion.Summary.Functions.CardBuilder;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using static Fusion.Summary.Functions.CardBuilder.AdaptiveCardBuilder;
 
 namespace Fusion.Summary.Functions.Functions;
@@ -16,24 +17,25 @@ namespace Fusion.Summary.Functions.Functions;
 public class WeeklyDepartmentSummarySender
 {
     private readonly ISummaryApiClient summaryApiClient;
-    private readonly IResourcesApiClient resourcesApiClient;
     private readonly INotificationApiClient notificationApiClient;
     private readonly ILogger<WeeklyDepartmentSummarySender> logger;
     private readonly IConfiguration configuration;
 
+    private int _maxDegreeOfParallelism;
 
     public WeeklyDepartmentSummarySender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
-        ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration, IResourcesApiClient resourcesApiClient)
+        ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration)
     {
         this.summaryApiClient = summaryApiClient;
         this.notificationApiClient = notificationApiClient;
         this.logger = logger;
         this.configuration = configuration;
-        this.resourcesApiClient = resourcesApiClient;
+
+        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
     }
 
     [FunctionName("weekly-department-summary-sender")]
-    public async Task RunAsync([TimerTrigger("0 0 8 * * 1", RunOnStartup = false)] TimerInfo timerInfo)
+    public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
         var departments = await summaryApiClient.GetDepartmentsAsync();
 
@@ -45,42 +47,61 @@ public class WeeklyDepartmentSummarySender
 
         var options = new ParallelOptions()
         {
-            MaxDegreeOfParallelism = 10
+            MaxDegreeOfParallelism = _maxDegreeOfParallelism
         };
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
-        await Parallel.ForEachAsync(departments, options, async (department, ct) =>
+        await Parallel.ForEachAsync(departments, options, async (department, _) => await CreateAndSendNotificationsAsync(department));
+    }
+
+    private async Task CreateAndSendNotificationsAsync(ApiResourceOwnerDepartment department)
+    {
+        ApiWeeklySummaryReport summaryReport;
+
+        try
         {
-            var summaryReport = await summaryApiClient.GetLatestWeeklyReportAsync(department.DepartmentSapId, ct);
+            summaryReport = await summaryApiClient.GetLatestWeeklyReportAsync(department.DepartmentSapId);
 
             if (summaryReport is null)
             {
                 logger.LogCritical(
-                    "No summary report found for department {@Department}. Unable to send report notification",
-                    department);
+                    "No summary report found for department {Department}. Unable to send report notification",
+                    JsonConvert.SerializeObject(department, Formatting.Indented));
                 return;
             }
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to get summary report for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+            return;
+        }
 
-            SendNotificationsRequest notification;
+        SendNotificationsRequest notification;
+        try
+        {
+            notification = CreateNotification(summaryReport, department);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to create notification for department {DepartmentSapId} | Report {Report}", department.DepartmentSapId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+            return;
+        }
+
+        var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId).Distinct();
+
+        foreach (var azureId in reportReceivers)
+        {
             try
-            {
-                notification = CreateNotification(summaryReport, department);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Failed to create notification for department {@Department}", department);
-                throw;
-            }
-
-            var reportReceivers = department.ResourceOwnersAzureUniqueId.Concat(department.DelegateResourceOwnersAzureUniqueId);
-
-            foreach (var azureId in reportReceivers)
             {
                 var result = await notificationApiClient.SendNotification(notification, azureId);
                 if (!result)
-                    logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {@ReportId}", azureId, summaryReport);
+                    logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
             }
-        });
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+            }
+        }
     }
 
 
@@ -135,8 +156,8 @@ public class WeeklyDepartmentSummarySender
                 "Capacity in use",
                 "%")
             .AddTextRow(
-                    report.NumberOfRequestsLastPeriod,
-                    "New requests last week")
+                report.NumberOfRequestsLastPeriod,
+                "New requests last week")
             .AddTextRow(
                 report.NumberOfOpenRequests,
                 "Open requests")

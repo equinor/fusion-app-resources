@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Commands;
 
-public class PutWeeklySummaryReport : IRequest
+public class PutWeeklySummaryReport : IRequest<bool>
 {
     public string SapDepartmentId { get; private set; }
 
@@ -20,7 +20,7 @@ public class PutWeeklySummaryReport : IRequest
     }
 
 
-    public class Handler : IRequestHandler<PutWeeklySummaryReport>
+    public class Handler : IRequestHandler<PutWeeklySummaryReport, bool>
     {
         private readonly SummaryDbContext _dbContext;
 
@@ -29,7 +29,7 @@ public class PutWeeklySummaryReport : IRequest
             _dbContext = dbContext;
         }
 
-        public async Task Handle(PutWeeklySummaryReport request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(PutWeeklySummaryReport request, CancellationToken cancellationToken)
         {
             if (!await _dbContext.Departments.AnyAsync(d => d.DepartmentSapId == request.SapDepartmentId,
                     cancellationToken: cancellationToken))
@@ -83,6 +83,9 @@ public class PutWeeklySummaryReport : IRequest
             _dbContext.WeeklySummaryReports.Add(dbSummaryReport);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // return true if a new report was created
+            return existingReport is null;
         }
     }
 }
