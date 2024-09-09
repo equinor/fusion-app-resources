@@ -76,7 +76,7 @@ public class SummaryReportTests : TestBase
         {
             var nowDate = DateTime.UtcNow;
             if (nowDate.DayOfWeek == DayOfWeek.Monday)
-                report.Period = nowDate.AddDays(1);
+                nowDate = nowDate.AddDays(1);
             report.Period = nowDate;
         });
 
