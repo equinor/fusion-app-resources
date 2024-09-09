@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.6"/>
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\api\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
     <ProjectReference Include="..\api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
