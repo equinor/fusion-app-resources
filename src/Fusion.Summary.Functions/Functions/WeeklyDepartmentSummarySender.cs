@@ -22,6 +22,7 @@ public class WeeklyDepartmentSummarySender
     private readonly IConfiguration configuration;
 
     private int _maxDegreeOfParallelism;
+    private readonly string[] _departmentFilter;
 
     public WeeklyDepartmentSummarySender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
         ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration)
@@ -32,12 +33,15 @@ public class WeeklyDepartmentSummarySender
         this.configuration = configuration;
 
         _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
+        _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
     }
 
     [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
-        var departments = await summaryApiClient.GetDepartmentsAsync();
+        var departments = (await summaryApiClient.GetDepartmentsAsync())
+            ?.Where(d => _departmentFilter.Any(df => d.FullDepartmentName.Contains(df)))
+            .ToArray();
 
         if (departments is null || !departments.Any())
         {
