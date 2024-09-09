@@ -1,4 +1,6 @@
-﻿namespace Fusion.Resources.Functions.Common.ApiClients;
+﻿using System.Diagnostics;
+
+namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public interface ISummaryApiClient
 {
@@ -24,6 +26,7 @@ public interface ISummaryApiClient
 // TODO: Move to shared project
 // Fusion.Resources.Integration.Models ?
 
+[DebuggerDisplay("{DepartmentSapId} - {FullDepartmentName}")]
 public class ApiResourceOwnerDepartment
 {
     public ApiResourceOwnerDepartment()
