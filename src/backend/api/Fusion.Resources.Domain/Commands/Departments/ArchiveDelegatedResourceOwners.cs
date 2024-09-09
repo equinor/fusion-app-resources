@@ -52,26 +52,22 @@ public class ArchiveDelegatedResourceOwners : TrackableRequest
                 .Where(r => request.ResourceOwnersToArchive == null || request.ResourceOwnersToArchive.Contains(r.ResponsibleAzureObjectId))
                 .ToListAsync(cancellationToken);
 
-            if (delegatedResourceOwnersToArchive.Count == 0)
-                return;
-
             foreach (var resourceOwner in delegatedResourceOwnersToArchive)
             {
                 await rolesClient.DeleteRolesAsync(
                     new PersonIdentifier(resourceOwner.ResponsibleAzureObjectId),
                     q => q.WhereRoleName(AccessRoles.ResourceOwner).WhereScopeValue(request.DepartmentId.FullDepartment)
                 );
+
+                db.DelegatedDepartmentResponsibles.Remove(resourceOwner);
+
+                var archivedDelegateResourceOwner = new DbDelegatedDepartmentResponsibleHistory(resourceOwner);
+
+                db.DelegatedDepartmentResponsiblesHistory.Add(archivedDelegateResourceOwner);
+
+                await db.SaveChangesAsync(CancellationToken.None);
+                cancellationToken.ThrowIfCancellationRequested();
             }
-
-
-            db.DelegatedDepartmentResponsibles.RemoveRange(delegatedResourceOwnersToArchive);
-
-            var archivedDelegateResourceOwners = delegatedResourceOwnersToArchive
-                .Select(res => new DbDelegatedDepartmentResponsibleHistory(res));
-
-            db.DelegatedDepartmentResponsiblesHistory.AddRange(archivedDelegateResourceOwners);
-
-            await db.SaveChangesAsync(CancellationToken.None);
         }
     }
 }
