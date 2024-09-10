@@ -76,7 +76,7 @@ public class WeeklyDepartmentSummarySender
 
             if (summaryReport is null)
             {
-                logger.LogInformation(
+                logger.LogWarning(
                     "No summary report found for department {Department}. Unable to send report notification",
                     JsonConvert.SerializeObject(department, Formatting.Indented));
                 return;
