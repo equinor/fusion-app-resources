@@ -78,11 +78,10 @@ public class DepartmentResourceOwnerSync
         var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
             .DistinctBy(d => d.SapId)
             .Where(d => d.FullDepartment != null && d.SapId != null)
-            .Where(d => d.Management.Persons.Length > 0)
-            .ToArray();
+            .Where(d => d.Management.Persons.Length > 0);
 
         if (_departmentFilter.Length != 0)
-            departments = departments.Where(d => _departmentFilter.Any(df => d.FullDepartment!.Contains(df))).ToArray();
+            departments = departments.Where(d => _departmentFilter.Any(df => d.FullDepartment!.Contains(df)));
 
         logger.LogInformation("Found departments {Departments}", JsonConvert.SerializeObject(departments, Formatting.Indented));
 
