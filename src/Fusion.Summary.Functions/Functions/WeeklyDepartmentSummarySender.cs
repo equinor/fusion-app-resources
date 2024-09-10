@@ -39,11 +39,17 @@ public class WeeklyDepartmentSummarySender
     [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
-        var departments = (await summaryApiClient.GetDepartmentsAsync())
-            ?.Where(d => _departmentFilter.Any(df => d.FullDepartmentName.Contains(df)))
-            .ToArray();
+        logger.LogInformation("weekly-department-summary-sender started with department filter {DepartmentFilter}", JsonConvert.SerializeObject(_departmentFilter, Formatting.Indented));
 
-        if (departments is null || !departments.Any())
+        // TODO: Use OData query to filter departments
+        var departments = await summaryApiClient.GetDepartmentsAsync();
+
+        if (_departmentFilter.Length != 0)
+        {
+            departments = departments?.Where(d => _departmentFilter.Contains(d.DepartmentSapId)).ToArray();
+        }
+
+        if (departments is null || departments.Count == 0)
         {
             logger.LogCritical("No departments found. Exiting");
             return;
@@ -56,6 +62,8 @@ public class WeeklyDepartmentSummarySender
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
         await Parallel.ForEachAsync(departments, options, async (department, _) => await CreateAndSendNotificationsAsync(department));
+
+        logger.LogInformation("weekly-department-summary-sender completed");
     }
 
     private async Task CreateAndSendNotificationsAsync(ApiResourceOwnerDepartment department)
@@ -68,7 +76,7 @@ public class WeeklyDepartmentSummarySender
 
             if (summaryReport is null)
             {
-                logger.LogCritical(
+                logger.LogInformation(
                     "No summary report found for department {Department}. Unable to send report notification",
                     JsonConvert.SerializeObject(department, Formatting.Indented));
                 return;
@@ -76,7 +84,7 @@ public class WeeklyDepartmentSummarySender
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to get summary report for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+            logger.LogCritical(e, "Failed to get summary report for department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
             return;
         }
 
@@ -87,7 +95,7 @@ public class WeeklyDepartmentSummarySender
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to create notification for department {DepartmentSapId} | Report {Report}", department.DepartmentSapId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+            logger.LogCritical(e, "Failed to create notification for department {DepartmentSapId} | Report {Report}", department.DepartmentSapId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
             return;
         }
 
@@ -99,11 +107,11 @@ public class WeeklyDepartmentSummarySender
             {
                 var result = await notificationApiClient.SendNotification(notification, azureId);
                 if (!result)
-                    logger.LogError("Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+                    logger.LogCritical("Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
+                logger.LogCritical(e, "Failed to send notification to user with AzureId {AzureId} | Report {Report}", azureId, JsonConvert.SerializeObject(summaryReport, Formatting.Indented));
             }
         }
     }

@@ -52,7 +52,7 @@ public class DepartmentResourceOwnerSync
         {
             _totalBatchTime = TimeSpan.FromHours(4.5);
 
-            logger.LogWarning("Configuration variable 'total_batch_time_in_minutes' not found, batching messages over {BatchTime}", _totalBatchTime);
+            logger.LogInformation("Configuration variable 'total_batch_time_in_minutes' not found, batching messages over {BatchTime}", _totalBatchTime);
         }
     }
 
@@ -72,13 +72,19 @@ public class DepartmentResourceOwnerSync
         var client = new ServiceBusClient(_serviceBusConnectionString);
         var sender = client.CreateSender(_weeklySummaryQueueName);
 
+        logger.LogInformation("weekly-department-recipients-sync fetching departments with department filter {DepartmentFilter}", JsonConvert.SerializeObject(_departmentFilter, Formatting.Indented));
+
         // Fetch all departments
         var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
             .DistinctBy(d => d.SapId)
             .Where(d => d.FullDepartment != null && d.SapId != null)
-            .Where(d => _departmentFilter.Any(df => d.FullDepartment.Contains(df)))
-            .Where(d => d.Management.Persons.Length > 0);
+            .Where(d => d.Management.Persons.Length > 0)
+            .ToArray();
 
+        if (_departmentFilter.Length != 0)
+            departments = departments.Where(d => _departmentFilter.Any(df => d.FullDepartment!.Contains(df))).ToArray();
+
+        logger.LogInformation("Found departments {Departments}", JsonConvert.SerializeObject(departments, Formatting.Indented));
 
         var apiDepartments = new List<ApiResourceOwnerDepartment>();
 
@@ -113,12 +119,13 @@ public class DepartmentResourceOwnerSync
         {
             try
             {
+                //TODO: Do one batch update instead of individual updates
                 // Update the database
                 await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Failed to PUT department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+                logger.LogCritical(e, "Failed to PUT department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
                 continue;
             }
 
@@ -129,9 +136,11 @@ public class DepartmentResourceOwnerSync
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Failed to send department to queue {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+                logger.LogCritical(e, "Failed to send department to queue {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
             }
         }
+
+        logger.LogInformation("weekly-department-recipients-sync completed");
     }
 
 
@@ -155,6 +164,8 @@ public class DepartmentResourceOwnerSync
     {
         var currentTime = DateTimeOffset.UtcNow;
         var minutesPerReportSlice = _totalBatchTime.TotalMinutes / apiDepartments.Count;
+
+        logger.LogInformation("Minutes allocated for each worker: {MinutesPerReportSlice}", minutesPerReportSlice);
 
         var departmentDelayMapping = new Dictionary<ApiResourceOwnerDepartment, DateTimeOffset>();
         foreach (var department in apiDepartments)
