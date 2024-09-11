@@ -45,9 +45,7 @@ public class WeeklyDepartmentSummarySender
         var departments = await summaryApiClient.GetDepartmentsAsync();
 
         if (_departmentFilter.Length != 0)
-        {
-            departments = departments?.Where(d => _departmentFilter.Contains(d.DepartmentSapId)).ToArray();
-        }
+            departments = departments?.Where(d => _departmentFilter.Any(df => d.FullDepartmentName!.Contains(df))).ToArray();
 
         if (departments is null || departments.Count == 0)
         {
