@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Infrastruc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{3C253096-BCFA-40D7-8C3F-F3F3B3BA4F1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Summary.Functions.Tests", "tests\Fusion.Summary.Functions.Tests\Fusion.Summary.Functions.Tests.csproj", "{F819CC16-861C-4E8E-97FB-4B0928BD8704}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,10 @@ Global
 		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53F9FAF1-EFA4-4951-9693-1E350F6428A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F819CC16-861C-4E8E-97FB-4B0928BD8704}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F819CC16-861C-4E8E-97FB-4B0928BD8704}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F819CC16-861C-4E8E-97FB-4B0928BD8704}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F819CC16-861C-4E8E-97FB-4B0928BD8704}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -193,6 +199,7 @@ Global
 		{0F9CC682-2DD6-4422-A321-D7100780A739} = {286E3C76-C860-4661-9AEF-817458D1231B}
 		{3C253096-BCFA-40D7-8C3F-F3F3B3BA4F1C} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{CC1EF38A-2741-4D92-A33A-3970E6F73797} = {3C253096-BCFA-40D7-8C3F-F3F3B3BA4F1C}
+		{F819CC16-861C-4E8E-97FB-4B0928BD8704} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F47D8FDB-3919-45C8-8C08-486405ECEC01}

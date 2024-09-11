@@ -32,6 +32,7 @@ public class WeeklyDepartmentSummaryWorker
         [ServiceBusTrigger("%department_summary_weekly_queue%", Connection = "AzureWebJobsServiceBus")]
         ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
     {
+        _logger.LogInformation("weekly-department-summary-worker started with message: {MessageBody}", message.Body);
         try
         {
             var dto = await JsonSerializer.DeserializeAsync<ApiResourceOwnerDepartment>(message.Body.ToStream());
@@ -50,6 +51,7 @@ public class WeeklyDepartmentSummaryWorker
         {
             // Complete the message regardless of outcome.
             await messageReceiver.CompleteMessageAsync(message);
+            _logger.LogInformation("weekly-department-summary-worker completed");
         }
     }
 
@@ -66,7 +68,7 @@ public class WeeklyDepartmentSummaryWorker
         // Check if the department has personnel, abort if not
         if (departmentPersonnel.Count == 0)
         {
-            _logger.LogInformation("Department contains no personnel, no need to store report");
+            _logger.LogInformation("Department {Department} contains no valid personnel, no need to store report", message.FullDepartmentName);
             return;
         }
 
