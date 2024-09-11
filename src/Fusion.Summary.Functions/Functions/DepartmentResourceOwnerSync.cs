@@ -77,8 +77,7 @@ public class DepartmentResourceOwnerSync
         // Fetch all departments
         var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
             .DistinctBy(d => d.SapId)
-            .Where(d => d.FullDepartment != null && d.SapId != null)
-            .Where(d => d.Management.Persons.Length > 0);
+            .Where(d => d.FullDepartment != null && d.SapId != null);
 
         if (_departmentFilter.Length != 0)
             departments = departments.Where(d => _departmentFilter.Any(df => d.FullDepartment!.Contains(df)));
@@ -99,6 +98,13 @@ public class DepartmentResourceOwnerSync
                 .Select(d => Guid.Parse(d.DelegatedResponsible.AzureUniquePersonId))
                 .Distinct()
                 .ToArray();
+
+            var recipients = resourceOwners.Concat(delegatedResponsibles).ToArray();
+            if (recipients.Length == 0)
+            {
+                logger.LogInformation("Skipping department {Department} as it has no resource owners or delegated responsibles", orgUnit.FullDepartment);
+                continue;
+            }
 
             apiDepartments.Add(new ApiResourceOwnerDepartment()
             {
