@@ -1,6 +1,6 @@
 [
   {
-    "environment": "pr",
+    "environment": "fprd",
     "disabledFunctions": [
       "weekly-department-recipients-sync",
       "weekly-department-summary-sender",
