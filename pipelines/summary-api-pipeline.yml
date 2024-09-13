@@ -243,7 +243,7 @@ stages:
                   action: deploy
                   manifests: $(deploymentManifest)
 
-              - template: templates/deploy-container-app.yml
+              - template: templates/deploy-summary-container-app.yml
                 parameters:
                   azureSubscription: $(subscriptionServiceProd)
                   environment: $(envName)

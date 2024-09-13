@@ -2,5 +2,29 @@
   {
     "environment": "pr",
     "disabledFunctions": []
+  },
+  {
+    "environment": "ci",
+    "disabledFunctions": [
+      "weekly-department-recipients-sync",
+      "weekly-department-summary-sender",
+      "weekly-department-summary-worker"
+    ]
+  },
+  {
+    "environment": "fqa",
+    "disabledFunctions": [
+      "weekly-department-recipients-sync",
+      "weekly-department-summary-sender",
+      "weekly-department-summary-worker"
+    ]
+  },
+  {
+    "environment": "fprd",
+    "disabledFunctions": [
+      "weekly-department-recipients-sync",
+      "weekly-department-summary-sender",
+      "weekly-department-summary-worker"
+    ]
   }
 ]
