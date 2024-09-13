@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Roles;
 
 namespace Fusion.Resources.Test.Core
 {
@@ -50,6 +51,7 @@ namespace Fusion.Resources.Test.Core
             services.AddSingleton(new Mock<IProjectOrgResolver>(MockBehavior.Loose).Object);
             services.AddSingleton(new Mock<IFusionProfileResolver>(MockBehavior.Loose).Object);
             services.AddSingleton(new Mock<IOrgApiClientFactory>(MockBehavior.Loose).Object);
+            services.AddSingleton(new Mock<IFusionRolesClient>(MockBehavior.Loose).Object);
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TestTrackableRequestBehaviour<,>));
 

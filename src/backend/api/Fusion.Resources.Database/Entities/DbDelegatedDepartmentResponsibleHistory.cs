@@ -18,6 +18,24 @@ public class DbDelegatedDepartmentResponsibleHistory
     public Guid? UpdatedBy { get; set; }
     public string? Reason { get; set; }
 
+    public DbDelegatedDepartmentResponsibleHistory()
+    {
+    }
+
+    public DbDelegatedDepartmentResponsibleHistory(DbDelegatedDepartmentResponsible dbDelegatedDepartmentResponsible)
+    {
+        Id = Guid.NewGuid();
+        Archived = DateTimeOffset.UtcNow;
+        DepartmentId = dbDelegatedDepartmentResponsible.DepartmentId;
+        ResponsibleAzureObjectId = dbDelegatedDepartmentResponsible.ResponsibleAzureObjectId;
+        DateFrom = dbDelegatedDepartmentResponsible.DateFrom;
+        DateTo = dbDelegatedDepartmentResponsible.DateTo;
+        DateCreated = dbDelegatedDepartmentResponsible.DateCreated;
+        DateUpdated = dbDelegatedDepartmentResponsible.DateUpdated;
+        UpdatedBy = dbDelegatedDepartmentResponsible.UpdatedBy;
+        Reason = dbDelegatedDepartmentResponsible.Reason;
+    }
+
 
     internal static void OnModelCreating(ModelBuilder modelBuilder)
     {

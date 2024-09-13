@@ -90,19 +90,7 @@ namespace Fusion.Resources.Api.HostedServices
 
             db.DelegatedDepartmentResponsibles.RemoveRange(toExpire);
 
-            var expiredRecords = toExpire.Select(x => new DbDelegatedDepartmentResponsibleHistory
-            {
-                Id = Guid.NewGuid(),
-                Archived = DateTimeOffset.UtcNow,
-                DateTo = x.DateTo,
-                DepartmentId = x.DepartmentId,
-                ResponsibleAzureObjectId = x.ResponsibleAzureObjectId,
-                DateCreated = x.DateCreated,
-                DateFrom = x.DateFrom,
-                DateUpdated = x.DateUpdated,
-                Reason = x.Reason,
-                UpdatedBy = x.UpdatedBy
-            });
+            var expiredRecords = toExpire.Select(x => new DbDelegatedDepartmentResponsibleHistory(x));
             await db.DelegatedDepartmentResponsiblesHistory.AddRangeAsync(expiredRecords);
             await db.SaveChangesAsync();
         }
