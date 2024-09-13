@@ -23,6 +23,7 @@ public class WeeklyDepartmentSummarySender
 
     private int _maxDegreeOfParallelism;
     private readonly string[] _departmentFilter;
+    private bool _sendingNotificationEnabled = true; // Default to true so that we don't accidentally disable sending notifications
 
     public WeeklyDepartmentSummarySender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
         ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration)
@@ -34,12 +35,22 @@ public class WeeklyDepartmentSummarySender
 
         _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
         _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
+
+        // Need to explicitly add the configuration key to the app settings to enable/disable sending of notifications
+        if (int.TryParse(configuration["isSendingNotificationEnabled"], out var enabled))
+            _sendingNotificationEnabled = enabled == 1;
+        else if (bool.TryParse(configuration["isSendingNotificationEnabled"], out var enabledBool))
+            _sendingNotificationEnabled = enabledBool;
     }
 
     [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
         logger.LogInformation("weekly-department-summary-sender started with department filter {DepartmentFilter}", JsonConvert.SerializeObject(_departmentFilter, Formatting.Indented));
+
+        if (!_sendingNotificationEnabled)
+            logger.LogInformation("Sending of notifications is disabled");
+
 
         // TODO: Use OData query to filter departments
         var departments = await summaryApiClient.GetDepartmentsAsync();
@@ -101,6 +112,12 @@ public class WeeklyDepartmentSummarySender
 
         foreach (var azureId in reportReceivers)
         {
+            if (!_sendingNotificationEnabled)
+            {
+                logger.LogInformation("Sending of notifications is disabled. Skipping sending notification to user with AzureId {AzureId} for department {FullDepartmentName}", azureId, department.FullDepartmentName);
+                continue;
+            }
+
             try
             {
                 var result = await notificationApiClient.SendNotification(notification, azureId);
