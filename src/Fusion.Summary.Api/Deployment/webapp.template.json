@@ -41,8 +41,8 @@
         "fusion-env-name": "[toLower(parameters('fusion-env-name'))]",
         "location": "[resourceGroup().location]",
         "api-name": "[concat('fap-summary-api-', variables('env-name'))]",
-        "keyvault-name": "[concat('kv-fap-summary-', variables('env-name'))]",
-        "ai-api-name": "[concat('ai-fap-summary-', variables('env-name'))]"
+        "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
+        "ai-api-name": "[concat('ai-fap-resources-', variables('env-name'))]"
     },
     "resources": [   
         /* API SERVICE */      
@@ -142,7 +142,7 @@
                 ]
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Web/Sites', variables('api-name'))]"
+                "[resourceId('Microsoft.Web/sites', variables('api-name'))]"
             ]
         }
     ]
