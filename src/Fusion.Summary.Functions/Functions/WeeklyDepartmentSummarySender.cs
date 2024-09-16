@@ -23,6 +23,7 @@ public class WeeklyDepartmentSummarySender
 
     private int _maxDegreeOfParallelism;
     private readonly string[] _departmentFilter;
+    private bool _sendingNotificationEnabled = true; // Default to true so that we don't accidentally disable sending notifications
 
     public WeeklyDepartmentSummarySender(ISummaryApiClient summaryApiClient, INotificationApiClient notificationApiClient,
         ILogger<WeeklyDepartmentSummarySender> logger, IConfiguration configuration)
@@ -34,12 +35,39 @@ public class WeeklyDepartmentSummarySender
 
         _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
         _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
+
+        // Need to explicitly add the configuration key to the app settings to disable sending of notifications
+        if (int.TryParse(configuration["isSendingNotificationEnabled"], out var enabled))
+            _sendingNotificationEnabled = enabled == 1;
+        else if (bool.TryParse(configuration["isSendingNotificationEnabled"], out var enabledBool))
+            _sendingNotificationEnabled = enabledBool;
     }
 
+    /// <summary>
+    ///     This function retrieves the latest weekly summary report for each department and sends a notification to the
+    ///     resource owners and delegate resource owners.
+    ///     <para>
+    ///         Set the configuration key <c>departmentFilter</c> to filter the departments to send notifications to. Is set to
+    ///         ["PRD"] by default.
+    ///     </para>
+    ///     <para>
+    ///         Set the configuration key <c>isSendingNotificationEnabled</c> to true/false or 1/0 to enable/disable sending of notifications. Is
+    ///         true by default. If disabled the function will log a message and skip sending notifications.
+    ///     </para>
+    ///     <para>
+    ///         Set the configuration key <c>weekly-department-summary-sender-parallelism</c> to control the number of
+    ///         notifications to send in parallel.
+    ///         Be mindful that the notification API might struggle with too many parallel requests. Default is 2.
+    ///     </para>
+    /// </summary>
     [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
         logger.LogInformation("weekly-department-summary-sender started with department filter {DepartmentFilter}", JsonConvert.SerializeObject(_departmentFilter, Formatting.Indented));
+
+        if (!_sendingNotificationEnabled)
+            logger.LogInformation("Sending of notifications is disabled");
+
 
         // TODO: Use OData query to filter departments
         var departments = await summaryApiClient.GetDepartmentsAsync();
@@ -74,6 +102,7 @@ public class WeeklyDepartmentSummarySender
 
             if (summaryReport is null)
             {
+                // There can be valid cases where there is no summary report for a department. E.g. if the department has no personnel
                 logger.LogWarning(
                     "No summary report found for department {Department}. Unable to send report notification",
                     JsonConvert.SerializeObject(department, Formatting.Indented));
@@ -101,6 +130,12 @@ public class WeeklyDepartmentSummarySender
 
         foreach (var azureId in reportReceivers)
         {
+            if (!_sendingNotificationEnabled)
+            {
+                logger.LogInformation("Sending of notifications is disabled. Skipping sending notification to user with AzureId {AzureId} for department {FullDepartmentName}", azureId, department.FullDepartmentName);
+                continue;
+            }
+
             try
             {
                 var result = await notificationApiClient.SendNotification(notification, azureId);

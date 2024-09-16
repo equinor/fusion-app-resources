@@ -10,7 +10,17 @@
   },
   "logging": {
     "logLevel": {
-      "default": "Information"
+      "default": "Information",
+      "System.Net.Http.HttpClient.App.Resources.LogicalHandler": "Warning",
+      "Fusion.Resources.Functions.Common.Integration.Http.Handlers.ResourcesHttpHandler": "Warning",
+      "System.Net.Http.HttpClient.App.Summary.LogicalHandler": "Warning",
+      "Fusion.Resources.Functions.Common.Integration.Http.Handlers.SummaryHttpHandler": "Warning"
+    },
+    "applicationInsights": {
+      "samplingSettings": {
+        "maxTelemetryItemsPerSecond": 40,
+        "excludedTypes": "Exception;Request"
+      }
     }
   }
 }
