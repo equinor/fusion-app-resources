@@ -51,8 +51,8 @@ public class WeeklyDepartmentSummarySender
     ///         ["PRD"] by default.
     ///     </para>
     ///     <para>
-    ///         Set the configuration key <c>isSendingNotificationEnabled</c> to true/false or 1/0 sending of notifications. Is
-    ///         true by default.
+    ///         Set the configuration key <c>isSendingNotificationEnabled</c> to true/false or 1/0 to enable/disable sending of notifications. Is
+    ///         true by default. If disabled the function will log a message and skip sending notifications.
     ///     </para>
     ///     <para>
     ///         Set the configuration key <c>weekly-department-summary-sender-parallelism</c> to control the number of
