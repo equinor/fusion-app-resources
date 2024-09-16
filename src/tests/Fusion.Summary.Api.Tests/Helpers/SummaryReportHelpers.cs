@@ -58,7 +58,7 @@ public static class SummaryReportHelpers
                         FullName = i.ToString(),
                         FTE = i
                     };
-                })
+                }).Concat([new ApiPersonnelMoreThan100PercentFTE() { FullName = "DoubleValue", FTE = 6.21 }])
                 .ToArray()
         };
 
