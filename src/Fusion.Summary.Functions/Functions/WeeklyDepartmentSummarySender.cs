@@ -36,13 +36,30 @@ public class WeeklyDepartmentSummarySender
         _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
         _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
 
-        // Need to explicitly add the configuration key to the app settings to enable/disable sending of notifications
+        // Need to explicitly add the configuration key to the app settings to disable sending of notifications
         if (int.TryParse(configuration["isSendingNotificationEnabled"], out var enabled))
             _sendingNotificationEnabled = enabled == 1;
         else if (bool.TryParse(configuration["isSendingNotificationEnabled"], out var enabledBool))
             _sendingNotificationEnabled = enabledBool;
     }
 
+    /// <summary>
+    ///     This function retrieves the latest weekly summary report for each department and sends a notification to the
+    ///     resource owners and delegate resource owners.
+    ///     <para>
+    ///         Set the configuration key <c>departmentFilter</c> to filter the departments to send notifications to. Is set to
+    ///         ["PRD"] by default.
+    ///     </para>
+    ///     <para>
+    ///         Set the configuration key <c>isSendingNotificationEnabled</c> to true/false or 1/0 sending of notifications. Is
+    ///         true by default.
+    ///     </para>
+    ///     <para>
+    ///         Set the configuration key <c>weekly-department-summary-sender-parallelism</c> to control the number of
+    ///         notifications to send in parallel.
+    ///         Be mindful that the notification API might struggle with too many parallel requests. Default is 2.
+    ///     </para>
+    /// </summary>
     [FunctionName("weekly-department-summary-sender")]
     public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo)
     {
@@ -85,6 +102,7 @@ public class WeeklyDepartmentSummarySender
 
             if (summaryReport is null)
             {
+                // There can be valid cases where there is no summary report for a department. E.g. if the department has no personnel
                 logger.LogWarning(
                     "No summary report found for department {Department}. Unable to send report notification",
                     JsonConvert.SerializeObject(department, Formatting.Indented));
