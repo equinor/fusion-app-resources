@@ -10,7 +10,7 @@ namespace Fusion.Resources.Functions.Common.Integration.Http.Handlers
         private readonly IOptions<HttpClientsOptions> options;
 
         public SummaryHttpHandler(ILoggerFactory logger, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery, IOptions<HttpClientsOptions> options)
-            : base(logger.CreateLogger<OrgHttpHandler>(), tokenProvider, serviceDiscovery)
+            : base(logger.CreateLogger<SummaryHttpHandler>(), tokenProvider, serviceDiscovery)
         {
             this.options = options;
         }
