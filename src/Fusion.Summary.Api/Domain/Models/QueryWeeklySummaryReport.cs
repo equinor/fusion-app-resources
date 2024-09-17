@@ -95,7 +95,7 @@ public class QueryWeeklySummaryReport
 public class PersonnelMoreThan100PercentFTE
 {
     public required string FullName { get; set; }
-    public required int FTE { get; set; }
+    public required double FTE { get; set; }
 }
 
 public class EndingPosition
