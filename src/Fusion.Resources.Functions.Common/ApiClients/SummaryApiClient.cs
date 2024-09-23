@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Fusion.Resources.Functions.Common.Extensions;
-using Fusion.Resources.Functions.Common.Integration.Http;
+using Fusion.Resources.Functions.Common.Integration.Errors;
+using HttpClientNames = Fusion.Resources.Functions.Common.Integration.Http.HttpClientNames;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
 
@@ -25,8 +26,10 @@ public class SummaryApiClient : ISummaryApiClient
         using var body = new JsonContent(JsonSerializer.Serialize(department, jsonSerializerOptions));
 
         // Error logging is handled by http middleware => FunctionHttpMessageHandler
-        using var _ = await summaryClient.PutAsync($"departments/{department.DepartmentSapId}", body,
+        using var response = await summaryClient.PutAsync($"departments/{department.DepartmentSapId}", body,
             cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
     }
 
     public async Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
@@ -34,8 +37,7 @@ public class SummaryApiClient : ISummaryApiClient
     {
         using var response = await summaryClient.GetAsync("departments", cancellationToken);
 
-        if (!response.IsSuccessStatusCode)
-            return null;
+        await ThrowIfUnsuccessfulAsync(response);
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
@@ -50,14 +52,17 @@ public class SummaryApiClient : ISummaryApiClient
     {
         var lastMonday = DateTime.UtcNow.GetPreviousWeeksMondayDate();
 
-        var queryString =
-            $"resource-owners-summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
+        var queryString = $"resource-owners-summary-reports/{departmentSapId}/weekly?$filter=Period eq '{lastMonday.Date:O}'&$top=1";
 
         using var response = await summaryClient.GetAsync(queryString, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-            return null;
+
+        await ThrowIfUnsuccessfulAsync(response);
+
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+
 
         return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklySummaryReport>>(contentStream,
             jsonSerializerOptions,
@@ -70,7 +75,20 @@ public class SummaryApiClient : ISummaryApiClient
         using var body = new JsonContent(JsonSerializer.Serialize(report, jsonSerializerOptions));
 
         // Error logging is handled by http middleware => FunctionHttpMessageHandler
-        using var _ = await summaryClient.PutAsync($"resource-owners-summary-reports/{departmentSapId}/weekly", body,
+        using var response = await summaryClient.PutAsync($"resource-owners-summary-reports/{departmentSapId}/weekly", body,
             cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+    }
+
+    private async Task ThrowIfUnsuccessfulAsync(HttpResponseMessage response)
+        => await response.ThrowIfUnsuccessfulAsync((responseBody) => new SummaryApiError(response, responseBody));
+}
+
+public class SummaryApiError : ApiError
+{
+    public SummaryApiError(HttpResponseMessage message, string body) :
+        base(message.RequestMessage?.RequestUri?.ToString() ?? "Request URI is null", message.StatusCode, body, "Error from summary api")
+    {
     }
 }
