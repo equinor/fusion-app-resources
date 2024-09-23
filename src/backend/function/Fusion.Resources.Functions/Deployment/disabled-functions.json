@@ -1,8 +1,27 @@
 [
   {
     "environment": "pr",
+    "disabledFunctions": []
+  },
+  {
+    "environment": "ci",
     "disabledFunctions": [
-      
+      "scheduled-report-content-Builder-function",
+      "scheduled-report-timer-trigger-function"
+    ]
+  },
+  {
+    "environment": "fqa",
+    "disabledFunctions": [
+      "scheduled-report-content-Builder-function",
+      "scheduled-report-timer-trigger-function"
+    ]
+  },
+  {
+    "environment": "fprd",
+    "disabledFunctions": [
+      "scheduled-report-content-Builder-function",
+      "scheduled-report-timer-trigger-function"
     ]
   }
 ]
