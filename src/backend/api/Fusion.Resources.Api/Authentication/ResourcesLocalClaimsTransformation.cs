@@ -2,7 +2,10 @@
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Database;
+using Fusion.Resources.Domain;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +17,15 @@ namespace Fusion.Resources.Api.Authentication
     public class ResourcesLocalClaimsTransformation : ILocalClaimsTransformation
     {
         private static Task<IEnumerable<Claim>> noClaims = Task.FromResult<IEnumerable<Claim>>(Array.Empty<Claim>());
+        private readonly ILogger<ResourcesLocalClaimsTransformation> logger;
         private readonly ResourcesDbContext db;
+        private readonly IMediator mediator;
 
-        public ResourcesLocalClaimsTransformation(ResourcesDbContext db)
+        public ResourcesLocalClaimsTransformation(ILogger<ResourcesLocalClaimsTransformation> logger, ResourcesDbContext db, IMediator mediator)
         {
+            this.logger = logger;
             this.db = db;
+            this.mediator = mediator;
         }
 
         public Task<IEnumerable<Claim>> TransformApplicationAsync(ClaimsPrincipal principal, FusionApplicationProfile profile)
@@ -36,15 +43,38 @@ namespace Fusion.Resources.Api.Authentication
             return claims;
         }
 
-        private static Task ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)
+        private async Task ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)
         {
-            if (profile.IsResourceOwner && !string.IsNullOrEmpty(profile.FullDepartment))
-            {
-                claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, profile.FullDepartment));
+            // This will now point to incorrect department. We need to use the roles on the profile, to see scoped manager responsebility.
+            // Leaving in for reference.
+            //if (profile.IsResourceOwner && !string.IsNullOrEmpty(profile.FullDepartment))
+            //{
+            //    claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, profile.FullDepartment));
+            //}
+
+            if (profile.Roles is null) {
+                throw new InvalidOperationException("Roles must be loaded on the profile for the claims transformer to work.");
             }
 
-            return Task.CompletedTask;
-        }
+            var managerRoles = profile.Roles
+                .Where(x => string.Equals(x.Name, "Fusion.LineOrg.Manager", StringComparison.OrdinalIgnoreCase))
+                .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
+                .Select(x => x.Scope?.Value!)
+                .ToList();
+
+            // Got a list of sap id's, need to resolve them to the full department to keep consistent.
+            logger.LogInformation($"Found user responsible for [{managerRoles.Count}] org units [{string.Join(",", managerRoles)}]");
+
+            foreach (var orgUnitId in managerRoles)
+            {
+                var orgUnit = await mediator.Send(new ResolveLineOrgUnit(orgUnitId));
+                if (orgUnit != null)
+                {
+                    claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, orgUnit.FullDepartment));
+                    logger.LogInformation($"Adding claim for {orgUnitId} -> [{orgUnit.FullDepartment}]");
+                }
+            }
+        }        
 
         private async Task ApplySharedRequestClaimsIfAnyAsync(FusionFullPersonProfile profile, List<Claim> claims)
         {
