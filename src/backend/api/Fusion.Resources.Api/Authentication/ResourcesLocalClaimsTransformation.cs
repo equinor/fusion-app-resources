@@ -1,6 +1,5 @@
 ﻿using Fusion.Integration.Authentication;
 using Fusion.Integration.Profile;
-using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
 using MediatR;
