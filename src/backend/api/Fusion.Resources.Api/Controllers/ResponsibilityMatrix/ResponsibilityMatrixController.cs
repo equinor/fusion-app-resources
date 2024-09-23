@@ -29,7 +29,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
                 });
 
-                r.LimitedAccessWhen(l => l.BeResourceOwner());
+                r.LimitedAccessWhen(l => l.BeResourceOwnerForAnyDepartment());
             });
 
             if (authResult.Unauthorized)
@@ -77,7 +77,7 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         var department = new DepartmentPath(responsibilityMatrix.Unit);
 
-                        or.BeResourceOwner(responsibilityMatrix.Unit, includeParents: true);
+                        or.BeResourceOwnerForDepartment(responsibilityMatrix.Unit, includeParents: true);
                         or.BeSiblingResourceOwner(department);
                         or.BeDirectChildResourceOwner(department);
                     }
@@ -109,7 +109,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
-                    or.BeResourceOwner(request.Unit, includeParents: true);
+                    or.BeResourceOwnerForDepartment(request.Unit, includeParents: true);
                     if (request.Unit is not null)
                     {
                         var department = new DepartmentPath(request.Unit);
@@ -158,11 +158,12 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
 
-                    or.BeResourceOwner(request.Unit, includeParents: true);
+                    or.BeResourceOwnerForDepartment(request.Unit, includeParents: true);
                     if (request.Unit is not null)
                     {
                         var department = new DepartmentPath(request.Unit);
 
+                        // TODO: Refactor this
                         or.BeSiblingResourceOwner(department);
                         or.BeDirectChildResourceOwner(department);
                     }
@@ -209,7 +210,7 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         var department = new DepartmentPath(responsibilityMatrix.Unit);
 
-                        or.BeResourceOwner(responsibilityMatrix.Unit, includeParents: true);
+                        or.BeResourceOwnerForDepartment(responsibilityMatrix.Unit, includeParents: true);
                         or.BeSiblingResourceOwner(department);
                         or.BeDirectChildResourceOwner(department);
                     }

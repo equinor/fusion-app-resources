@@ -62,14 +62,14 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
                 r.LimitedAccessWhen(x =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                        x.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -145,7 +145,7 @@ namespace Fusion.Resources.Api.Controllers
                     // If the user is the manager - regardless if ext. hire or employee...
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
 
@@ -194,14 +194,14 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
                 r.LimitedAccessWhen(x =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                        x.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)
@@ -241,7 +241,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
@@ -295,7 +295,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
@@ -342,7 +342,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
@@ -380,7 +380,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
 
                         // Employees have limited read access.
@@ -399,7 +399,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
@@ -432,7 +432,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
@@ -448,7 +448,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
                     {
-                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwnerForDepartment(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });

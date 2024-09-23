@@ -124,13 +124,13 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(user.fullDepartment);
+                    or.BeResourceOwnerForDepartment(user.fullDepartment);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
 
                 // Limited access to other resource owners, only return shared notes.
                 // Give access to all resource owners that share the same L3.
-                r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
+                r.LimitedAccessWhen(or => or.BeResourceOwnerForDepartment(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
             });
 
             if (authResult.Unauthorized)
@@ -163,7 +163,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(user.fullDepartment);
+                    or.BeResourceOwnerForDepartment(user.fullDepartment);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
             });
@@ -202,7 +202,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(user.fullDepartment);
+                    or.BeResourceOwnerForDepartment(user.fullDepartment);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
             });
@@ -236,7 +236,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(user.fullDepartment);
+                    or.BeResourceOwnerForDepartment(user.fullDepartment);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
             });
@@ -271,12 +271,12 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(user.fullDepartment);
+                    or.BeResourceOwnerForDepartment(user.fullDepartment);
                 });
 
                 // Limited access to other resource owners, only return shared notes.
                 // Give access to all resource owners that share the same L3.
-                r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
+                r.LimitedAccessWhen(or => or.BeResourceOwnerForDepartment(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
             });
 
             if (getResult.Success)

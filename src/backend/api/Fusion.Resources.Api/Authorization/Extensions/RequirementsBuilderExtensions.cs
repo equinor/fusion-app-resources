@@ -1,8 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Api.Authorization.Requirements;
+using Fusion.Resources.Authorization.Requirements;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -71,20 +73,40 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         /// <summary>
-        /// Indicates that the user is in any way or form a resource owner
+        /// Require that the user is a resource owner. 
+        /// The check uses the resource owner claims in the user profile. 
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// To include additional local adjustments a local claims transformer can be used to add new claims.
+        /// Type="http://schemas.fusion.equinor.com/identity/claims/resourceowner" value="MY DEP PATH"
+        /// </para>
+        /// <para>
+        /// The parents check will only work for the direct path. Other resource owners in sibling departments of a parent will not have access.
+        /// Ex. Check "L1 L2.1 L3.1 L4.1", owner in L2.1 L3.1, L2.1, L1 will have access, but ex. L2.2 will not have.
+        /// </para>
+        /// </remarks>
+        /// <param name="builder"></param>
+        /// <param name="departmentPath">The full department path</param>
+        /// <param name="includeParents">Should resource owners in any of the direct parent departments have access</param>
+        /// <param name="includeDescendants">Should anyone that is a resource owner in any of the sub departments have access</param>
+        public static IAuthorizationRequirementRule BeResourceOwnerForDepartment(this IAuthorizationRequirementRule builder, string department, bool includeParents = false, bool includeDescendants = false)
+        {
+            builder.AddRule(new BeResourceOwnerRequirement(department, includeParents, includeDescendants));
+            return builder;
+        }
+
+        /// <summary>
+        /// Requires the user to be resource owner for any department
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IAuthorizationRequirementRule BeResourceOwner(this IAuthorizationRequirementRule builder)
+        public static IAuthorizationRequirementRule BeResourceOwnerForAnyDepartment(this IAuthorizationRequirementRule builder)
         {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(c => c.User.HasClaim(c => c.Type == FusionClaimsTypes.ResourceOwner))
-                .Build();
-
-            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
-
+            builder.AddRule(new BeResourceOwnerRequirement());
             return builder;
         }
+
 
         public static IAuthorizationRequirementRule HaveRole(this IAuthorizationRequirementRule builder, string role)
         {
@@ -101,7 +123,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // User has access if the parent department matches..
                     var resourceParent = path.ParentDeparment;
-                    var userDepartments = c.User.GetResponsibleForDepartments();
+                    var userDepartments = c.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
+                        .Select(c => c.Value);
 
                     return userDepartments.Any(d => resourceParent.IsDepartment(new DepartmentPath(d).Parent()));
                 })
@@ -121,7 +144,8 @@ namespace Fusion.Resources.Api.Controllers
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c =>
                 {
-                    var userDepartments = c.User.GetResponsibleForDepartments()
+                    var userDepartments = c.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
+                        .Select(c => c.Value)
                         .Select(d => new DepartmentPath(d).Parent());
 
                     return userDepartments.Any(d => path.IsDepartment(d));
