@@ -14,6 +14,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     [Authorize]
     [ApiController]
     public class AnalyticsController : ResourceControllerBase
@@ -44,6 +45,7 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
+        [MapToApiVersion("1.0")]
         [HttpGet("/analytics/absence/internal")]
         public async Task<ActionResult<ApiCollection<ApiPersonAbsenceForAnalytics>>> GetPersonsAbsence([FromQuery] ODataQueryParams query)
         {
