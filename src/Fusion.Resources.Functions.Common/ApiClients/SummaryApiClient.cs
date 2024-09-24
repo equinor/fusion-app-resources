@@ -61,9 +61,6 @@ public class SummaryApiClient : ISummaryApiClient
 
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        await ThrowIfUnsuccessfulAsync(response);
-
-
         return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklySummaryReport>>(contentStream,
             jsonSerializerOptions,
             cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
