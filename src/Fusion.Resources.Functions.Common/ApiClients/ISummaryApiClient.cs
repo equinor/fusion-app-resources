@@ -4,9 +4,11 @@ namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public interface ISummaryApiClient
 {
+    /// <exception cref="SummaryApiException"></exception>
     public Task PutDepartmentAsync(ApiResourceOwnerDepartment departments,
         CancellationToken cancellationToken = default);
 
+    /// <exception cref="SummaryApiError"></exception>
     public Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
         CancellationToken cancellationToken = default);
 
@@ -14,9 +16,11 @@ public interface ISummaryApiClient
     ///     Get the latest weekly summary report for a department. The report is based on the week that has passed.
     ///     If today is monday, the report is based on the last seven days (from last monday to today).
     /// </summary>
+    /// <exception cref="SummaryApiError"></exception>
     public Task<ApiWeeklySummaryReport?> GetLatestWeeklyReportAsync(string departmentSapId,
         CancellationToken cancellationToken = default);
 
+    /// <exception cref="SummaryApiError"></exception>
     public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
         CancellationToken cancellationToken = default);
 }
