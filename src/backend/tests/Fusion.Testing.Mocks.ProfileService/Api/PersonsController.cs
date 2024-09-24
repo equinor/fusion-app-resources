@@ -16,6 +16,8 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
 {
     [ApiController]
     [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [ApiVersion("3.0")]
     public class PersonsController : ControllerBase
     {
         [MapToApiVersion("3.0")]
