@@ -18,6 +18,7 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public partial class InternalPersonnelController : ResourceControllerBase
     {
 
