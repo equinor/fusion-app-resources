@@ -41,17 +41,13 @@ public class WeeklyDepartmentSummaryWorker
                 throw new Exception("FullDepartmentIdentifier not valid.");
 
             await CreateAndStoreReportAsync(dto);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while processing message");
-            throw;
-        }
-        finally
-        {
-            // Complete the message regardless of outcome.
             await messageReceiver.CompleteMessageAsync(message);
-            _logger.LogInformation("weekly-department-summary-worker completed");
+            _logger.LogInformation("weekly-department-summary-worker completed successfully");
+        }
+        catch (Exception e) // Dead letter message
+        {
+            _logger.LogError(e, "weekly-department-summary-worker completed with error");
+            throw;
         }
     }
 
