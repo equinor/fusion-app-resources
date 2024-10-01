@@ -215,7 +215,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
-            var deleted = await DispatchAsync(new DeleteDelegatedResourceOwner(departmentString.SapId, azureUniqueId));
+            var deleted = await DispatchAsync(new DeleteDelegatedResourceOwner(departmentString.FullDepartment, azureUniqueId));
             
             return NoContent();
         }
