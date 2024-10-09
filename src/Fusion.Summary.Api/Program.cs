@@ -81,7 +81,7 @@ app.UseCors(opts => opts
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader()
-    .WithExposedHeaders("Allow", "x-fusion-retriable"));
+    .WithExposedHeaders("Allow", "x-fusion-retriable", "x-trace-id"));
 
 if (app.Environment.IsDevelopment())
 {
