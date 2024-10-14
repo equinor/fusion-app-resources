@@ -9,11 +9,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["nuget.config", "nuget.config"]
-COPY ["Fusion.Summary.Api/Fusion.Summary.Api.csproj", "Fusion.Summary.Api/"]
-RUN dotnet restore "./Fusion.Summary.Api/Fusion.Summary.Api.csproj"
 COPY . .
+COPY ["nuget.config", "/src/Fusion.Summary.Api/nuget.config"]
 WORKDIR "/src/Fusion.Summary.Api"
+RUN dotnet restore "./Fusion.Summary.Api.csproj"
 RUN dotnet build "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
