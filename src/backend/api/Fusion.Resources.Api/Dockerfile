@@ -12,7 +12,7 @@ COPY ["api/Fusion.Resources.Database/Fusion.Resources.Database.csproj", "api/Fus
 COPY ["api/Fusion.Resources.Domain/Fusion.Resources.Domain.csproj", "api/Fusion.Resources.Domain/"]
 COPY ["api/Fusion.Resources.Logic/Fusion.Resources.Logic.csproj", "api/Fusion.Resources.Logic/"]
 COPY ["integration/Fusion.Resources.Integration.Models/Fusion.Resources.Integration.Models.csproj", "integration/Fusion.Resources.Integration.Models/"]
-COPY ["../nuget.config", "./"]
+COPY ["nuget.config", "nuget.config"]
 RUN dotnet restore "api/Fusion.Resources.Api/Fusion.Resources.Api.csproj"
 COPY . .
 WORKDIR "/src/api/Fusion.Resources.Api"
