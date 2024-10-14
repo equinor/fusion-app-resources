@@ -9,7 +9,6 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Fusion.Summary.Api/nuget.config", "Fusion.Summary.Api/"]
 COPY ["Fusion.Summary.Api/Fusion.Summary.Api.csproj", "Fusion.Summary.Api/"]
 RUN dotnet restore "./Fusion.Summary.Api/Fusion.Summary.Api.csproj"
 COPY . .
