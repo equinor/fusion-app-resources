@@ -9,11 +9,11 @@
     <ItemGroup>
         <PackageReference Include="Fusion.AspNetCore" Version="8.0.6"/>
         <PackageReference Include="Fusion.AspNetCore.Versioning" Version="8.1.0"/>
-        <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.6"/>
+        <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.9"/>
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
-        <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.7.3" />
-        <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.7.3" />
-        <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.7.3" />
+        <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.9.0"/>
+        <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.9.0"/>
+        <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.9.0"/>
     </ItemGroup>
     
 
