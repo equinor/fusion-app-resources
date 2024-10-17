@@ -6,14 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.LineOrg" Version="8.0.6"/>
-    <PackageReference Include="Fusion.Integration.Notification" Version="8.0.7" />
+    <PackageReference Include="Fusion.Integration.LineOrg" Version="8.0.7"/>
+    <PackageReference Include="Fusion.Integration.Notification" Version="8.0.8"/>
     <PackageReference Include="MediatR" Version="12.4.1"/>
     <PackageReference Include="Fusion.AspNetCore" Version="8.0.6"/>
-    <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.1"/>
+    <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.3"/>
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.0.6"/>
-    <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.0.6"/>
-    <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="8.0.8"/>
+    <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.0.7"/>
+    <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="8.0.9"/>
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.22.0" />
 
     <PackageReference Include="TimePeriodCore" Version="1.0.0" />
