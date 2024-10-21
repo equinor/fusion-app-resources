@@ -176,7 +176,7 @@ namespace Fusion.Resources.Api
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader()
-                .WithExposedHeaders("Allow", "x-fusion-retriable"));
+                .WithExposedHeaders("Allow", "x-fusion-retriable", "x-trace-id"));
 
             if (env.IsDevelopment())
             {
