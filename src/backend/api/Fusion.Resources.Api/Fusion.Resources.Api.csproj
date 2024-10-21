@@ -24,10 +24,10 @@
     <PackageReference Include="Fusion.Events.Client" Version="8.1.1"/>
     <PackageReference Include="Fusion.Events.Server" Version="8.0.4"/>
     <PackageReference Include="Fusion.Integration.LineOrg" Version="8.0.7"/>
-    <PackageReference Include="Fusion.Integration.Org" Version="8.0.8"/>
+    <PackageReference Include="Fusion.Integration.Org" Version="8.0.9"/>
     <PackageReference Include="Fusion.Integration.Roles" Version="8.0.9"/>
     <PackageReference Include="Fusion.Integration.Notification" Version="8.0.8"/>
-    <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.3"/>
+    <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.4"/>
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="JSM.FluentValidation.AspNet.AsyncFilter" Version="2.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
