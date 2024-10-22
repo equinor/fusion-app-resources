@@ -41,13 +41,13 @@ public class TaskOwnerSummaryController : BaseController
 
         #endregion
 
-        if ((await DispatchAsync(new GetProjects().WhereProjectId(projectId))).FirstOrDefault() is null)
+        var project = (await DispatchAsync(new GetProjects().WhereProjectId(projectId))).FirstOrDefault();
+        if (project is null)
             return ProjectNotFound(projectId);
 
+        var reports = await DispatchAsync(new GetWeeklyTaskOwnerReports(project.Id, query));
 
-        var projects = await DispatchAsync(new GetWeeklyTaskOwnerReports(projectId, query));
-
-        return Ok(ApiCollection<ApiWeeklyTaskOwnerReport>.FromQueryCollection(projects, ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport));
+        return Ok(ApiCollection<ApiWeeklyTaskOwnerReport>.FromQueryCollection(reports, ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport));
     }
 
     [HttpGet("task-owners-summary-reports/{projectId:guid}/weekly/{reportId:guid}")]
@@ -70,10 +70,11 @@ public class TaskOwnerSummaryController : BaseController
 
         #endregion
 
-        if ((await DispatchAsync(new GetProjects().WhereProjectId(projectId))).FirstOrDefault() is null)
+        var project = (await DispatchAsync(new GetProjects().WhereProjectId(projectId))).FirstOrDefault();
+        if (project is null)
             return ProjectNotFound(projectId);
 
-        var report = (await DispatchAsync(new GetWeeklyTaskOwnerReports(projectId, new ODataQueryParams()).WhereReportId(reportId))).FirstOrDefault();
+        var report = (await DispatchAsync(new GetWeeklyTaskOwnerReports(project.Id, new ODataQueryParams()).WhereReportId(reportId))).FirstOrDefault();
 
         return report is null ? NotFound() : Ok(ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport(report));
     }
