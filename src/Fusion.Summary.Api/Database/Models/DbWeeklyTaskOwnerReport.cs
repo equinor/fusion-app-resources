@@ -8,7 +8,13 @@ public class DbWeeklyTaskOwnerReport
     public required Guid ProjectId { get; set; }
     public DbProject? Project { get; set; }
 
-    public required DateTime Period { get; set; }
+    public required DateTime PeriodStart { get; set; }
+    public required DateTime PeriodEnd { get; set; }
+
+    //
+    // Add columns
+    //
+
 
     internal static void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -16,6 +22,17 @@ public class DbWeeklyTaskOwnerReport
         {
             report.ToTable("WeeklyTaskOwnerReports");
             report.HasKey(r => r.Id);
+
+            report.HasIndex(r => new { r.ProjectId, Period = r.PeriodStart })
+                .IsUnique();
+
+            report.Property(r => r.PeriodStart)
+                // Strip time from date and retrieve as UTC
+                .HasConversion(d => d.Date, d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+
+            report.Property(r => r.PeriodEnd)
+                // Strip time from date and retrieve as UTC
+                .HasConversion(d => d.Date, d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
 
             report.HasOne(r => r.Project)
                 .WithMany()
@@ -25,6 +42,8 @@ public class DbWeeklyTaskOwnerReport
     }
 }
 
+// TODO: Implement the following models
+
 public class DbAdminAccessExpiring
 {
     public required Guid AzureUniqueId { get; set; }
@@ -32,7 +51,7 @@ public class DbAdminAccessExpiring
     public required DateTime Expires { get; set; }
 }
 
-public class DbActionsAwaitingTaskOwner
+public class DbActionsAwaitingTaskOwners
 {
     // TODO: Implement
 }
