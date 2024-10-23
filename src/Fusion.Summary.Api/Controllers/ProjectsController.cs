@@ -91,20 +91,6 @@ public class ProjectsController : BaseController
 
         #endregion Authorization
 
-        var personIdentifiers = request.AssignedAdminsAzureUniqueId
-            .Select(p => new PersonIdentifier(p));
-
-        if (request.DirectorAzureUniqueId.HasValue)
-            personIdentifiers = personIdentifiers.Append(new PersonIdentifier(request.DirectorAzureUniqueId.Value));
-
-        var unresolvedProfiles = (await ResolvePersonsAsync(personIdentifiers))
-            .Where(r => !r.Success)
-            .ToList();
-
-        if (unresolvedProfiles.Count != 0)
-            return FusionApiError.NotFound(string.Join(',', unresolvedProfiles), "Profiles could not be resolved");
-
-
         var project = (await DispatchAsync(new GetProjects().WhereProjectId(projectId))).FirstOrDefault();
 
         if (project == null)
