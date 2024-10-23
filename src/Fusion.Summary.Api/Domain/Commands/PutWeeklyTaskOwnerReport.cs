@@ -29,7 +29,7 @@ public class PutWeeklyTaskOwnerReport : IRequest<bool>
 
         public async Task<bool> Handle(PutWeeklyTaskOwnerReport request, CancellationToken cancellationToken)
         {
-            var project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == request.ProjectId || p.OrgProjectExternalId == request.ProjectId, cancellationToken);
+            var project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == request.ProjectId, cancellationToken);
             if (project == null)
                 throw new InvalidOperationException($"Project with id '{request.ProjectId}' was not found");
 
@@ -46,7 +46,29 @@ public class PutWeeklyTaskOwnerReport : IRequest<bool>
                 Id = existingReport?.Id ?? Guid.NewGuid(),
                 PeriodStart = request.Report.PeriodStart,
                 PeriodEnd = request.Report.PeriodEnd,
-                ProjectId = project.Id
+                ProjectId = project.Id,
+                ActionsAwaitingTaskOwnerAction = request.Report.ActionsAwaitingTaskOwnerAction,
+                AdminAccessExpiringInLessThanThreeMonths = request.Report.AdminAccessExpiringInLessThanThreeMonths.Select(x => new DbAdminAccessExpiring()
+                {
+                    AzureUniqueId = x.AzureUniqueId,
+                    FullName = x.FullName,
+                    Expires = x.Expires
+                }).ToList(),
+                PositionAllocationsEndingInNextThreeMonths = request.Report.PositionAllocationsEndingInNextThreeMonths.Select(x => new DbPositionAllocationEnding()
+                {
+                    PositionExternalId = x.PositionExternalId,
+                    PositionName = x.PositionName,
+                    PositionAppliesTo = x.PositionAppliesTo,
+                    PositionNameDetailed = x.PositionNameDetailed
+                }).ToList(),
+                TBNPositionsStartingInLessThanThreeMonths = request.Report.TBNPositionsStartingInLessThanThreeMonths.Select(x => new DbTBNPositionStartingSoon()
+                {
+                    PositionExternalId = x.PositionExternalId,
+                    PositionName = x.PositionName,
+                    PositionAppliesFrom = x.PositionAppliesFrom,
+                    PositionNameDetailed = x.PositionNameDetailed
+                }).ToList()
+
             };
 
 

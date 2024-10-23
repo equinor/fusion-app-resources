@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Fusion.Summary.Api.Controllers.ApiModels;
 
 namespace Fusion.Summary.Api.Controllers.Requests;
 
@@ -6,6 +7,11 @@ public class PutWeeklyTaskOwnerReportRequest
 {
     public DateTime PeriodStart { get; set; }
     public DateTime PeriodEnd { get; set; }
+
+    public required int ActionsAwaitingTaskOwnerAction { get; set; }
+    public required ApiAdminAccessExpiring[] AdminAccessExpiringInLessThanThreeMonths { get; set; }
+    public required ApiPositionAllocationEnding[] PositionAllocationsEndingInNextThreeMonths { get; set; }
+    public required ApiTBNPositionStartingSoon[] TBNPositionsStartingInLessThanThreeMonths { get; set; }
 
 
     public class Validator : AbstractValidator<PutWeeklyTaskOwnerReportRequest>
