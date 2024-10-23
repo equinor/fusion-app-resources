@@ -23,7 +23,7 @@ public class DbWeeklyTaskOwnerReport
             report.ToTable("WeeklyTaskOwnerReports");
             report.HasKey(r => r.Id);
 
-            report.HasIndex(r => new { r.ProjectId, Period = r.PeriodStart })
+            report.HasIndex(r => new { r.ProjectId, r.PeriodStart, r.PeriodEnd })
                 .IsUnique();
 
             report.Property(r => r.PeriodStart)

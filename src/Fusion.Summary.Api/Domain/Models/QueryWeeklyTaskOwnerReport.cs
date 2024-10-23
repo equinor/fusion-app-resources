@@ -26,7 +26,7 @@ public class QueryWeeklyTaskOwnerReport
         {
             Id = dbWeeklyTaskOwnerReport.Id,
             ProjectId = dbWeeklyTaskOwnerReport.ProjectId,
-            Period = new Period(PeriodType.Weekly, dbWeeklyTaskOwnerReport.PeriodStart, dbWeeklyTaskOwnerReport.PeriodEnd)
+            Period = new Period(Period.PeriodType.Weekly, dbWeeklyTaskOwnerReport.PeriodStart, dbWeeklyTaskOwnerReport.PeriodEnd)
         };
     }
 }

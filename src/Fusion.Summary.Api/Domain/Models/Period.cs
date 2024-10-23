@@ -8,6 +8,9 @@ public sealed class Period
 
     public Period(PeriodType type, DateTime start, DateTime end)
     {
+        start = start.Date;
+        end = end.Date;
+
         switch (type)
         {
             case PeriodType.Weekly:
@@ -21,11 +24,11 @@ public sealed class Period
         }
 
         Type = type;
-        Start = start.Date;
-        End = end.Date;
+        Start = start;
+        End = end;
     }
 
-    public static Period FromStart(PeriodType type, DateTime start)
+    public static Period FromStartDate(PeriodType type, DateTime start)
     {
         var end = type switch
         {
@@ -37,7 +40,7 @@ public sealed class Period
     }
 
 
-    public static Period FromEnd(PeriodType type, DateTime end)
+    public static Period FromEndDate(PeriodType type, DateTime end)
     {
         var start = type switch
         {
@@ -46,5 +49,10 @@ public sealed class Period
         };
 
         return new Period(type, start, end);
+    }
+
+    public enum PeriodType
+    {
+        Weekly
     }
 }

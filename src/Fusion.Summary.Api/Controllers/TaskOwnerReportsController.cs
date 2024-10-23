@@ -17,7 +17,7 @@ namespace Fusion.Summary.Api.Controllers;
 [ApiController]
 [Produces(MediaTypeNames.Application.Json)]
 [ApiVersion("1.0")]
-public class TaskOwnerSummaryController : BaseController
+public class TaskOwnerReportsController : BaseController
 {
     [HttpGet("task-owners-summary-reports/{projectId:guid}/weekly")]
     [MapToApiVersion("1.0")]
@@ -81,7 +81,7 @@ public class TaskOwnerSummaryController : BaseController
 
     /// <summary>
     ///     Summary report key is composed of the project id and the period start and end dates.
-    ///     If a report already exists for the given period and project id, it will be replaced.
+    ///     If a report already exists for the given project id and period then it will be replaced.
     /// </summary>
     [HttpPut("task-owners-summary-reports/{projectId:guid}/weekly")]
     [MapToApiVersion("1.0")]
