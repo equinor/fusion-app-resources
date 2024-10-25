@@ -4,9 +4,12 @@ namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public interface ISummaryApiClient
 {
-    /// <exception cref="SummaryApiException"></exception>
+    /// <exception cref="SummaryApiError"></exception>
     public Task PutDepartmentAsync(ApiResourceOwnerDepartment departments,
         CancellationToken cancellationToken = default);
+
+    /// <exception cref="SummaryApiError" />
+    public Task PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
 
     /// <exception cref="SummaryApiError"></exception>
     public Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
@@ -82,6 +85,18 @@ public record ApiEndingPosition
 {
     public string FullName { get; set; } = "-";
     public DateTime EndDate { get; set; }
+}
+
+public class ApiProject
+{
+    public required Guid Id { get; set; }
+
+    public required string Name { get; set; }
+    public required Guid OrgProjectExternalId { get; set; }
+
+    public Guid? DirectorAzureUniqueId { get; set; }
+
+    public Guid[] AssignedAdminsAzureUniqueId { get; set; } = [];
 }
 
 #endregion

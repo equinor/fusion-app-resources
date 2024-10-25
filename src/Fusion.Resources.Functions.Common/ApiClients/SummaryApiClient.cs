@@ -32,6 +32,16 @@ public class SummaryApiClient : ISummaryApiClient
         await ThrowIfUnsuccessfulAsync(response);
     }
 
+    public async Task PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default)
+    {
+        using var body = new JsonContent(JsonSerializer.Serialize(project, jsonSerializerOptions));
+
+        // Error logging is handled by http middleware => FunctionHttpMessageHandler
+        using var response = await summaryClient.PutAsync($"projects/{project.OrgProjectExternalId}", body, cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+    }
+
     public async Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
         CancellationToken cancellationToken = default)
     {

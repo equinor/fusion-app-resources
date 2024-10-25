@@ -58,6 +58,9 @@ namespace Fusion.Resources.Functions.Common.Configuration
             builder.AddOrgClient();
             services.AddScoped<IOrgClient, OrgClient>();
 
+            builder.AddRolesClient();
+            services.AddScoped<IRolesApiClient, RolesApiClient>();
+
             return services;
         }
     }

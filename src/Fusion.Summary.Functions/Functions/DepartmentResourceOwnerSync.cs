@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Common.ApiClients;
+using Fusion.Summary.Functions.Functions.Helpers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -115,7 +116,7 @@ public class DepartmentResourceOwnerSync
             });
         }
 
-        var enqueueTimeForDepartmentMapping = CalculateDepartmentEnqueueTime(apiDepartments);
+        var enqueueTimeForDepartmentMapping = QueueTimeHelper.CalculateEnqueueTime(apiDepartments, _totalBatchTime, logger);
 
         logger.LogInformation("Syncing departments {Departments}", JsonConvert.SerializeObject(enqueueTimeForDepartmentMapping, Formatting.Indented));
 
@@ -159,33 +160,5 @@ public class DepartmentResourceOwnerSync
         };
 
         await sender.SendMessageAsync(message);
-    }
-
-    /// <summary>
-    ///     Calculate the enqueue time for each department based on the total batch time and amount of departments. This should spread
-    ///     the work over the total batch time.
-    /// </summary>
-    private Dictionary<ApiResourceOwnerDepartment, DateTimeOffset> CalculateDepartmentEnqueueTime(List<ApiResourceOwnerDepartment> apiDepartments)
-    {
-        var currentTime = DateTimeOffset.UtcNow;
-        var minutesPerReportSlice = _totalBatchTime.TotalMinutes / apiDepartments.Count;
-
-        logger.LogInformation("Minutes allocated for each worker: {MinutesPerReportSlice}", minutesPerReportSlice);
-
-        var departmentDelayMapping = new Dictionary<ApiResourceOwnerDepartment, DateTimeOffset>();
-        foreach (var department in apiDepartments)
-        {
-            // First department has no delay
-            if (departmentDelayMapping.Count == 0)
-            {
-                departmentDelayMapping.Add(department, currentTime);
-                continue;
-            }
-
-            var enqueueTime = departmentDelayMapping.Last().Value.AddMinutes(minutesPerReportSlice);
-            departmentDelayMapping.Add(department, enqueueTime);
-        }
-
-        return departmentDelayMapping;
     }
 }
