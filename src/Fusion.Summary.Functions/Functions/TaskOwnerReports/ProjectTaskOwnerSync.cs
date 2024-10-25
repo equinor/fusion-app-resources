@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Common.Extensions;
 using Fusion.Summary.Functions.Functions.Helpers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Fusion.Summary.Functions.Functions.TaskOwnerReports;
 
@@ -56,7 +59,8 @@ public class ProjectTaskOwnerSync
         [TimerTrigger("0 5 0 * * MON", RunOnStartup = false)]
         TimerInfo myTimer)
     {
-        // TODO: Should gather all relevant projects
+        var client = new ServiceBusClient(_serviceBusConnectionString);
+        var sender = client.CreateSender(_weeklySummaryQueueName);
 
         logger.LogInformation("{FunctionName} triggered with projectTypeFilter {ProjectTypeFilter}", FunctionName, _projectTypeFilter?.ToJson());
 
@@ -64,7 +68,7 @@ public class ProjectTaskOwnerSync
 
         if (_projectTypeFilter != null)
         {
-            queryFilter.Filter = $"projectType in ({string.Join(',', _projectTypeFilter)})";
+            queryFilter.Filter = $"projectType in ({string.Join(',', _projectTypeFilter.Select(s => $"'{s}'"))})";
             // TODO: Filter on active projects when odata support is added in org
             // + " and state eq 'ACTIVE'";
         }
@@ -76,38 +80,35 @@ public class ProjectTaskOwnerSync
 
         var activeProjects = projects.Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase)).ToList();
 
-        if (_projectTypeFilter is not null)
-            activeProjects = activeProjects.Where(p => _projectTypeFilter.Contains(p.ProjectType, StringComparer.OrdinalIgnoreCase)).ToList();
-
         logger.LogInformation("Found {ProjectCount} active projects {Projects}", activeProjects.Count, activeProjects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
-        var admins = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId));
+        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId));
 
 
-        var projectToEnqueueTime = QueueTimeHelper.CalculateEnqueueTime(activeProjects, _totalBatchTime, logger);
+        var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(activeProjects, _totalBatchTime, logger);
 
         logger.LogInformation("Syncing projects and admins");
 
-        foreach (var (project, queueTime) in projectToEnqueueTime)
+        foreach (var (project, queueTime) in projectToEnqueueTimeMapping)
         {
+            var projectAdmins = projectAdminsMapping.TryGetValue(project.ProjectId, out var values) ? values : [];
+            var projectDirector = project.Director.Instances
+                .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
+
+            var apiProject = new ApiProject()
+            {
+                Id = Guid.Empty, // Ignored
+                OrgProjectExternalId = project.ProjectId,
+                Name = project.Name,
+                DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
+                AssignedAdminsAzureUniqueId = projectAdmins
+                    .Where(p => p.Person?.AzureUniqueId is not null)
+                    .Select(p => p.Person!.AzureUniqueId)
+                    .ToArray()
+            };
+
             try
             {
-                var projectAdmins = admins.TryGetValue(project.ProjectId, out var values) ? values : [];
-                var projectDirector = project.Director.Instances
-                    .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
-
-                var putRequest = new ApiProject()
-                {
-                    Id = Guid.Empty, // Ignored
-                    OrgProjectExternalId = project.ProjectId,
-                    Name = project.Name,
-                    DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
-                    AssignedAdminsAzureUniqueId = projectAdmins
-                        .Where(p => p.Person?.AzureUniqueId is not null)
-                        .Select(p => p.Person!.AzureUniqueId)
-                        .ToArray()
-                };
-
-                await summaryApiClient.PutProjectAsync(putRequest);
+                await summaryApiClient.PutProjectAsync(apiProject);
             }
             catch (SummaryApiError e)
             {
@@ -115,7 +116,26 @@ public class ProjectTaskOwnerSync
                 continue;
             }
 
-            // TODO: Should send project and recipients on to the bus
+            try
+            {
+                await SendProjectToQueue(sender, apiProject, queueTime);
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Failed to send project to queue {Project}", apiProject.ToJson());
+            }
         }
+    }
+
+    private async Task SendProjectToQueue(ServiceBusSender sender, ApiProject project, DateTimeOffset enqueueTime)
+    {
+        var serializedDto = JsonConvert.SerializeObject(project);
+
+        var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto))
+        {
+            ScheduledEnqueueTime = enqueueTime
+        };
+
+        await sender.SendMessageAsync(message);
     }
 }
