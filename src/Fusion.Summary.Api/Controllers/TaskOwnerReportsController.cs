@@ -19,11 +19,40 @@ namespace Fusion.Summary.Api.Controllers;
 [ApiVersion("1.0")]
 public class TaskOwnerReportsController : BaseController
 {
-    [HttpGet("task-owners-summary-reports/{projectId:guid}/weekly")]
+    [HttpGet("task-owners-summary-reports/weekly")]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ODataFilter(nameof(ApiWeeklyTaskOwnerReport.PeriodStart), nameof(ApiWeeklyTaskOwnerReport.PeriodEnd))]
+    [ODataTop(100), ODataSkip]
+    public async Task<ActionResult<ApiCollection<ApiWeeklyTaskOwnerReport>>> GetWeeklyTaskOwnerReportsV1(ODataQueryParams query)
+    {
+        #region Authorization
+
+        var authResult =
+            await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().ResourcesFullControl();
+                r.AnyOf(or => { or.BeTrustedApplication(); });
+            });
+
+        if (authResult.Unauthorized)
+            return authResult.CreateForbiddenResponse();
+
+        #endregion
+
+        var reports = await DispatchAsync(new GetWeeklyTaskOwnerReports(query));
+
+        return Ok(ApiCollection<ApiWeeklyTaskOwnerReport>.FromQueryCollection(reports, ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport));
+    }
+
+    [HttpGet("projects/{projectId:guid}/task-owners-summary-reports/weekly")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ODataFilter(nameof(ApiWeeklyTaskOwnerReport.PeriodStart), nameof(ApiWeeklyTaskOwnerReport.PeriodEnd))]
     [ODataTop(100), ODataSkip]
     public async Task<ActionResult<ApiCollection<ApiWeeklyTaskOwnerReport>>> GetWeeklyTaskOwnerReportsV1(Guid projectId, ODataQueryParams query)
     {
@@ -45,12 +74,12 @@ public class TaskOwnerReportsController : BaseController
         if (project is null)
             return ProjectNotFound(projectId);
 
-        var reports = await DispatchAsync(new GetWeeklyTaskOwnerReports(project.Id, query));
+        var reports = await DispatchAsync(new GetWeeklyTaskOwnerReports(query).WhereProjectId(project.Id));
 
         return Ok(ApiCollection<ApiWeeklyTaskOwnerReport>.FromQueryCollection(reports, ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport));
     }
 
-    [HttpGet("task-owners-summary-reports/{projectId:guid}/weekly/{reportId:guid}")]
+    [HttpGet("projects/{projectId:guid}/task-owners-summary-reports/weekly/{reportId:guid}")]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,7 +103,10 @@ public class TaskOwnerReportsController : BaseController
         if (project is null)
             return ProjectNotFound(projectId);
 
-        var report = (await DispatchAsync(new GetWeeklyTaskOwnerReports(project.Id, new ODataQueryParams()).WhereReportId(reportId))).FirstOrDefault();
+        var report = (await DispatchAsync(new GetWeeklyTaskOwnerReports()
+                .WhereProjectId(project.Id)
+                .WhereReportId(reportId)))
+            .FirstOrDefault();
 
         return report is null ? NotFound() : Ok(ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport(report));
     }
@@ -83,7 +115,7 @@ public class TaskOwnerReportsController : BaseController
     ///     Summary report key is composed of the project id and the period start and end dates.
     ///     If a report already exists for the given project id and period then it will be replaced.
     /// </summary>
-    [HttpPut("task-owners-summary-reports/{projectId:guid}/weekly")]
+    [HttpPut("projects/{projectId:guid}/task-owners-summary-reports/weekly")]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

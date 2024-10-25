@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.OData;
+using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Domain.Models;
 using Fusion.Summary.Api.Domain.Queries.Base;
@@ -9,14 +10,19 @@ namespace Fusion.Summary.Api.Domain.Queries;
 
 public class GetWeeklyTaskOwnerReports : IRequest<QueryCollection<QueryWeeklyTaskOwnerReport>>
 {
-    public Guid ProjectId { get; }
     public ODataQueryParams Query { get; private set; }
+    public Guid? ProjectId { get; private set; }
     public Guid? ReportId { get; private set; }
 
-    public GetWeeklyTaskOwnerReports(Guid projectId, ODataQueryParams query)
+    public GetWeeklyTaskOwnerReports(ODataQueryParams? query = null)
+    {
+        Query = query ?? new ODataQueryParams();
+    }
+
+    public GetWeeklyTaskOwnerReports WhereProjectId(Guid projectId)
     {
         ProjectId = projectId;
-        Query = query;
+        return this;
     }
 
     public GetWeeklyTaskOwnerReports WhereReportId(Guid reportId)
@@ -37,14 +43,26 @@ public class GetWeeklyTaskOwnerReports : IRequest<QueryCollection<QueryWeeklyTas
         public async Task<QueryCollection<QueryWeeklyTaskOwnerReport>> Handle(GetWeeklyTaskOwnerReports request, CancellationToken cancellationToken)
         {
             var query = _dbContext.WeeklyTaskOwnerReports
-                .Where(r => r.ProjectId == request.ProjectId)
                 .AsQueryable();
+
+            if (request.ProjectId.HasValue)
+                query = query.Where(x => x.ProjectId == request.ProjectId);
 
             if (request.ReportId.HasValue)
                 query = query.Where(x => x.Id == request.ReportId);
 
             query = query.OrderByDescending(r => r.PeriodStart)
                 .ThenBy(r => r.Id);
+
+            if (request.Query.HasFilter)
+            {
+                query = query.ApplyODataFilters(request.Query,
+                    m =>
+                    {
+                        m.MapField(nameof(ApiWeeklyTaskOwnerReport.PeriodStart), r => r.PeriodStart);
+                        m.MapField(nameof(ApiWeeklyTaskOwnerReport.PeriodEnd), r => r.PeriodEnd);
+                    });
+            }
 
             var totalCount = await query.CountAsync(cancellationToken: cancellationToken);
 
