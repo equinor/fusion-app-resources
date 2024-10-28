@@ -73,8 +73,8 @@ public class ProjectsController : BaseController
 
     [HttpPut("projects/{projectId:guid}")]
     [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiProject?>> PutProjectsV1(Guid projectId, PutProjectRequest request)
     {
@@ -95,13 +95,13 @@ public class ProjectsController : BaseController
 
         if (project == null)
         {
-            await DispatchAsync(new CreateProject(request));
+            project = await DispatchAsync(new CreateProject(request));
 
-            return Created(Request.GetUri(), null);
+            return Created(Request.GetUri(), project);
         }
 
-        await DispatchAsync(new UpdateProject(project.Id, request));
+        project = await DispatchAsync(new UpdateProject(project.Id, request));
 
-        return NoContent();
+        return Ok(project);
     }
 }

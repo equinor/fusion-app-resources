@@ -1,12 +1,13 @@
 ﻿using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Database.Models;
+using Fusion.Summary.Api.Domain.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Summary.Api.Domain.Commands;
 
-public class PutWeeklyTaskOwnerReport : IRequest<bool>
+public class PutWeeklyTaskOwnerReport : IRequest<QueryWeeklyTaskOwnerReport>
 {
     public Guid ProjectId { get; }
     public PutWeeklyTaskOwnerReportRequest Report { get; }
@@ -18,7 +19,7 @@ public class PutWeeklyTaskOwnerReport : IRequest<bool>
     }
 
 
-    public class Handler : IRequestHandler<PutWeeklyTaskOwnerReport, bool>
+    public class Handler : IRequestHandler<PutWeeklyTaskOwnerReport, QueryWeeklyTaskOwnerReport>
     {
         private readonly SummaryDbContext _dbContext;
 
@@ -27,7 +28,7 @@ public class PutWeeklyTaskOwnerReport : IRequest<bool>
             _dbContext = dbContext;
         }
 
-        public async Task<bool> Handle(PutWeeklyTaskOwnerReport request, CancellationToken cancellationToken)
+        public async Task<QueryWeeklyTaskOwnerReport> Handle(PutWeeklyTaskOwnerReport request, CancellationToken cancellationToken)
         {
             var project = await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == request.ProjectId, cancellationToken);
             if (project == null)
@@ -77,7 +78,7 @@ public class PutWeeklyTaskOwnerReport : IRequest<bool>
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             // return true if a new report was created
-            return existingReport is null;
+            return QueryWeeklyTaskOwnerReport.FromDbWeeklyTaskOwnerReport(report);
         }
     }
 }

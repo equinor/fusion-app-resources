@@ -7,7 +7,6 @@ using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -117,10 +116,9 @@ public class TaskOwnerReportsController : BaseController
     /// </summary>
     [HttpPut("projects/{projectId:guid}/task-owners-summary-reports/weekly")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> PutWeeklyTaskOwnerReportV1(Guid projectId, [FromBody] PutWeeklyTaskOwnerReportRequest request)
+    public async Task<ActionResult<ApiWeeklyTaskOwnerReport>> PutWeeklyTaskOwnerReportV1(Guid projectId, [FromBody] PutWeeklyTaskOwnerReportRequest request)
     {
         #region Authorization
 
@@ -142,8 +140,8 @@ public class TaskOwnerReportsController : BaseController
 
         var command = new PutWeeklyTaskOwnerReport(project.Id, request);
 
-        var newReportCreated = await DispatchAsync(command);
+        var report = await DispatchAsync(command);
 
-        return newReportCreated ? Created(Request.GetUri(), null) : NoContent();
+        return Ok(report);
     }
 }
