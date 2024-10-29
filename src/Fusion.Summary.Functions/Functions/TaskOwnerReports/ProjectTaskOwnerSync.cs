@@ -23,7 +23,7 @@ public class ProjectTaskOwnerSync
 
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
-    private string[]? _projectTypeFilter;
+    private string[] _projectTypeFilter;
     private TimeSpan _totalBatchTime;
 
     public ProjectTaskOwnerSync(ILogger<ProjectTaskOwnerSync> logger, IConfiguration configuration, IOrgClient orgClient, IRolesApiClient rolesApiClient, ISummaryApiClient summaryApiClient)
@@ -35,7 +35,6 @@ public class ProjectTaskOwnerSync
 
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"]!;
         _weeklySummaryQueueName = configuration["project_summary_weekly_queue"]!;
-        // TODO: Should there be a default value for projectTypeFilter?
         _projectTypeFilter = configuration["projectTypeFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
 
         var totalBatchTimeInMinutesStr = configuration["total_batch_time_in_minutes"];
@@ -62,23 +61,22 @@ public class ProjectTaskOwnerSync
         var client = new ServiceBusClient(_serviceBusConnectionString);
         var sender = client.CreateSender(_weeklySummaryQueueName);
 
-        logger.LogInformation("{FunctionName} triggered with projectTypeFilter {ProjectTypeFilter}", FunctionName, _projectTypeFilter?.ToJson());
+        logger.LogInformation("{FunctionName} triggered with projectTypeFilter {ProjectTypeFilter}", FunctionName, _projectTypeFilter.ToJson());
 
         var queryFilter = new ODataQuery();
 
-        if (_projectTypeFilter != null)
+        if (_projectTypeFilter.Length != 0)
         {
             queryFilter.Filter = $"projectType in ({string.Join(',', _projectTypeFilter.Select(s => $"'{s}'"))})";
             // TODO: Filter on active projects when odata support is added in org
             // + " and state eq 'ACTIVE'";
         }
 
-        // TODO: Should projects be retrieved from context api?
-        // Can we used project id from the org api as identifier?
-        // Context api does not have project type
         var projects = await orgClient.GetProjects(queryFilter);
 
-        var activeProjects = projects.Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase)).ToList();
+        var activeProjects = projects
+            .Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(p.State))
+            .ToList();
 
         logger.LogInformation("Found {ProjectCount} active projects {Projects}", activeProjects.Count, activeProjects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
         var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId));
@@ -96,7 +94,7 @@ public class ProjectTaskOwnerSync
 
             var apiProject = new ApiProject()
             {
-                Id = Guid.Empty, // Ignored
+                Id = Guid.NewGuid(), // Ignored
                 OrgProjectExternalId = project.ProjectId,
                 Name = project.Name,
                 DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
@@ -108,7 +106,7 @@ public class ProjectTaskOwnerSync
 
             try
             {
-                await summaryApiClient.PutProjectAsync(apiProject);
+                apiProject = await summaryApiClient.PutProjectAsync(apiProject);
             }
             catch (SummaryApiError e)
             {
@@ -124,6 +122,8 @@ public class ProjectTaskOwnerSync
             {
                 logger.LogCritical(e, "Failed to send project to queue {Project}", apiProject.ToJson());
             }
+
+            logger.LogInformation("{FunctionName} completed", FunctionName);
         }
     }
 

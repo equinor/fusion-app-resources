@@ -32,7 +32,7 @@ public class SummaryApiClient : ISummaryApiClient
         await ThrowIfUnsuccessfulAsync(response);
     }
 
-    public async Task PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default)
+    public async Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default)
     {
         using var body = new JsonContent(JsonSerializer.Serialize(project, jsonSerializerOptions));
 
@@ -40,6 +40,10 @@ public class SummaryApiClient : ISummaryApiClient
         using var response = await summaryClient.PutAsync($"projects/{project.OrgProjectExternalId}", body, cancellationToken);
 
         await ThrowIfUnsuccessfulAsync(response);
+
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return (await JsonSerializer.DeserializeAsync<ApiProject>(contentStream, jsonSerializerOptions, cancellationToken: cancellationToken))!;
     }
 
     public async Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(

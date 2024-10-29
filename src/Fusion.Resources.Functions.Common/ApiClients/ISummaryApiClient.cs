@@ -9,7 +9,7 @@ public interface ISummaryApiClient
         CancellationToken cancellationToken = default);
 
     /// <exception cref="SummaryApiError" />
-    public Task PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
+    public Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
 
     /// <exception cref="SummaryApiError"></exception>
     public Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
