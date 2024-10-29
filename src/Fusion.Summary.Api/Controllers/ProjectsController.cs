@@ -91,11 +91,14 @@ public class ProjectsController : BaseController
 
         #endregion Authorization
 
+        if (projectId == Guid.Empty)
+            return FusionApiError.InvalidOperation("ProjectIdRequired", "ProjectId route parameter is required and cannot be empty");
+
         var project = (await DispatchAsync(new GetProjects().WhereProjectId(projectId))).FirstOrDefault();
 
         if (project == null)
         {
-            project = await DispatchAsync(new CreateProject(request));
+            project = await DispatchAsync(new CreateProject(request).WithProjectId(projectId));
 
             return Created(Request.GetUri(), ApiProject.FromQueryProject(project));
         }

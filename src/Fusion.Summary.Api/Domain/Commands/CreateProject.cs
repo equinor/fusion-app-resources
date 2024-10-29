@@ -8,6 +8,8 @@ namespace Fusion.Summary.Api.Domain.Commands;
 
 public class CreateProject : IRequest<QueryProject>
 {
+    public Guid? ProjectId { get; private set; }
+
     public string Name { get; }
     public Guid OrgProjectExternalId { get; }
     public Guid? DirectorAzureUniqueId { get; }
@@ -20,6 +22,13 @@ public class CreateProject : IRequest<QueryProject>
         DirectorAzureUniqueId = putRequest.DirectorAzureUniqueId;
         AssignedAdminsAzureUniqueId = putRequest.AssignedAdminsAzureUniqueId.ToList();
     }
+
+    public CreateProject WithProjectId(Guid projectId)
+    {
+        ProjectId = projectId;
+        return this;
+    }
+
 
     public class Handler : IRequestHandler<CreateProject, QueryProject>
     {
@@ -34,7 +43,7 @@ public class CreateProject : IRequest<QueryProject>
         {
             var dbProject = new DbProject()
             {
-                Id = Guid.NewGuid(),
+                Id = request.ProjectId ?? Guid.NewGuid(),
                 Name = request.Name,
                 OrgProjectExternalId = request.OrgProjectExternalId,
                 DirectorAzureUniqueId = request.DirectorAzureUniqueId,
