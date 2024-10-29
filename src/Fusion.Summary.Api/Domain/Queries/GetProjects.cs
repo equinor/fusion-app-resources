@@ -10,6 +10,7 @@ public class GetProjects : IRequest<QueryCollection<QueryProject>>
 {
     public Guid? ProjectId { get; private set; }
 
+    /// Checks against both the internal project id and the external id
     public GetProjects WhereProjectId(Guid projectId)
     {
         ProjectId = projectId;
