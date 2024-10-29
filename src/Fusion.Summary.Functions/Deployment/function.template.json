@@ -163,6 +163,10 @@
               "value": "[parameters('settings').endpoints.summary]"
             },
             {
+              "name": "Endpoints_roles",
+              "value": "[parameters('settings').endpoints.roles]"
+            },
+            {
               "name": "Endpoints_Resources_Fusion",
               "value": "[parameters('settings').resources.fusion]"
             },
@@ -171,8 +175,16 @@
               "value": "[parameters('settings').queues.departmentSummaryWeeklyQueue]"
             },
             {
+              "name": "project_summary_weekly_queue",
+              "value": "[parameters('settings').queues.projectSummaryWeeklyQueue]"
+            },
+            {
               "name": "departmentFilter",
               "value": "[parameters('settings').departmentFilter]"
+            },
+            {
+              "name": "projectTypeFilter",
+              "value": "[parameters('settings').projectTypeFilter]"
             }
           ]
         }
