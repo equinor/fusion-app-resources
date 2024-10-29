@@ -73,6 +73,7 @@ public class ProjectTaskOwnerSync
         }
 
         var projects = await orgClient.GetProjects(queryFilter);
+        var existingSummaryProjects = await summaryApiClient.GetProjectsAsync();
 
         var activeProjects = projects
             .Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(p.State))
@@ -80,6 +81,7 @@ public class ProjectTaskOwnerSync
 
         logger.LogInformation("Found {ProjectCount} active projects {Projects}", activeProjects.Count, activeProjects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
         var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId));
+
 
 
         var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(activeProjects, _totalBatchTime, logger);
@@ -92,9 +94,13 @@ public class ProjectTaskOwnerSync
             var projectDirector = project.Director.Instances
                 .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
 
+            // OrgProjectExternalId is the common key between the two systems, org api and summary api
+            // We use this to see if we're updating or creating a new project entity
+            var existingProjectId = existingSummaryProjects.FirstOrDefault(p => p.OrgProjectExternalId == project.ProjectId)?.Id;
+
             var apiProject = new ApiProject()
             {
-                Id = Guid.NewGuid(), // Ignored
+                Id = existingProjectId ?? Guid.NewGuid(),
                 OrgProjectExternalId = project.ProjectId,
                 Name = project.Name,
                 DirectorAzureUniqueId = projectDirector?.AzureUniqueId,

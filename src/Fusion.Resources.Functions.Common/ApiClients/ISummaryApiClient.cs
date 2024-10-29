@@ -8,9 +8,6 @@ public interface ISummaryApiClient
     public Task PutDepartmentAsync(ApiResourceOwnerDepartment departments,
         CancellationToken cancellationToken = default);
 
-    /// <exception cref="SummaryApiError" />
-    public Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
-
     /// <exception cref="SummaryApiError"></exception>
     public Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
         CancellationToken cancellationToken = default);
@@ -26,6 +23,12 @@ public interface ISummaryApiClient
     /// <exception cref="SummaryApiError"></exception>
     public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
         CancellationToken cancellationToken = default);
+
+    /// <exception cref="SummaryApiError" />
+    public Task<ICollection<ApiProject>> GetProjectsAsync(CancellationToken cancellationToken = default);
+
+    /// <exception cref="SummaryApiError" />
+    public Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
 }
 
 #region Models
@@ -87,6 +90,7 @@ public record ApiEndingPosition
     public DateTime EndDate { get; set; }
 }
 
+[DebuggerDisplay("{Id} - {Name}")]
 public class ApiProject
 {
     public required Guid Id { get; set; }
