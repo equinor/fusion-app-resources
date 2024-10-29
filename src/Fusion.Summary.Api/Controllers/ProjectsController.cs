@@ -97,11 +97,11 @@ public class ProjectsController : BaseController
         {
             project = await DispatchAsync(new CreateProject(request));
 
-            return Created(Request.GetUri(), project);
+            return Created(Request.GetUri(), ApiProject.FromQueryProject(project));
         }
 
         project = await DispatchAsync(new UpdateProject(project.Id, request));
 
-        return Ok(project);
+        return Ok(ApiProject.FromQueryProject(project));
     }
 }

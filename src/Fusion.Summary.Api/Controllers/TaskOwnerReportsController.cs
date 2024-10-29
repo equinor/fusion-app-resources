@@ -142,6 +142,6 @@ public class TaskOwnerReportsController : BaseController
 
         var report = await DispatchAsync(command);
 
-        return Ok(report);
+        return ApiWeeklyTaskOwnerReport.FromQueryWeeklyTaskOwnerReport(report);
     }
 }
