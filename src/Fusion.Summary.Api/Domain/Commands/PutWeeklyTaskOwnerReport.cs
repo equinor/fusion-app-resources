@@ -77,7 +77,6 @@ public class PutWeeklyTaskOwnerReport : IRequest<QueryWeeklyTaskOwnerReport>
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            // return true if a new report was created
             return QueryWeeklyTaskOwnerReport.FromDbWeeklyTaskOwnerReport(report);
         }
     }
