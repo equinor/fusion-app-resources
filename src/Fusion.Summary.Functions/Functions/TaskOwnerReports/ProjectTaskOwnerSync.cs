@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Common.ApiClients;
@@ -57,12 +58,14 @@ public class ProjectTaskOwnerSync
     [FunctionName(FunctionName)]
     public async Task RunAsync(
         [TimerTrigger("0 5 0 * * MON", RunOnStartup = false)]
-        TimerInfo myTimer)
+        TimerInfo myTimer, CancellationToken cancellationToken)
     {
         var client = new ServiceBusClient(_serviceBusConnectionString);
         var sender = client.CreateSender(_weeklySummaryQueueName);
 
         logger.LogInformation("{FunctionName} triggered with projectTypeFilter {ProjectTypeFilter}", FunctionName, _projectTypeFilter.ToJson());
+
+        #region Retrieve projects and admins
 
         var queryFilter = new ODataQuery();
 
@@ -73,8 +76,8 @@ public class ProjectTaskOwnerSync
             // + " and state in ('ACTIVE', 'null', '')";
         }
 
-        var projects = await orgClient.GetProjects(queryFilter);
-        var existingSummaryProjects = await summaryApiClient.GetProjectsAsync();
+        var projects = await orgClient.GetProjectsAsync(queryFilter, cancellationToken);
+        var existingSummaryProjects = await summaryApiClient.GetProjectsAsync(cancellationToken);
 
         // TODO: Remove this when odata state support is added in org
         var activeProjects = projects
@@ -82,10 +85,12 @@ public class ProjectTaskOwnerSync
             .ToList();
 
         logger.LogInformation("Found {ProjectCount} active projects {Projects}", activeProjects.Count, activeProjects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
-        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId));
+        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId), cancellationToken);
 
 
         var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(activeProjects, _totalBatchTime, logger);
+
+        #endregion
 
         logger.LogInformation("Syncing projects and admins");
 
@@ -113,7 +118,7 @@ public class ProjectTaskOwnerSync
 
             try
             {
-                apiProject = await summaryApiClient.PutProjectAsync(apiProject);
+                apiProject = await summaryApiClient.PutProjectAsync(apiProject, CancellationToken.None);
             }
             catch (SummaryApiError e)
             {

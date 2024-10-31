@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Fusion.Resources.Functions.Common.Integration.Http;
+﻿using Fusion.Resources.Functions.Common.Integration.Http;
 using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
@@ -24,9 +23,9 @@ public class OrgClient : IOrgClient
         return data;
     }
 
-    public Task<List<ApiProjectV2>> GetProjects(ODataQuery? query = null)
+    public Task<List<ApiProjectV2>> GetProjectsAsync(ODataQuery? query = null, CancellationToken cancellationToken = default)
     {
         var url = ODataQuery.ApplyQueryString("/projects", query);
-        return orgClient.GetAsJsonAsync<List<ApiProjectV2>>(url);
+        return orgClient.GetAsJsonAsync<List<ApiProjectV2>>(url, cancellationToken: cancellationToken);
     }
 }
