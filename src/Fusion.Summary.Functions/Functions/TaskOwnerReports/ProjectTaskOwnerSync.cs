@@ -70,14 +70,15 @@ public class ProjectTaskOwnerSync
         {
             queryFilter.Filter = $"projectType in ({string.Join(',', _projectTypeFilter.Select(s => $"'{s}'"))})";
             // TODO: Filter on active projects when odata support is added in org
-            // + " and state eq 'ACTIVE'";
+            // + " and state in ('ACTIVE', 'null', '')";
         }
 
         var projects = await orgClient.GetProjects(queryFilter);
         var existingSummaryProjects = await summaryApiClient.GetProjectsAsync();
 
+        // TODO: Remove this when odata state support is added in org
         var activeProjects = projects
-            .Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(p.State))
+            .Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(p.State))
             .ToList();
 
         logger.LogInformation("Found {ProjectCount} active projects {Projects}", activeProjects.Count, activeProjects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
@@ -88,21 +89,21 @@ public class ProjectTaskOwnerSync
 
         logger.LogInformation("Syncing projects and admins");
 
-        foreach (var (orgproject, queueTime) in projectToEnqueueTimeMapping)
+        foreach (var (orgProject, queueTime) in projectToEnqueueTimeMapping)
         {
-            var projectAdmins = projectAdminsMapping.TryGetValue(orgproject.ProjectId, out var values) ? values : [];
-            var projectDirector = orgproject.Director.Instances
+            var projectAdmins = projectAdminsMapping.TryGetValue(orgProject.ProjectId, out var values) ? values : [];
+            var projectDirector = orgProject.Director.Instances
                 .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
 
             // OrgProjectExternalId is the common key between the two systems, org api and summary api
             // We use this to see if we're updating or creating a new project entity
-            var existingProjectId = existingSummaryProjects.FirstOrDefault(p => p.OrgProjectExternalId == orgproject.ProjectId)?.Id;
+            var existingProjectId = existingSummaryProjects.FirstOrDefault(p => p.OrgProjectExternalId == orgProject.ProjectId)?.Id;
 
             var apiProject = new ApiProject()
             {
                 Id = existingProjectId ?? Guid.NewGuid(),
-                OrgProjectExternalId = orgproject.ProjectId,
-                Name = orgproject.Name,
+                OrgProjectExternalId = orgProject.ProjectId,
+                Name = orgProject.Name,
                 DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
                 AssignedAdminsAzureUniqueId = projectAdmins
                     .Where(p => p.Person?.AzureUniqueId is not null)
@@ -116,7 +117,7 @@ public class ProjectTaskOwnerSync
             }
             catch (SummaryApiError e)
             {
-                logger.LogCritical(e, "Failed to PUT project {Project}", orgproject.ToJson());
+                logger.LogCritical(e, "Failed to PUT project {Project}", orgProject.ToJson());
                 continue;
             }
 

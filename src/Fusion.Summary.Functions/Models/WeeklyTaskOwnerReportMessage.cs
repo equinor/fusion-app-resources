@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Fusion.Summary.Functions.Models;
 
 /// Message sent between weekly task owner report sync and worker
+[DebuggerDisplay("ProjectName: {ProjectName} - ProjectAdmins count: {ProjectAdmins.Length}")]
 public class WeeklyTaskOwnerReportMessage
 {
     public required Guid ProjectId { get; set; }

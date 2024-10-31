@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
+﻿using System.Net.Http.Json;
+using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Common.Integration.Http;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
@@ -13,33 +14,21 @@ public class RolesApiClient : IRolesApiClient
     }
 
     private static string GetActiveOrgAdminsOdataQuery() => "scope.type eq 'OrgChart' and roleName eq 'Fusion.OrgChart.Admin' and source eq 'Fusion.Roles' and " +
-                                                            $"validTo gteq '{DateTime.UtcNow:O}'";
+                                                            $"validTo gt '{DateTime.UtcNow:O}'";
 
     public async Task<Dictionary<Guid, ICollection<ApiSinglePersonRole>>> GetAdminRolesForOrgProjects(IEnumerable<Guid> projectIds)
     {
         var odataQuery = new ODataQuery();
 
-        odataQuery.Filter = GetActiveOrgAdminsOdataQuery() + $" and scope.value in ({string.Join(',', projectIds.Select(p => $"'{p}'"))})";
+        odataQuery.Filter = GetActiveOrgAdminsOdataQuery();
 
         var url = ODataQuery.ApplyQueryString("/roles", odataQuery);
-        var data = await rolesClient.GetAsJsonAsync<List<ApiSinglePersonRole>>(url);
+        var data = await rolesClient.GetFromJsonAsync<List<ApiSinglePersonRole>>(url);
 
-        return data.GroupBy(r => Guid.Parse(r.Scope.Value))
-            .ToDictionary(g => g.Key, ICollection<ApiSinglePersonRole> (g) => g.ToArray());
-    }
-
-    public async Task<Dictionary<Guid, ICollection<ApiSinglePersonRole>>> GetExpiringAdminRolesForOrgProjects(IEnumerable<Guid> projectIds, int monthsUntilExpiry)
-    {
-        var odataQuery = new ODataQuery();
-
-        var expiryDate = DateTime.UtcNow.AddMonths(monthsUntilExpiry).ToString("O");
-
-        odataQuery.Filter = GetActiveOrgAdminsOdataQuery() + $" and validTo lteq '{expiryDate}' and scope.value in ({string.Join(',', projectIds.Select(p => $"'{p}'"))})";
-
-        var url = ODataQuery.ApplyQueryString("/roles", odataQuery);
-        var data = await rolesClient.GetAsJsonAsync<List<ApiSinglePersonRole>>(url);
-
-        return data.GroupBy(r => Guid.Parse(r.Scope.Value))
+        return data
+            // Filter roles to projects in memory to avoid a very lage OData query (url)
+            .Where(r => Guid.TryParse(r.Scope.Value, out var projectId) && projectIds.Contains(projectId))
+            .GroupBy(r => Guid.Parse(r.Scope.Value))
             .ToDictionary(g => g.Key, ICollection<ApiSinglePersonRole> (g) => g.ToArray());
     }
 }
