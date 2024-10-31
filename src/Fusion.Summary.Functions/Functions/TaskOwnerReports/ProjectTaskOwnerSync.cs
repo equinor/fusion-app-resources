@@ -61,8 +61,8 @@ public class ProjectTaskOwnerSync
         [TimerTrigger("0 5 0 * * MON", RunOnStartup = false)]
         TimerInfo myTimer, CancellationToken cancellationToken)
     {
-        var client = new ServiceBusClient(_serviceBusConnectionString);
-        var sender = client.CreateSender(_weeklySummaryQueueName);
+        await using var client = new ServiceBusClient(_serviceBusConnectionString);
+        await using var sender = client.CreateSender(_weeklySummaryQueueName);
 
         logger.LogInformation("{FunctionName} triggered with projectTypeFilter {ProjectTypeFilter}", FunctionName, _projectTypeFilter.ToJson());
 
@@ -113,8 +113,8 @@ public class ProjectTaskOwnerSync
                 Name = orgProject.Name,
                 DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
                 AssignedAdminsAzureUniqueId = projectAdmins
-                    .Where(p => p.Person?.AzureUniqueId is not null)
-                    .Select(p => p.Person!.AzureUniqueId)
+                    .Where(p => p.Person is not null && p.Person.Id != Guid.Empty)
+                    .Select(p => p.Person!.Id)
                     .ToArray()
             };
 
@@ -135,11 +135,11 @@ public class ProjectTaskOwnerSync
                 OrgProjectExternalId = apiProject.OrgProjectExternalId,
                 ProjectName = apiProject.Name,
                 ProjectAdmins = projectAdmins
-                    .Where(p => p.Person?.AzureUniqueId is not null)
+                    .Where(p => p.Person is not null && p.Person.Id != Guid.Empty)
                     .Select(p => new WeeklyTaskOwnerReportMessage.ProjectAdmin()
                     {
-                        AzureUniqueId = p.Person!.AzureUniqueId,
-                        UPN = p.Person!.Upn,
+                        AzureUniqueId = p.Person!.Id,
+                        Mail = p.Person!.Mail,
                         ValidTo = p.ValidTo
                     })
                     .ToArray()
