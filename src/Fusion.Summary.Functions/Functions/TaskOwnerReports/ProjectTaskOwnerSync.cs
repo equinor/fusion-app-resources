@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Common.Extensions;
+using Fusion.Services.Org.ApiModels;
 using Fusion.Summary.Functions.Functions.Helpers;
 using Fusion.Summary.Functions.Models;
 using Microsoft.Azure.WebJobs;
@@ -98,6 +99,7 @@ public class ProjectTaskOwnerSync
         {
             var projectAdmins = projectAdminsMapping.TryGetValue(orgProject.ProjectId, out var values) ? values : [];
             var projectDirector = orgProject.Director.Instances
+                .Where(i => i.Type == ApiPositionInstanceV2.ApiInstanceType.Normal.ToString() || i.Type == ApiPositionInstanceV2.ApiInstanceType.Rotation.ToString())
                 .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
 
             // OrgProjectExternalId is the common key between the two systems, org api and summary api
