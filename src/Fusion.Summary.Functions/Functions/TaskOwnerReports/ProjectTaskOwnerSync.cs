@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -56,6 +57,7 @@ public class ProjectTaskOwnerSync
     }
 
     private const string FunctionName = "weekly-project-recipients-sync";
+
     [FunctionName(FunctionName)]
     public async Task RunAsync(
         [TimerTrigger("0 5 0 * * MON", RunOnStartup = false)]
@@ -68,28 +70,14 @@ public class ProjectTaskOwnerSync
 
         #region Retrieve projects and admins
 
-        var queryFilter = new ODataQuery();
-
-        if (_projectTypeFilter.Length != 0)
-        {
-            queryFilter.Filter = $"projectType in ({string.Join(',', _projectTypeFilter.Select(s => $"'{s}'"))})";
-            // TODO: Filter on active projects when odata support is added in org
-            // + " and state in ('ACTIVE', 'null', '')";
-        }
-
-        var projects = await orgClient.GetProjectsAsync(queryFilter, cancellationToken);
+        var projects = await GetActiveOrgProjectsAsync(cancellationToken);
         var existingSummaryProjects = await summaryApiClient.GetProjectsAsync(cancellationToken);
 
-        // TODO: Remove this when odata state support is added in org
-        var activeProjects = projects
-            .Where(p => p.State.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(p.State))
-            .ToList();
+        logger.LogInformation("Found {ProjectCount} active projects {Projects}", projects.Count, projects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
 
-        logger.LogInformation("Found {ProjectCount} active projects {Projects}", activeProjects.Count, activeProjects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
-        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId), cancellationToken);
+        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(projects.Select(p => p.ProjectId), cancellationToken);
 
-
-        var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(activeProjects, _totalBatchTime, logger);
+        var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(projects, _totalBatchTime, logger);
 
         #endregion
 
@@ -177,5 +165,22 @@ public class ProjectTaskOwnerSync
         };
 
         await sender.SendMessageAsync(message);
+    }
+
+    private async Task<List<ApiProjectV2>> GetActiveOrgProjectsAsync(CancellationToken cancellationToken)
+    {
+        var queryFilter = new ODataQuery();
+
+        if (_projectTypeFilter.Length != 0)
+        {
+            queryFilter.Filter = $"projectType in ({string.Join(',', _projectTypeFilter.Select(s => $"'{s}'"))})";
+        }
+
+        const string stateFilter = "state in ('ACTIVE', 'null')";
+
+        queryFilter.Filter = queryFilter.Filter is null ? stateFilter : $"{queryFilter.Filter} and {stateFilter}";
+
+        var projects = await orgClient.GetProjectsAsync(queryFilter, cancellationToken);
+        return projects;
     }
 }
