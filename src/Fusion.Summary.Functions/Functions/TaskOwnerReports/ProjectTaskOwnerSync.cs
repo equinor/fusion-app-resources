@@ -18,12 +18,12 @@ namespace Fusion.Summary.Functions.Functions.TaskOwnerReports;
 
 public class ProjectTaskOwnerSync
 {
-    private const string FunctionName = "weekly-project-recipients-sync";
     private readonly ILogger<ProjectTaskOwnerSync> logger;
     private readonly IOrgClient orgClient;
     private readonly IRolesApiClient rolesApiClient;
     private readonly ISummaryApiClient summaryApiClient;
 
+    // Configuration variables
     private string _serviceBusConnectionString;
     private string _weeklySummaryQueueName;
     private string[] _projectTypeFilter;
@@ -55,7 +55,7 @@ public class ProjectTaskOwnerSync
         }
     }
 
-
+    private const string FunctionName = "weekly-project-recipients-sync";
     [FunctionName(FunctionName)]
     public async Task RunAsync(
         [TimerTrigger("0 5 0 * * MON", RunOnStartup = false)]
@@ -97,10 +97,21 @@ public class ProjectTaskOwnerSync
 
         foreach (var (orgProject, queueTime) in projectToEnqueueTimeMapping)
         {
-            var projectAdmins = projectAdminsMapping.TryGetValue(orgProject.ProjectId, out var values) ? values : [];
+            // Get recipients
+            var projectAdmins = projectAdminsMapping.TryGetValue(orgProject.ProjectId, out var values)
+                ? values.Where(p => p.Person is not null && p.Person.Id != Guid.Empty).ToArray()
+                : [];
+
             var projectDirector = orgProject.Director.Instances
                 .Where(i => i.Type == ApiPositionInstanceV2.ApiInstanceType.Normal.ToString() || i.Type == ApiPositionInstanceV2.ApiInstanceType.Rotation.ToString())
                 .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
+
+            // No point in storing project and creating a project if there are no recipients
+            if (projectDirector is null && projectAdmins.Length == 0)
+            {
+                logger.LogInformation("Project {Name} ({ProjectId}) has no director or admins, skipping", orgProject.Name, orgProject.ProjectId);
+                continue;
+            }
 
             // OrgProjectExternalId is the common key between the two systems, org api and summary api
             // We use this to see if we're updating or creating a new project entity
@@ -113,7 +124,6 @@ public class ProjectTaskOwnerSync
                 Name = orgProject.Name,
                 DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
                 AssignedAdminsAzureUniqueId = projectAdmins
-                    .Where(p => p.Person is not null && p.Person.Id != Guid.Empty)
                     .Select(p => p.Person!.Id)
                     .ToArray()
             };
@@ -135,7 +145,6 @@ public class ProjectTaskOwnerSync
                 OrgProjectExternalId = apiProject.OrgProjectExternalId,
                 ProjectName = apiProject.Name,
                 ProjectAdmins = projectAdmins
-                    .Where(p => p.Person is not null && p.Person.Id != Guid.Empty)
                     .Select(p => new WeeklyTaskOwnerReportMessage.ProjectAdmin()
                     {
                         AzureUniqueId = p.Person!.Id,
