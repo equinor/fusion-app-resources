@@ -149,7 +149,7 @@ public class ProjectTaskOwnerSync
             }
             catch (Exception e)
             {
-                logger.LogCritical(e, "Failed to send project to queue {Project}", apiProject.ToJson());
+                logger.LogCritical(e, "Failed to send project to queue {Project}", message.ToJson());
             }
         }
 
