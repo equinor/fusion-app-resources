@@ -6,6 +6,7 @@ using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Common.Extensions;
 using Fusion.Summary.Functions.Functions.Helpers;
+using Fusion.Summary.Functions.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -83,26 +84,25 @@ public class ProjectTaskOwnerSync
         var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(activeProjects.Select(p => p.ProjectId));
 
 
-
         var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(activeProjects, _totalBatchTime, logger);
 
         logger.LogInformation("Syncing projects and admins");
 
-        foreach (var (project, queueTime) in projectToEnqueueTimeMapping)
+        foreach (var (orgproject, queueTime) in projectToEnqueueTimeMapping)
         {
-            var projectAdmins = projectAdminsMapping.TryGetValue(project.ProjectId, out var values) ? values : [];
-            var projectDirector = project.Director.Instances
+            var projectAdmins = projectAdminsMapping.TryGetValue(orgproject.ProjectId, out var values) ? values : [];
+            var projectDirector = orgproject.Director.Instances
                 .FirstOrDefault(i => i.AssignedPerson is not null && i.AppliesFrom <= DateTime.UtcNow && i.AppliesTo >= DateTime.UtcNow)?.AssignedPerson;
 
             // OrgProjectExternalId is the common key between the two systems, org api and summary api
             // We use this to see if we're updating or creating a new project entity
-            var existingProjectId = existingSummaryProjects.FirstOrDefault(p => p.OrgProjectExternalId == project.ProjectId)?.Id;
+            var existingProjectId = existingSummaryProjects.FirstOrDefault(p => p.OrgProjectExternalId == orgproject.ProjectId)?.Id;
 
             var apiProject = new ApiProject()
             {
                 Id = existingProjectId ?? Guid.NewGuid(),
-                OrgProjectExternalId = project.ProjectId,
-                Name = project.Name,
+                OrgProjectExternalId = orgproject.ProjectId,
+                Name = orgproject.Name,
                 DirectorAzureUniqueId = projectDirector?.AzureUniqueId,
                 AssignedAdminsAzureUniqueId = projectAdmins
                     .Where(p => p.Person?.AzureUniqueId is not null)
@@ -116,26 +116,43 @@ public class ProjectTaskOwnerSync
             }
             catch (SummaryApiError e)
             {
-                logger.LogCritical(e, "Failed to PUT project {Project}", project.ToJson());
+                logger.LogCritical(e, "Failed to PUT project {Project}", orgproject.ToJson());
                 continue;
             }
 
+
+            var message = new WeeklyTaskOwnerReportMessage()
+            {
+                ProjectId = apiProject.Id,
+                OrgProjectExternalId = apiProject.OrgProjectExternalId,
+                ProjectName = apiProject.Name,
+                ProjectAdmins = projectAdmins
+                    .Where(p => p.Person?.AzureUniqueId is not null)
+                    .Select(p => new WeeklyTaskOwnerReportMessage.ProjectAdmin()
+                    {
+                        AzureUniqueId = p.Person!.AzureUniqueId,
+                        UPN = p.Person!.Upn,
+                        ValidTo = p.ValidTo
+                    })
+                    .ToArray()
+            };
+
             try
             {
-                await SendProjectToQueue(sender, apiProject, queueTime);
+                await SendProjectToQueue(sender, message, queueTime);
             }
             catch (Exception e)
             {
                 logger.LogCritical(e, "Failed to send project to queue {Project}", apiProject.ToJson());
             }
-
-            logger.LogInformation("{FunctionName} completed", FunctionName);
         }
+
+        logger.LogInformation("{FunctionName} completed", FunctionName);
     }
 
-    private async Task SendProjectToQueue(ServiceBusSender sender, ApiProject project, DateTimeOffset enqueueTime)
+    private async Task SendProjectToQueue(ServiceBusSender sender, WeeklyTaskOwnerReportMessage projectMessage, DateTimeOffset enqueueTime)
     {
-        var serializedDto = JsonConvert.SerializeObject(project);
+        var serializedDto = JsonConvert.SerializeObject(projectMessage);
 
         var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto))
         {
