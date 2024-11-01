@@ -18,7 +18,7 @@ spec:
     - resources.{{ENVNAME}}.api.fusion-dev.net
     secretName: resources.{{ENVNAME}}.api.fusion-dev.net-tls
   rules:
-    - host: resources-api.{{ENVNAME}}.fusion-dev.net
+    - host: resources.{{ENVNAME}}.api.fusion-dev.net
       http:
         paths:
         - path: /
