@@ -78,7 +78,6 @@ stages:
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
       aks-namespace: 'fusion-resource-allocation-ci'
-      aks-service-connection: 'fra-k8s-ci'
   
     jobs:
     - deployment: DeployCI
@@ -125,7 +124,7 @@ stages:
             - task: KubernetesManifest@1
               displayName: Deploy to Kubernetes cluster
               inputs:
-                kubernetesServiceConnection: $(aks-service-connection)
+                kubernetesServiceConnection: fra-k8s-ci
                 namespace: $(aks-namespace)
                 action: deploy
                 manifests: |
@@ -141,7 +140,6 @@ stages:
       fusionEnvironment: 'fqa'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
       aks-namespace: 'fusion-resource-allocation-fqa'
-      aks-service-connection: 'fra-k8s-fqa'
               
     jobs:
       - deployment: DeployFQA
@@ -187,7 +185,7 @@ stages:
               - task: KubernetesManifest@1
                 displayName: Deploy to Kubernetes cluster
                 inputs:
-                  kubernetesServiceConnection: $(aks-service-connection)
+                  kubernetesServiceConnection: fra-k8s-fqa
                   namespace: $(aks-namespace)
                   action: deploy
                   manifests: |
@@ -203,7 +201,6 @@ stages:
       fusionEnvironment: 'fprd'
       clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
       aks-namespace: 'fusion-resource-allocation-prod'
-      aks-service-connection: 'fra-k8s-prod'
               
     jobs:
       - deployment: DeployFPRD
@@ -249,7 +246,7 @@ stages:
               - task: KubernetesManifest@1
                 displayName: Deploy to Kubernetes cluster
                 inputs:
-                  kubernetesServiceConnection: $(aks-service-connection)
+                  kubernetesServiceConnection: fra-k8s-prod
                   namespace: $(aks-namespace)
                   action: deploy
                   manifests: |
@@ -273,7 +270,6 @@ stages:
       fusionEnvironment: 'tr'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
       aks-namespace: 'fusion-resource-allocation-tr'
-      aks-service-connection: 'fra-k8s-tr'
               
     jobs:
       - deployment: DeployTR
@@ -320,7 +316,7 @@ stages:
               - task: KubernetesManifest@1
                 displayName: Deploy to Kubernetes cluster
                 inputs:
-                  kubernetesServiceConnection: $(aks-service-connection)
+                  kubernetesServiceConnection: fra-k8s-tr
                   namespace: $(aks-namespace)
                   action: deploy
                   manifests: |
