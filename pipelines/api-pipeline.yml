@@ -27,7 +27,6 @@ variables:
     imageName: $(imageRepo):$(imageTag)
     subscriptionServiceNonProd: 'FRA Automation Non-Prod'
     subscriptionServiceProd: 'FRA Automation Prod'
-    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     deploymentManifestFolder: '$(Pipeline.Workspace)/k8s-deployment'
     fullImageName: $(fusionAcr)/$(imageName)
     dbTagPrefix: resources
@@ -78,6 +77,8 @@ stages:
       envName: 'ci'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      aks-namespace: 'fusion-resource-allocation-ci'
+      aks-service-connection: 'fra-k8s-ci'
   
     jobs:
     - deployment: DeployCI
@@ -110,10 +111,9 @@ stages:
                 variableName: envKeyVaultUrl
                 azureSubscription: $(subscriptionServiceNonProd)
                 
-
             - template: templates/replace-tokens.yml
               parameters:
-                targetFiles: '$(deploymentManifest)'
+                targetFiles: $(deploymentManifestFolder)/*.yml
 
             - template: templates/execute-sql-migration.yml
               parameters:
@@ -125,10 +125,12 @@ stages:
             - task: KubernetesManifest@1
               displayName: Deploy to Kubernetes cluster
               inputs:
-                kubernetesServiceConnection: fra-k8s-ci
-                namespace: fusion-resource-allocation-ci
+                kubernetesServiceConnection: $(aks-service-connection)
+                namespace: $(aks-namespace)
                 action: deploy
-                manifests: $(deploymentManifest) 
+                manifests: |
+                  $(deploymentManifestFolder)/deployment-service.yml
+                  $(deploymentManifestFolder)/deployment-ingress-test-env.yml
 
   - stage: DeployFQA
     displayName: 'Deploy to FQA'
@@ -138,10 +140,12 @@ stages:
       envName: 'fqa'
       fusionEnvironment: 'fqa'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      aks-namespace: 'fusion-resource-allocation-fqa'
+      aks-service-connection: 'fra-k8s-fqa'
               
     jobs:
       - deployment: DeployFQA
-        environment: fusion-fqa.fusion-resources-app-fqa
+        environment: fusion-fqa
         strategy:
           runOnce:
             deploy:
@@ -171,7 +175,7 @@ stages:
   
               - template: templates/replace-tokens.yml
                 parameters:
-                  targetFiles: '$(deploymentManifest)'
+                  targetFiles: $(deploymentManifestFolder)/*.yml
   
               - template: templates/execute-sql-migration.yml
                 parameters:
@@ -179,12 +183,16 @@ stages:
                   environment: $(envName)
                   azureSubscription: $(subscriptionServiceNonProd)
                   dbTagPrefix: $(dbTagPrefix)
-    
-              - task: KubernetesManifest@0
+
+              - task: KubernetesManifest@1
                 displayName: Deploy to Kubernetes cluster
                 inputs:
+                  kubernetesServiceConnection: $(aks-service-connection)
+                  namespace: $(aks-namespace)
                   action: deploy
-                  manifests: $(deploymentManifest) 
+                  manifests: |
+                    $(deploymentManifestFolder)/deployment-service.yml
+                    $(deploymentManifestFolder)/deployment-ingress-test-env.yml
 
   - stage: DeployFPRD
     displayName: 'Deploy to FPRD'
@@ -194,10 +202,12 @@ stages:
       envName: 'fprd'
       fusionEnvironment: 'fprd'
       clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+      aks-namespace: 'fusion-resource-allocation-prod'
+      aks-service-connection: 'fra-k8s-prod'
               
     jobs:
       - deployment: DeployFPRD
-        environment: fusion-prod.fusion-resources-app-fprd
+        environment: fusion-prod
         strategy:
           runOnce:
             deploy:
@@ -227,7 +237,7 @@ stages:
   
               - template: templates/replace-tokens.yml
                 parameters:
-                  targetFiles: '$(deploymentManifest)'
+                  targetFiles: $(deploymentManifestFolder)/*.yml
   
               - template: templates/execute-sql-migration.yml
                 parameters:
@@ -236,11 +246,15 @@ stages:
                   azureSubscription: $(subscriptionServiceProd)
                   dbTagPrefix: $(dbTagPrefix)
   
-              - task: KubernetesManifest@0
+              - task: KubernetesManifest@1
                 displayName: Deploy to Kubernetes cluster
                 inputs:
+                  kubernetesServiceConnection: $(aks-service-connection)
+                  namespace: $(aks-namespace)
                   action: deploy
-                  manifests: $(deploymentManifest)
+                  manifests: |
+                    $(deploymentManifestFolder)/deployment-service.yml
+                    $(deploymentManifestFolder)/deployment-ingress-test-env.yml
 
               - template: templates/deploy-container-app.yml
                 parameters:
@@ -258,10 +272,12 @@ stages:
       envName: 'tr'
       fusionEnvironment: 'tr'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      aks-namespace: 'fusion-resource-allocation-tr'
+      aks-service-connection: 'fra-k8s-tr'
               
     jobs:
       - deployment: DeployTR
-        environment: fusion-tr.fusion-resources-app-tr
+        environment: fusion-tr
         strategy:
           runOnce:
             deploy:
@@ -291,7 +307,7 @@ stages:
   
               - template: templates/replace-tokens.yml
                 parameters:
-                  targetFiles: '$(deploymentManifest)'
+                  targetFiles: $(deploymentManifestFolder)/*.yml
   
               - template: templates/execute-sql-migration.yml
                 parameters:
@@ -301,8 +317,12 @@ stages:
 
                   dbTagPrefix: $(dbTagPrefix)
     
-              - task: KubernetesManifest@0
+              - task: KubernetesManifest@1
                 displayName: Deploy to Kubernetes cluster
                 inputs:
+                  kubernetesServiceConnection: $(aks-service-connection)
+                  namespace: $(aks-namespace)
                   action: deploy
-                  manifests: $(deploymentManifest) 
+                  manifests: |
+                    $(deploymentManifestFolder)/deployment-service.yml
+                    $(deploymentManifestFolder)/deployment-ingress-test-env.yml
