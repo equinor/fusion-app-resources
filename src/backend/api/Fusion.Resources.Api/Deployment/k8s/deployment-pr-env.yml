@@ -124,11 +124,11 @@ metadata:
 spec:
   tls:
   - hosts:
-    - resources-api-pr-{{prNumber}}.fusion-dev.net
+    - resources-api-{{prNumber}}.pr.api.fusion-dev.net
     secretName: pr.fusion-dev.net-tls
 
   rules:
-    - host: resources-api-pr-{{prNumber}}.fusion-dev.net
+    - host: resources-api-{{prNumber}}.pr.fusion-dev.net
       http:
         paths:
         - path: /

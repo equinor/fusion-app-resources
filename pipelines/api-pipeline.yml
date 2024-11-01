@@ -22,12 +22,13 @@ resources:
 
 variables:
     imageTag: $(Build.BuildNumber)
-    fusionAcr: 'fusioncr.azurecr.io'
-    imageRepo: resources/fusion-resouces-api
+    fusionAcr: 'crfsharedhostingall.azurecr.io'
+    imageRepo: fra/resouces-api
     imageName: $(imageRepo):$(imageTag)
     subscriptionServiceNonProd: 'FRA Automation Non-Prod'
     subscriptionServiceProd: 'FRA Automation Prod'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
+    deploymentManifestFolder: '$(Pipeline.Workspace)/k8s-deployment'
     fullImageName: $(fusionAcr)/$(imageName)
     dbTagPrefix: resources
   
@@ -38,19 +39,15 @@ stages:
     - job: BuildImage
       steps:
       - task: Docker@2
-        displayName: Login to fusioncr
+        displayName: 'Build docker image'
         inputs:
-          command: login
-          containerRegistry: fusioncr
-      - template: templates/docker-buildx.yml@infra
-        parameters:
+          containerRegistry: 'fusion-aks-cr'
           repository: $(imageRepo)
+          command: 'buildAndPush'
           buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-          dockerPush: true
-          disableCache: true
-          tags: |
-            $(imageTag)
+          dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
+          tags: $(imageTag)
+
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
@@ -60,14 +57,14 @@ stages:
           arguments: |
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(imageTag)
+            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(imageTag)
 
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
           SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
           Contents: |
-            deployment-test-env.yml
+            deployment-*.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
   
       - publish: $(Build.ArtifactStagingDirectory)
@@ -84,7 +81,7 @@ stages:
   
     jobs:
     - deployment: DeployCI
-      environment: fusion-ci.fusion-resources-app-ci
+      environment: fusion-ci
       strategy:
         runOnce:
           deploy:
@@ -125,9 +122,11 @@ stages:
                 azureSubscription: $(subscriptionServiceNonProd)
                 dbTagPrefix: $(dbTagPrefix)                
   
-            - task: KubernetesManifest@0
+            - task: KubernetesManifest@1
               displayName: Deploy to Kubernetes cluster
               inputs:
+                kubernetesServiceConnection: fra-k8s-ci
+                namespace: fusion-resource-allocation-ci
                 action: deploy
                 manifests: $(deploymentManifest) 
 
