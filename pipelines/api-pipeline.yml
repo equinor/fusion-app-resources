@@ -129,7 +129,7 @@ stages:
                 action: deploy
                 manifests: |
                   $(deploymentManifestFolder)/deployment-service.yml
-                  $(deploymentManifestFolder)/deployment-ingress-test-env.yml
+                  $(deploymentManifestFolder)/deployment-ingress-test.yml
 
   - stage: DeployFQA
     displayName: 'Deploy to FQA'
@@ -190,7 +190,7 @@ stages:
                   action: deploy
                   manifests: |
                     $(deploymentManifestFolder)/deployment-service.yml
-                    $(deploymentManifestFolder)/deployment-ingress-test-env.yml
+                    $(deploymentManifestFolder)/deployment-ingress-test.yml
 
   - stage: DeployFPRD
     displayName: 'Deploy to FPRD'
@@ -251,7 +251,7 @@ stages:
                   action: deploy
                   manifests: |
                     $(deploymentManifestFolder)/deployment-service.yml
-                    $(deploymentManifestFolder)/deployment-ingress-test-env.yml
+                    $(deploymentManifestFolder)/deployment-ingress-prod.yml
 
               - template: templates/deploy-container-app.yml
                 parameters:
@@ -321,4 +321,4 @@ stages:
                   action: deploy
                   manifests: |
                     $(deploymentManifestFolder)/deployment-service.yml
-                    $(deploymentManifestFolder)/deployment-ingress-test-env.yml
+                    $(deploymentManifestFolder)/deployment-ingress-test.yml
