@@ -24,7 +24,7 @@ variables:
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'FRA Automation Non-Prod'
     subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
-    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/pr-deployment-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     buildNr: $(Build.BuildNumber)
   
@@ -71,7 +71,7 @@ stages:
         inputs:
           SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
           Contents: |
-            deployment-pr-env.yml
+            pr-deployment-env.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
@@ -84,11 +84,12 @@ stages:
       envName: 'pr'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      aks-namespace: 'fusion-resource-allocation-pr'
   
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      environment: fra-pr.fusion-resources-app-pr
+      environment: fra-pr
       strategy:
         runOnce:
           deploy:
@@ -162,9 +163,12 @@ stages:
                 azureSubscription: $(subscriptionService)
                 dbTagPrefix: resources
 
-  
-            - task: KubernetesManifest@0
+            - task: KubernetesManifest@1
               displayName: Deploy to Kubernetes cluster
               inputs:
+                kubernetesServiceConnection: fra-k8s-pr
+                namespace: $(aks-namespace)
                 action: deploy
-                manifests: $(deploymentManifest) 
+                manifests: |
+                  $(deploymentManifest)
+                    
