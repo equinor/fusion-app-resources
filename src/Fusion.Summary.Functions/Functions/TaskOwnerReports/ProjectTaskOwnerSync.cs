@@ -68,18 +68,14 @@ public class ProjectTaskOwnerSync
 
         logger.LogInformation("{FunctionName} triggered with projectTypeFilter {ProjectTypeFilter}", FunctionName, _projectTypeFilter.ToJson());
 
-        #region Retrieve projects and admins
-
         var projects = await GetActiveOrgProjectsAsync(cancellationToken);
         var existingSummaryProjects = await summaryApiClient.GetProjectsAsync(cancellationToken);
 
         logger.LogInformation("Found {ProjectCount} active projects {Projects}", projects.Count, projects.Select(p => new { p.ProjectId, p.Name, p.DomainId }).ToJson());
 
-        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(projects.Select(p => p.ProjectId), cancellationToken);
+        var projectAdminsMapping = await rolesApiClient.GetAdminRolesForOrgProjects(projects.Select(p => p.ProjectId).ToArray(), cancellationToken);
 
         var projectToEnqueueTimeMapping = QueueTimeHelper.CalculateEnqueueTime(projects, _totalBatchTime, logger);
-
-        #endregion
 
         logger.LogInformation("Syncing projects and admins");
 

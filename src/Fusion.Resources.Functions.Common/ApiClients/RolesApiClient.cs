@@ -17,7 +17,7 @@ public class RolesApiClient : IRolesApiClient
     private static string GetActiveOrgAdminsOdataQuery() => "scope.type eq 'OrgChart' and roleName eq 'Fusion.OrgChart.Admin' and source eq 'Fusion.Roles' and " +
                                                             $"validTo gt '{DateTime.UtcNow:O}'";
 
-    public async Task<Dictionary<Guid, ICollection<ApiSinglePersonRole>>> GetAdminRolesForOrgProjects(IEnumerable<Guid> projectIds, CancellationToken cancellationToken = default)
+    public async Task<Dictionary<Guid, ICollection<ApiSinglePersonRole>>> GetAdminRolesForOrgProjects(ICollection<Guid> projectIds, CancellationToken cancellationToken = default)
     {
         var odataQuery = new ODataQuery();
 
