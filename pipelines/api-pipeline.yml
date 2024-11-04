@@ -253,6 +253,8 @@ stages:
                     $(deploymentManifestFolder)/deployment-service.yml
                     $(deploymentManifestFolder)/deployment-ingress-prod.yml
 
+              ## Must check out code to get deployment file
+              - checkout: self
               - task: AzurePowerShell@5
                 displayName: 'Deploy ARM template'
                 inputs:
