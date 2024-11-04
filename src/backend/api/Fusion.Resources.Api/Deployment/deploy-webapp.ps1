@@ -53,11 +53,11 @@ Write-Host "Using resource group $resourceGroup"
 ## No automatic generation of this for now.
 
 # $dockerCredentials = @{ username="Resources-fprd-pull"; password=$acrPullToken }
-# $dockerInfo = @{
-#     url = "https://fusioncr.azurecr.io"
-#     image = $imageName
-#     startupCommand = ""
-# }
+$dockerInfo = @{
+    url = "https://crfsharedhostingall.azurecr.io"
+    image = $imageName
+    startupCommand = ""
+}
 
 
 Write-Host "Deploying template"
