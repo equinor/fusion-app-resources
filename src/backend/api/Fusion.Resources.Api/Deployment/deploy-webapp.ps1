@@ -43,16 +43,6 @@ $hostingPlan = New-HostingResource
 
 Write-Host "Using resource group $resourceGroup"
 
-# $adClientSecret = Get-AzKeyVaultSecret -VaultName $envKeyVault -Name "AzureAd--ClientSecret"
-# $acrPullToken = Get-AzKeyVaultSecret -VaultName $envKeyVault -Name "ACR-PullToken" -AsPlainText
-
-## 
-## ACR Pull secret
-## 
-## The ACR password must be generated on the fusioncr resource and added to the env key vault. 
-## No automatic generation of this for now.
-
-# $dockerCredentials = @{ username="Resources-fprd-pull"; password=$acrPullToken }
 $dockerInfo = @{
     url = "https://crfsharedhostingall.azurecr.io"
     image = $imageName
@@ -70,5 +60,4 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-weba
     -client-id $clientId `
     -docker $dockerInfo `
     -hosting @{ name = $hostingPlan.Name; id = $hostingPlan.Id }
-    # -docker-credentials $dockerCredentials `
 

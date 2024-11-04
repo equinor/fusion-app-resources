@@ -4,16 +4,6 @@
     "parameters": {
         "env-name": { "type": "string" },
         "fusion-env-name": { "type": "string" },
-        // "docker-credentials": {
-        //     "type": "secureObject",
-        //     "defaultValue": {
-        //         "username": "pull-token-name",
-        //         "password": null
-        //     },
-        //     "metadata": {
-        //         "description": "Details for the container registry"
-        //     }
-        // },
         "docker": {
             "type": "object",
             "defaultValue": {
@@ -40,7 +30,7 @@
         "env-name": "[toLower(parameters('env-name'))]",
         "fusion-env-name": "[toLower(parameters('fusion-env-name'))]",
         "location": "[resourceGroup().location]",
-        "api-name": "[concat('fap-resources-api-', variables('env-name'), '-POC')]",
+        "api-name": "[concat('fap-resources-api-', variables('env-name'))]",
         "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
         "ai-api-name": "[concat('ai-fap-resources-', variables('env-name'))]"
     },
