@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using Fusion.Resources.Functions.Common.Integration.Http;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
 
@@ -21,5 +22,11 @@ public class OrgClient : IOrgClient
                 url);
 
         return data;
+    }
+
+    public Task<ICollection<ApiPositionV2>> GetProjectPositions(string projectId, CancellationToken cancellationToken = default)
+    {
+        var url = $"/projects/{projectId}/positions";
+        return orgClient.GetAsJsonAsync<ICollection<ApiPositionV2>>(url, cancellationToken);
     }
 }

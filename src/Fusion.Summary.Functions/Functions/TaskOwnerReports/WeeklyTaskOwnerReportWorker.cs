@@ -5,28 +5,32 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Fusion.Integration;
-using Fusion.Integration.Profile;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Common.Extensions;
 using Fusion.Summary.Functions.Models;
+using Fusion.Summary.Functions.ReportCreator;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
+using PersonIdentifier = Fusion.Integration.Profile.PersonIdentifier;
 
 namespace Fusion.Summary.Functions.Functions.TaskOwnerReports;
 
 public class WeeklyTaskOwnerReportWorker
 {
     private readonly ISummaryApiClient summaryApiClient;
-    private readonly IFusionProfileResolver profileResolver;
+    private readonly IResourcesApiClient resourcesApiClient;
+    private readonly IPeopleApiClient peopleApiClient;
+    private readonly IOrgClient orgApiClient;
     private readonly ILogger<WeeklyTaskOwnerReportWorker> logger;
 
-    public WeeklyTaskOwnerReportWorker(ISummaryApiClient summaryApiClient, ILogger<WeeklyTaskOwnerReportWorker> logger, IFusionProfileResolver profileResolver)
+    public WeeklyTaskOwnerReportWorker(ISummaryApiClient summaryApiClient, ILogger<WeeklyTaskOwnerReportWorker> logger, IResourcesApiClient resourcesApiClient, IPeopleApiClient peopleApiClient, IOrgClient orgApiClient)
     {
         this.summaryApiClient = summaryApiClient;
         this.logger = logger;
-        this.profileResolver = profileResolver;
+        this.resourcesApiClient = resourcesApiClient;
+        this.peopleApiClient = peopleApiClient;
+        this.orgApiClient = orgApiClient;
     }
 
     private const string FunctionName = "weekly-task-owner-report-worker";
@@ -54,30 +58,62 @@ public class WeeklyTaskOwnerReportWorker
 
     private async Task CreateAndStoreReportAsync(WeeklyTaskOwnerReportMessage message, CancellationToken cancellationToken)
     {
-        // TODO: Remove
-        /*
-    Admin access expire less than 3 months (user can update access duration)
-    Actions awaiting task owner (in project/task) (link to relevant view)
-    Position allocations expiring next 3 months (link to relevant view)
-    TBN positions with start date > 3 months (user should send request or update start date - link to relevant view)
-         */
+        var allProjectPositions = await orgApiClient.GetProjectPositions(message.OrgProjectExternalId.ToString(), cancellationToken);
+        var activeRequestsForProject = await resourcesApiClient.GetActiveRequestsForProjectAsync(message.OrgProjectExternalId, cancellationToken);
+        var admins = await ResolveAdminsAsync(message, cancellationToken);
 
-        var expiringAdmins = await GetExpiringAdminsAsync(message, cancellationToken);
-        var actionsAwaitingTaskOwner = await GetActionsAwaitingTaskOwnerAsync(message, cancellationToken);
+
+        // KPIs
+        var expiringAdmins = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
+        var actionsAwaitingTaskOwner = WeeklyTaskOwnerReportDataCreator.GetActionsAwaitingTaskOwnerAsync(activeRequestsForProject);
+        var expiringPositions = WeeklyTaskOwnerReportDataCreator.GetPositionsEndingNextThreeMonths(allProjectPositions);
+        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonts(allProjectPositions);
+
+        var now = DateTime.UtcNow;
+        var report = new ApiWeeklyTaskOwnerReport()
+        {
+            Id = Guid.Empty,
+            PeriodStart = now.GetPreviousWeeksMondayDate(),
+            PeriodEnd = now,
+            ProjectId = message.ProjectId,
+            ActionsAwaitingTaskOwnerAction = actionsAwaitingTaskOwner,
+            AdminAccessExpiringInLessThanThreeMonths = expiringAdmins.Select(ea => new ApiAdminAccessExpiring()
+            {
+                AzureUniqueId = ea.AzureUniqueId,
+                FullName = ea.FullName,
+                Expires = ea.ValidTo.DateTime
+            }).ToArray(),
+            PositionAllocationsEndingInNextThreeMonths = expiringPositions.Select(ep => new ApiPositionAllocationEnding()
+            {
+                PositionName = ep.Position.BasePosition.Name ?? string.Empty,
+                PositionNameDetailed = ep.Position.Name,
+                PositionExternalId = ep.Position.ExternalId ?? string.Empty,
+                PositionAppliesTo = ep.ExpiresAt.DateTime
+            }).ToArray(),
+            TBNPositionsStartingInLessThanThreeMonths = tbnPositions.Select(tp => new ApiTBNPositionStartingSoon()
+            {
+                PositionName = tp.Position.BasePosition.Name ?? string.Empty,
+                PositionNameDetailed = tp.Position.Name,
+                PositionExternalId = tp.Position.ExternalId ?? string.Empty,
+                PositionAppliesFrom = tp.StartsAt.DateTime
+            }).ToArray()
+        };
+
+
+        await summaryApiClient.PutWeeklyTaskOwnerReportAsync(message.ProjectId, report, cancellationToken);
     }
 
-    private async Task<int> GetActionsAwaitingTaskOwnerAsync(WeeklyTaskOwnerReportMessage message, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
 
-    private async Task<List<ExpiringAdmin>> GetExpiringAdminsAsync(WeeklyTaskOwnerReportMessage message, CancellationToken cancellationToken)
+    private async Task<List<PersonAdmin>> ResolveAdminsAsync(WeeklyTaskOwnerReportMessage message, CancellationToken cancellationToken)
     {
+        if (message.ProjectAdmins.Length == 0)
+            return [];
+
         var personIdentifiers = message.ProjectAdmins.Select(pa => new PersonIdentifier(pa.AzureUniqueId, pa.Mail));
 
-        var resolvedAdmins = await profileResolver.ResolvePersonsAsync(personIdentifiers, cancellationToken);
+        var resolvedAdmins = await peopleApiClient.ResolvePersonsAsync(personIdentifiers, cancellationToken);
 
-        var expiringAdmins = new List<ExpiringAdmin>();
+        var admins = new List<PersonAdmin>();
 
         foreach (var resolvedPersonProfile in resolvedAdmins)
         {
@@ -87,7 +123,7 @@ public class WeeklyTaskOwnerReportWorker
                 continue;
             }
 
-            var profile = resolvedPersonProfile.Profile!;
+            var profile = resolvedPersonProfile.Person!;
 
             if (profile.AzureUniqueId == null)
             {
@@ -95,18 +131,16 @@ public class WeeklyTaskOwnerReportWorker
                 continue;
             }
 
-            var projectAdmin = message.ProjectAdmins.First(pa => pa.AzureUniqueId == profile.AzureUniqueId);
+            var projectAdmin = message.ProjectAdmins.First(pa => pa.AzureUniqueId == profile.AzureUniqueId ||
+                                                                 pa.Mail != null && pa.Mail.Equals(profile.Mail, StringComparison.OrdinalIgnoreCase));
 
             if (projectAdmin.ValidTo == null)
                 continue;
 
-            if (projectAdmin.ValidTo.Value.Date <= DateTimeOffset.UtcNow.AddMonths(3).Date)
-                expiringAdmins.Add(new ExpiringAdmin(profile.AzureUniqueId.Value, profile.Name, projectAdmin.ValidTo.Value));
+            admins.Add(new PersonAdmin(profile.AzureUniqueId.Value, profile.Name, projectAdmin.ValidTo.Value));
         }
 
 
-        return expiringAdmins;
+        return admins;
     }
-
-    private record ExpiringAdmin(Guid AzureUniqueId, string FullName, DateTimeOffset ValidTo);
 }

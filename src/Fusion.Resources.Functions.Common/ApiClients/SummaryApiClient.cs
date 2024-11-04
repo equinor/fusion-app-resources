@@ -78,6 +78,15 @@ public class SummaryApiClient : ISummaryApiClient
         await ThrowIfUnsuccessfulAsync(response);
     }
 
+    public async Task PutWeeklyTaskOwnerReportAsync(Guid projectId, ApiWeeklyTaskOwnerReport report, CancellationToken cancellationToken = default)
+    {
+        using var body = new JsonContent(JsonSerializer.Serialize(report, jsonSerializerOptions));
+
+        using var response = await summaryClient.PutAsync($"projects/{projectId}/task-owners-summary-reports/weekly", body, cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+    }
+
     private async Task ThrowIfUnsuccessfulAsync(HttpResponseMessage response)
         => await response.ThrowIfUnsuccessfulAsync((responseBody) => new SummaryApiError(response, responseBody));
 }

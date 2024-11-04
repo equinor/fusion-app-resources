@@ -4,7 +4,7 @@ namespace Fusion.Resources.Functions.Common.ApiClients;
 
 public interface ISummaryApiClient
 {
-    /// <exception cref="SummaryApiException"></exception>
+    /// <exception cref="SummaryApiError"></exception>
     public Task PutDepartmentAsync(ApiResourceOwnerDepartment departments,
         CancellationToken cancellationToken = default);
 
@@ -23,6 +23,9 @@ public interface ISummaryApiClient
     /// <exception cref="SummaryApiError"></exception>
     public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
         CancellationToken cancellationToken = default);
+
+    /// <exception cref="SummaryApiError"></exception>
+    public Task PutWeeklyTaskOwnerReportAsync(Guid projectId, ApiWeeklyTaskOwnerReport report, CancellationToken cancellationToken = default);
 }
 
 #region Models
@@ -82,6 +85,45 @@ public record ApiEndingPosition
 {
     public string FullName { get; set; } = "-";
     public DateTime EndDate { get; set; }
+}
+
+public class ApiWeeklyTaskOwnerReport
+{
+    public required Guid Id { get; set; }
+    public required Guid ProjectId { get; set; }
+    public required DateTime PeriodStart { get; set; }
+    public required DateTime PeriodEnd { get; set; }
+
+    public required int ActionsAwaitingTaskOwnerAction { get; set; }
+    public required ApiAdminAccessExpiring[] AdminAccessExpiringInLessThanThreeMonths { get; set; }
+    public required ApiPositionAllocationEnding[] PositionAllocationsEndingInNextThreeMonths { get; set; }
+    public required ApiTBNPositionStartingSoon[] TBNPositionsStartingInLessThanThreeMonths { get; set; }
+}
+
+public class ApiAdminAccessExpiring
+{
+    public required Guid AzureUniqueId { get; set; }
+    public required string FullName { get; set; }
+    public required DateTime Expires { get; set; }
+}
+
+public class ApiPositionAllocationEnding
+{
+    public required string PositionExternalId { get; set; }
+
+    public required string PositionName { get; set; }
+
+    public required string PositionNameDetailed { get; set; }
+
+    public required DateTime PositionAppliesTo { get; set; }
+}
+
+public class ApiTBNPositionStartingSoon
+{
+    public required string PositionExternalId { get; set; }
+    public required string PositionName { get; set; }
+    public required string PositionNameDetailed { get; set; }
+    public required DateTime PositionAppliesFrom { get; set; }
 }
 
 #endregion
