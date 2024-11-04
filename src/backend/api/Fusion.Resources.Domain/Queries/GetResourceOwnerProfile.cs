@@ -76,8 +76,8 @@ namespace Fusion.Resources.Domain.Queries
                 var resourceOwnerProfile = new QueryResourceOwnerProfile(user.FullDepartment, isDepartmentManager, departmentsWithResponsibility, relevantSectors)
                 {
                     Sector = sector,
-                    ChildDepartments = lineOrgDepartmentProfile?.Children.Select(x => x.DepartmentId).ToList(),
-                    SiblingDepartments = lineOrgDepartmentProfile?.Siblings.Select(x => x.DepartmentId).ToList()
+                    ChildDepartments = lineOrgDepartmentProfile?.Children.Select(x => x.FullDepartment).ToList(),
+                    SiblingDepartments = lineOrgDepartmentProfile?.Siblings.Select(x => x.FullDepartment).ToList()
                 };
 
                 return resourceOwnerProfile;
@@ -159,7 +159,7 @@ namespace Fusion.Resources.Domain.Queries
             {
                 var departments = await mediator.Send(new GetDepartments().InSector(sector));
                 return departments
-                    .Select(dpt => dpt.DepartmentId);
+                    .Select(dpt => dpt.FullDepartment);
             }
 
             private async Task<IEnumerable<string>> ResolveDownstreamSectors(string? department)

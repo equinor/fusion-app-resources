@@ -28,6 +28,7 @@
         "queues": {
           "provisionPosition": "provision-position",
           "scheduledNotificationReportQueue": "scheduled-notification"
+          
         }
       }
     },
@@ -40,7 +41,7 @@
     },
     "netFrameworkVersion": {
       "type": "string",
-      "defaultValue": "v6.0"
+      "defaultValue": "v8.0"
     }
   },
   "variables": {
@@ -96,6 +97,10 @@
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
               "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_INPROC_NET8_ENABLED",
+              "value": "1"
             },
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
@@ -164,6 +169,10 @@
             {
               "name": "provision_position_queue",
               "value": "[parameters('settings').queues.provisionPosition]"
+            },
+            {
+              "name": "total_batch_time_in_minutes",
+              "value": "270"
             }
           ]
         }

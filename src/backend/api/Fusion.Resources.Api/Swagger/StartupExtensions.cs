@@ -3,9 +3,6 @@ using Fusion.Resources.Api.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -22,12 +19,15 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 .AddApiPreview()
                 .ForceStringConverter<PathProjectIdentifier>()
+                .ForceStringConverter<OrgUnitIdentifier>()
                 .ForceStringConverter<RequestIdentifier>()
                 .ConfigureSwaggerGen(s =>
                 {
+                    s.MapType<OrgUnitIdentifier>(() => new OpenApiSchema { Type = "string", Description = "Line org unit by sap id or full department string" });
                     s.MapType<PathProjectIdentifier>(() => new OpenApiSchema { Type = "string", Description = "Org project id or context id" });
                     s.MapType<RequestIdentifier>(() => new OpenApiSchema {  Type = "string", Description = "Request id or request number" });
-
+                    // Use existing custom ODataQueryParamSwaggerFilter
+                    s.DocumentFilter<ODataQueryParamSwaggerFilter>();
                     s.DocumentFilter<OptionalRouteParamFilter>();
                 }));
 

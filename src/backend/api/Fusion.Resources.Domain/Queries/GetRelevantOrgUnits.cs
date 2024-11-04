@@ -57,17 +57,22 @@ namespace Fusion.Resources.Domain.Queries
                     return null;
                 }
 
-                // Resolve claims with responsibility.
-                var delegatedManagerClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.IsActive == true).Select(x => x.Scope?.Value);
-                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsActive == true).Select(x => x.Scope?.Value);
-                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Read") && x.IsActive == true).Select(x => x.Scope?.Value);
-
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
                 orgUnitAccessReason.ApplyManager(user);
-                orgUnitAccessReason.ApplyRole(adminClaims, ReasonRoles.Write);
+
+                // Filter out only active roles
+                var activeRoles = user.Roles.Where(x => x.IsActive);
+
+                var delegatedManagerClaims = activeRoles.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
                 orgUnitAccessReason.ApplyRole(delegatedManagerClaims, ReasonRoles.DelegatedManager);
+
+                var adminClaims = activeRoles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
+                orgUnitAccessReason.ApplyRole(adminClaims, ReasonRoles.Write);
+
+                var readClaims = activeRoles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
                 orgUnitAccessReason.ApplyRole(readClaims, ReasonRoles.Read);
+
                 orgUnitAccessReason.ApplyParentManager(orgUnits, user);
 
                 if (orgUnitAccessReason is null)
@@ -105,9 +110,8 @@ namespace Fusion.Resources.Domain.Queries
                             }
                             else
                             {
-                                data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
+                                data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment || x.Department == org.FullDepartment);
                             }
-
                             if (data != null)
                             {
                                 data.Reasons.Add(org.Reason);
@@ -150,11 +154,12 @@ namespace Fusion.Resources.Domain.Queries
         internal static void ApplyManager(this List<QueryOrgUnitReason> reasons, FusionFullPersonProfile user)
         {
             var isDepartmentManager = user.IsResourceOwner;
-            if (isDepartmentManager) reasons.Add(new QueryOrgUnitReason
-            {
-                FullDepartment = user?.FullDepartment ?? "",
-                Reason = ReasonRoles.Manager
-            });
+            if (isDepartmentManager)
+                reasons.Add(new QueryOrgUnitReason
+                {
+                    FullDepartment = user?.FullDepartment ?? "",
+                    Reason = ReasonRoles.Manager
+                });
         }
 
         internal static void ApplyRole(this List<QueryOrgUnitReason> reasons, IEnumerable<string?>? departments, string role)
@@ -172,20 +177,31 @@ namespace Fusion.Resources.Domain.Queries
         internal static void ApplyParentManager(this List<QueryOrgUnitReason> reasons, IEnumerable<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
         {
             var managerResposibility = new List<QueryOrgUnitReason>();
-            var parentManager = reasons?.Where(x => x.IsWildCard == true); ;
-            if (parentManager is not null)
+            var managerOrDelegatedManagerDepartmentsOrWildcard = reasons
+                .Where(x => x.Reason.Equals(ReasonRoles.Manager) || x.Reason.Equals(ReasonRoles.DelegatedManager) || x.IsWildCard).ToList();
+            if (managerOrDelegatedManagerDepartmentsOrWildcard is not null)
             {
-                foreach (var wildcard in parentManager)
+                foreach (var department in managerOrDelegatedManagerDepartmentsOrWildcard)
                 {
-                    var wildcardDepartment = wildcard.FullDepartment.Replace("*", "").TrimEnd();
-                    var delegatedChildren = orgUnits.Distinct().Where(x => x.FullDepartment.StartsWith(wildcardDepartment));
+                    var parentDepartment = department.FullDepartment.Replace("*", "").TrimEnd();
+
+                    var childDepartments = orgUnits.Distinct().Where(x => x.FullDepartment.StartsWith(parentDepartment) && !x.FullDepartment.Equals(parentDepartment));
+
+                    // if the department is not of type wildcard we only want to get direct children (one level below)
+                    if (!department.IsWildCard)
+                    {
+                        var getParentDepartmentLevel = GetAcronymsForDepartment(parentDepartment);
+
+                        childDepartments = childDepartments.Where(x => (GetAcronymsForDepartment(x.FullDepartment).Count() == getParentDepartmentLevel.Length + 1));
+
+                    }
                     var reason = ReasonRoles.DelegatedParentManager;
-                    if (user.IsResourceOwner && user.FullDepartment == wildcardDepartment)
+                    if (user.IsResourceOwner && user.FullDepartment == parentDepartment)
                     {
                         reason = ReasonRoles.ParentManager;
                     }
 
-                    foreach (var child in delegatedChildren)
+                    foreach (var child in childDepartments)
                     {
                         managerResposibility?.Add(new QueryOrgUnitReason
                         {
@@ -196,6 +212,11 @@ namespace Fusion.Resources.Domain.Queries
                 }
                 reasons?.AddRange(managerResposibility);
             }
+        }
+
+        static string[] GetAcronymsForDepartment(string word)
+        {
+            return word.Split();
         }
     }
 }

@@ -14,6 +14,9 @@ using Fusion.Events;
 using Newtonsoft.Json;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Resources.Domain;
+using Fusion.Services.LineOrg.ApiModels;
+using Fusion.Integration.LineOrg;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -83,26 +86,37 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return resourceOwner;
         }
 
+        internal ApiOrgUnit AddOrgUnit(string sapId, string name, string fullDepartment)
+        {
+            return LineOrgServiceMock.AddOrgUnit(sapId, name, fullDepartment, fullDepartment, fullDepartment);
+
+        }
+        internal ApiOrgUnit AddOrgUnit(string fullDepartment)
+        {
+            return LineOrgServiceMock.AddOrgUnit(fullDepartment);
+
+        }
+
+        internal DbScope DbScope() => new DbScope(ApiFactory.Services);
+
         internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null, int daysFrom = -1, int daysTo = 1)
         {
-            using var scope = ApiFactory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-
-
-
             LineOrgServiceMock.AddDepartment(departmentId);
 
             if (defactoResponsible is not null)
             {
-                db.DelegatedDepartmentResponsibles.Add(new Database.Entities.DbDelegatedDepartmentResponsible()
+                using (var dbScope = new DbScope(ApiFactory.Services))
                 {
-                    DateFrom = DateTime.Today.AddDays(daysFrom),
-                    DateTo = DateTime.Today.AddDays(daysTo),
-                    DepartmentId = departmentId,
-                    ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.GetValueOrDefault(),
-                    Reason = "Just for testing"
-                });
-                try { db.SaveChanges(); } catch (DBConcurrencyException) { }
+                    dbScope.DbContext.DelegatedDepartmentResponsibles.Add(new Database.Entities.DbDelegatedDepartmentResponsible()
+                    {
+                        DateFrom = DateTime.Today.AddDays(daysFrom),
+                        DateTo = DateTime.Today.AddDays(daysTo),
+                        DepartmentId = departmentId,
+                        ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.GetValueOrDefault(),
+                        Reason = "Just for testing"
+                    });
+                    try { dbScope.DbContext.SaveChanges(); } catch (DBConcurrencyException) { }
+                }
 
                 RolesClientMock.AddPersonRole(defactoResponsible.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
                 {
@@ -130,6 +144,23 @@ namespace Fusion.Resources.Api.Tests.Fixture
             }).Where(m => m != null);
 
             return notifications.ToList();
+        }
+    }
+
+    public class DbScope : IDisposable
+    {
+        private IServiceScope scope;
+        public ResourcesDbContext DbContext { get; }
+
+        public DbScope(IServiceProvider apiServices)
+        {
+            scope = apiServices.CreateScope();
+            DbContext = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        }
+
+        public void Dispose()
+        {
+            scope.Dispose();
         }
     }
 }

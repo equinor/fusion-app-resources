@@ -16,6 +16,8 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
 {
     [ApiController]
     [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [ApiVersion("3.0")]
     public class PersonsController : ControllerBase
     {
         [MapToApiVersion("3.0")]
@@ -91,6 +93,11 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
         {
             var props = typeof(ApiPersonProfileV3).GetProperties();
 
+            // NOTE: 
+            // 
+            // Note sure this "mock" does what we want.. But do not know that it is that important to have an exact filter here as we are not verifying results.
+            //
+
             var azureUniqueId = GetAzureUniqueIdFromFilterQuery(peopleSearchRequest);
 
             return Ok(new
@@ -127,6 +134,9 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
             var persons = new EdmEntityType("AdPerson", "Person");
             persons.AddStructuralProperty("azureUniqueId", EdmPrimitiveTypeKind.String);
             persons.AddStructuralProperty("managerAzureId", EdmPrimitiveTypeKind.String);
+            persons.AddStructuralProperty("fullDepartment", EdmPrimitiveTypeKind.String);
+            persons.AddStructuralProperty("isExpired", EdmPrimitiveTypeKind.Boolean);
+            persons.AddStructuralProperty("isResourceOwner", EdmPrimitiveTypeKind.Boolean);
             edmModel.AddElement(persons);
             var filterClause = ODataUriParser.ParseFilter(peopleSearchRequest.Filter, edmModel, persons);
             var operatorNode = filterClause.Expression as BinaryOperatorNode;

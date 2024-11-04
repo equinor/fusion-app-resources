@@ -4,6 +4,8 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Services.LineOrg.ApiModels;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -92,16 +94,16 @@ namespace Fusion.Resources.Domain.Commands
                 var resolvedProject = await EnsureProjectAsync(request);
                 var position = await ResolveOrgPositionAsync(request);
                 var proposedPerson = await ResolveProposedPersonAsync(request);
+                
 
                 var instance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
                 if (instance is null)
                     throw new InvalidOperationException($"Could not locate instance with id {request.OrgPositionInstanceId} on position {request.OrgPositionId}");
 
-
                 var item = new DbResourceAllocationRequest
                 {
                     Id = Guid.NewGuid(),
-                    AssignedDepartment = request.AssignedDepartment,
+                    AssignedDepartment = request.AssignedDepartment,    // Will be overwritten later
                     Type = request.Type.MapToDatabase(),
                     SubType = request.SubType,
                     RequestOwner = request.Owner switch
@@ -128,6 +130,13 @@ namespace Fusion.Resources.Domain.Commands
                         Obs = instance.Obs,
                         Workload = instance.Workload
                     },
+                    InitialProposedPerson = proposedPerson is not null
+                        ? new DbResourceAllocationRequest.DbOpInitialProposedPerson()
+                        {
+                            AzureUniqueId = proposedPerson.AzureUniqueId,
+                            Mail = proposedPerson.Mail
+                        }
+                        : null,
 
                     IsDraft = request.IsDraft,
 
@@ -136,6 +145,8 @@ namespace Fusion.Resources.Domain.Commands
                     LastActivity = created,
                     CorrelationId = request.CorrelationId
                 };
+
+                await UpdateAssignedOrgUnitAsync(request, item);
 
                 if (proposedPerson is not null)
                 {
@@ -146,6 +157,23 @@ namespace Fusion.Resources.Domain.Commands
 
 
                 return item;
+            }
+
+            private async Task UpdateAssignedOrgUnitAsync(CreateInternalRequest request, DbResourceAllocationRequest dbItem)
+            {
+                if (!string.IsNullOrEmpty(request.AssignedDepartment))
+                {
+                    var orgUnit = await mediator.Send(new ResolveLineOrgUnit(request.AssignedDepartment));
+
+                    // If the assigned department is provided as input, it should be validated that it exists.
+                    if (orgUnit is null)
+                    {
+                        throw new InvalidOperationException($"Could not resolve org unit using identifier '{request.AssignedDepartment}'. Unable to set assigned department");
+                    }
+
+                    dbItem.AssignedDepartment = orgUnit.FullDepartment;
+                    dbItem.AssignedDepartmentId = orgUnit.SapId;
+                }
             }
 
             private async Task<DbPerson?> ResolveProposedPersonAsync(CreateInternalRequest request)

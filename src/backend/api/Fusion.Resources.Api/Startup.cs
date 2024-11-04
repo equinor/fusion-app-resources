@@ -23,6 +23,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using SixLabors.ImageSharp;
 using System.Reflection;
+using Fusion.AspNetCore.Versioning;
 
 namespace Fusion.Resources.Api
 {
@@ -58,7 +59,7 @@ namespace Fusion.Resources.Api
                 s.ReportApiVersions = true;
                 s.AssumeDefaultVersionWhenUnspecified = true;
                 s.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
-                s.ApiVersionReader = new Fusion.AspNetCore.Mvc.Versioning.HeaderOrQueryVersionReader("api-version");
+                s.ApiVersionReader = new HeaderOrQueryVersionReader("api-version");
             });
 
             services.AddHttpContextAccessor();
@@ -93,10 +94,20 @@ namespace Fusion.Resources.Api
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
 
+
+                /*
+                 * Add event handlers to line org. 
+                 * We need one persistant that can track changes and do internal updates. These we only want executed once across multiple instances. 
+                 * The transient handler will provide cache control on events, this will be executed across all instances as it updates in-memory objects.
+                 */
+                var LineOrgUnitEventType = new FusionEventType("lineorg.org-unit");
+                s.AddPersistentHandler<LineOrgSyncronizationHandler>(LineOrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
+                {
+                    e.OnlyTriggerOn(LineOrgUnitEventType);
+                });
                 s.AddTransientHandler<LineOrgOrgUnitHandler>(LineOrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
                 {
-                   var LineOrgUnit = new FusionEventType("lineorg.org-unit" );
-                    e.OnlyTriggerOn(LineOrgUnit);
+                    e.OnlyTriggerOn(LineOrgUnitEventType);
                 });
             });
             // Add custom claims provider, to sort delegated responsibilities
@@ -108,7 +119,7 @@ namespace Fusion.Resources.Api
 
             services.AddControllers()
                 .AddModelValidationAsyncActionFilter();
-
+            
             // Keeping for reference - The validator is not added to the .net core validation pipeline. This is due to limitations in running async 
             // validators. This is required to validate against external requirements, e.g. position exists.
             // The validation is executed by an action attribute filter, added by ".AddModelValidationAsyncActionFilter()". 
@@ -165,14 +176,14 @@ namespace Fusion.Resources.Api
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader()
-                .WithExposedHeaders("Allow", "x-fusion-retriable"));
+                .WithExposedHeaders("Allow", "x-fusion-retriable", "x-trace-id"));
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseMiddleware<RequestResponseLoggingMiddleware>();
+            //app.UseMiddleware<RequestResponseLoggingMiddleware>(); 
             app.UseMiddleware<TraceMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
 

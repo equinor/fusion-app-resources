@@ -1,0 +1,26 @@
+{
+  "functionTimeout": "00:10:00",
+  "version": "2.0",
+  "extensions": {
+    "serviceBus": {
+      "messageHandlerOptions": {
+        "autoComplete": false
+      }
+    }
+  },
+  "logging": {
+    "logLevel": {
+      "default": "Information",
+      "System.Net.Http.HttpClient.App.Resources.LogicalHandler": "Warning",
+      "Fusion.Resources.Functions.Common.Integration.Http.Handlers.ResourcesHttpHandler": "Warning",
+      "System.Net.Http.HttpClient.App.Summary.LogicalHandler": "Warning",
+      "Fusion.Resources.Functions.Common.Integration.Http.Handlers.SummaryHttpHandler": "Warning"
+    },
+    "applicationInsights": {
+      "samplingSettings": {
+        "maxTelemetryItemsPerSecond": 40,
+        "excludedTypes": "Exception;Request"
+      }
+    }
+  }
+}

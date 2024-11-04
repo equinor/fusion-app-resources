@@ -15,7 +15,7 @@ schedules:
 jobs:
   - deployment: DeployPR
     displayName: 'Remove pull request environment artifacts'
-    environment: fusion-resources-pr.fusion-resources-app-pr
+    environment: fra-pr
     strategy:
       runOnce:
         deploy:
@@ -32,7 +32,7 @@ jobs:
               Write-Output "##vso[task.setvariable variable=activePrs]$([string]::Join(",", $activePRs))"
             displayName: Detect active pull requests
 
-          - task: AzurePowerShell@4
+          - task: AzurePowerShell@5
             displayName: 'Delete expired databases'
             inputs:
               azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
@@ -42,7 +42,7 @@ jobs:
               Inline: |                
                 $activePRs = "$(activePrs)".Split(",")
 
-                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test  | Where-Object { $_.Tags["fusion-app"] -eq "resources" }
+                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test  | Where-Object { $_.Tags["fusion-app"] -eq "resources" -or $_.Tags["fusion-app"] -eq "summary" }
 
                 foreach ($db in $prDbs) {
                     if ($db.Tags["fusion-app-env"] -ne "pr") {

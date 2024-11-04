@@ -17,7 +17,7 @@ namespace Fusion.Resources.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.12")
+                .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -35,6 +35,197 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("CandidatesId");
 
                     b.ToTable("DbPersonDbResourceAllocationRequest");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContract", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Allocated")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("AllocatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContractNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("OrgContractId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AllocatedById");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractPersonnel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PersonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("PersonId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("ContractPersonnel");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractPersonnelReplacement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChangeType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FromPerson")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ToPerson")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UPN")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "ContractId");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("ProjectId", "ContractId"), false);
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("ProjectId", "ContractId"), new[] { "UPN", "FromPerson", "ToPerson", "ChangeType", "Created", "CreatedBy" });
+
+                    b.ToTable("ContractPersonnelReplacementChanges");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractorRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastActivity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)));
+
+                    b.Property<Guid?>("OriginalPositionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PersonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LastActivity");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("LastActivity"), false);
+
+                    b.HasIndex("PersonId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("ContractorRequests");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbConversationMessage", b =>
@@ -165,6 +356,133 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("DelegatedDepartmentResponsiblesHistory");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Classification")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PersonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("RecertifiedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("RecertifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("ValidTo")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("PersonId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("RecertifiedById");
+
+                    b.ToTable("DelegatedRoles");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("AzureUniqueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DawinciCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LinkedInProfile")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Mail")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PersonIdReplacements")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("PreferredContractMail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UPN")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Mail");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("Mail"), false);
+
+                    b.ToTable("ExternalPersonnel");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPerson", b =>
                 {
                     b.Property<Guid>("Id")
@@ -284,6 +602,29 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("PersonNotes");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonnelDiscipline", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DbExternalPersonnelPersonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("PersonnelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DbExternalPersonnelPersonId");
+
+                    b.ToTable("DbPersonnelDiscipline");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbProject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -299,6 +640,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid>("OrgProjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("State")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -435,6 +779,10 @@ namespace Fusion.Resources.Database.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("AssignedDepartmentId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<Guid?>("CorrelationId")
                         .HasColumnType("uniqueidentifier");
 
@@ -492,9 +840,21 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedDepartment");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("AssignedDepartment"), false);
+
+                    b.HasIndex("AssignedDepartmentId");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("AssignedDepartmentId"), false);
+
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("RequestNumber");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("RequestNumber"), false);
 
                     b.HasIndex("UpdatedById");
 
@@ -793,6 +1153,198 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContract", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "AllocatedBy")
+                        .WithMany()
+                        .HasForeignKey("AllocatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
+                        .WithMany("Contracts")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AllocatedBy");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractPersonnel", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbContract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Person");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractorRequest", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbContract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbContractPersonnel", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbContractorRequest+ProvisionStatus", "ProvisioningStatus", b1 =>
+                        {
+                            b1.Property<Guid>("DbContractorRequestId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ErrorMessage")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("ErrorPayload")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<Guid?>("PositionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTimeOffset?>("Provisioned")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("DbContractorRequestId");
+
+                            b1.ToTable("ContractorRequests");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbContractorRequestId");
+                        });
+
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbContractorRequest+RequestPosition", "Position", b1 =>
+                        {
+                            b1.Property<Guid>("DbContractorRequestId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTime>("AppliesFrom")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<DateTime>("AppliesTo")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<Guid>("BasePositionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Obs")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<double>("Workload")
+                                .HasColumnType("float");
+
+                            b1.HasKey("DbContractorRequestId");
+
+                            b1.ToTable("ContractorRequests");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbContractorRequestId");
+
+                            b1.OwnsOne("Fusion.Resources.Database.Entities.DbContractorRequest+PositionTaskOwner", "TaskOwner", b2 =>
+                                {
+                                    b2.Property<Guid>("RequestPositionDbContractorRequestId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<Guid?>("PositionId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<Guid?>("RequestId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.HasKey("RequestPositionDbContractorRequestId");
+
+                                    b2.ToTable("ContractorRequests");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("RequestPositionDbContractorRequestId");
+                                });
+
+                            b1.Navigation("TaskOwner")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Person");
+
+                    b.Navigation("Position")
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("ProvisioningStatus")
+                        .IsRequired();
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbConversationMessage", b =>
                 {
                     b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", null)
@@ -808,6 +1360,48 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbContract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "RecertifiedBy")
+                        .WithMany()
+                        .HasForeignKey("RecertifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Person");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("RecertifiedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonAbsence", b =>
@@ -866,6 +1460,14 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonnelDiscipline", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", null)
+                        .WithMany("Disciplines")
+                        .HasForeignKey("DbExternalPersonnelPersonId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestAction", b =>
@@ -934,6 +1536,26 @@ namespace Fusion.Resources.Database.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpInitialProposedPerson", "InitialProposedPerson", b1 =>
+                        {
+                            b1.Property<Guid>("DbResourceAllocationRequestId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("AzureUniqueId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Mail")
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.HasKey("DbResourceAllocationRequestId");
+
+                            b1.ToTable("ResourceAllocationRequests");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbResourceAllocationRequestId");
+                        });
 
                     b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpPositionInstance", "OrgPositionInstance", b1 =>
                         {
@@ -1087,6 +1709,8 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Navigation("CreatedBy");
 
+                    b.Navigation("InitialProposedPerson");
+
                     b.Navigation("OrgPositionInstance")
                         .IsRequired();
 
@@ -1228,6 +1852,16 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("CompletedBy");
 
                     b.Navigation("Workflow");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", b =>
+                {
+                    b.Navigation("Disciplines");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbProject", b =>
+                {
+                    b.Navigation("Contracts");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>

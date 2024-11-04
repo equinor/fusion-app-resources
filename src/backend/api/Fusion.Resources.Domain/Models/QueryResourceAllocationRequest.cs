@@ -32,6 +32,7 @@ namespace Fusion.Resources.Domain
             RequestId = entity.Id;
             RequestNumber = entity.RequestNumber;
             AssignedDepartment = entity.AssignedDepartment;
+            AssignedDepartmentId = entity.AssignedDepartmentId;
             Discipline = entity.Discipline;
             Type = entity.Type.MapToDomain();
 
@@ -45,6 +46,16 @@ namespace Fusion.Resources.Domain
 
             OrgPositionId = entity.OrgPositionId;
             OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
+
+            if (entity.InitialProposedPerson is not null)
+            {
+                InitialProposedPerson = new QueryProposedPerson()
+                {
+                    ProposedDate = entity.Created,
+                    AzureUniqueId = entity.InitialProposedPerson.AzureUniqueId,
+                    Mail = entity.InitialProposedPerson.Mail,
+                };
+            }
 
             if (entity.ProposedPerson.HasBeenProposed)
                 ProposedPerson = new QueryProposedPerson()
@@ -83,6 +94,7 @@ namespace Fusion.Resources.Domain
         public Guid? OrgPositionInstanceId { get; set; }
 
         public string? AssignedDepartment { get; set; }
+        public string? AssignedDepartmentId { get; set; }
         public QueryDepartment? AssignedDepartmentDetails { get; set; }
         public string? Discipline { get; set; }
         public InternalRequestType Type { get; set; }
@@ -96,7 +108,7 @@ namespace Fusion.Resources.Domain
         public ApiPositionV2? OrgPosition { get; set; }
 
         public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
-
+        public QueryProposedPerson? InitialProposedPerson { get; set; }
         public QueryProposedPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
         public string? PropertiesJson { get; set; }

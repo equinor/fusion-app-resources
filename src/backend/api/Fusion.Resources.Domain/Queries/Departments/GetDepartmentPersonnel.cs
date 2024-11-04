@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain
             this.includeSubdepartments = includeSubdepartments;
             return this;
         }
-        
+
         public GetDepartmentPersonnel IncludeCurrentAllocations(bool includeCurrentAllocations)
         {
             this.includeCurrentAllocations = includeCurrentAllocations;
@@ -92,12 +92,15 @@ namespace Fusion.Resources.Domain
                 var departmentRequests = await GetPendingRequests(request.Department);
                 var requestsWithStateNullOrCreated = await GetRequestsWithStateNullOrCreatedAsync(request.Department);
                 var departmentPersonnel = await GetDepartmentFromSearchIndexAsyncV2(request.Department, requestsWithStateNullOrCreated);
-                   
-               
+
+
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
-                
+
                 departmentPersonnel.ForEach(p =>
                 {
+                    // Filter out all positions of type products
+                    p.PositionInstances = p.PositionInstances.Where(pis => pis.BasePosition != null && pis.BasePosition.ProjectType != null && !pis.BasePosition.ProjectType.Equals("Product")).ToList();
+
                     p.Absence = departmentAbsence[p.AzureUniqueId];
                     if (departmentRequests.ContainsKey(p.AzureUniqueId))
                         p.PendingRequests = departmentRequests[p.AzureUniqueId];
@@ -121,7 +124,7 @@ namespace Fusion.Resources.Domain
                                      .WithAbsences(p.Absence)
                                      .WithPendingRequests(p.PendingRequests)
                                      .Build();
-                        
+
                     }
 
                     if (request.includeCurrentAllocations)
@@ -140,6 +143,9 @@ namespace Fusion.Resources.Domain
                         }
                     }
                 });
+
+                await PopulateProjectStateForPositionInstancesAsync(departmentPersonnel, cancellationToken);
+
 
                 return departmentPersonnel;
             }
@@ -174,7 +180,8 @@ namespace Fusion.Resources.Domain
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments, List<QueryResourceAllocationRequest> requests)
             {
                 var department = await mediator.Send(new GetDepartment(fullDepartmentString));
-                if (department is null) return new List<QueryInternalPersonnelPerson>();
+                if (department is null)
+                    return new List<QueryInternalPersonnelPerson>();
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
@@ -182,7 +189,7 @@ namespace Fusion.Resources.Domain
 
                 if (includeSubDepartments || department.LineOrgResponsible?.AzureUniqueId is null)
                 {
-                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, requests,  fullDepartmentString);
+                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, requests, fullDepartmentString);
                 }
                 else
                 {
@@ -207,21 +214,44 @@ namespace Fusion.Resources.Domain
                     .Where(m => string.Equals(m.FullDepartment, orgUnit.FullDepartment, StringComparison.OrdinalIgnoreCase))
                     .Select(m => m.AzureUniqueId)
                     .ToList() ?? new List<Guid>();
-                
+
                 var removeManagerQuery = string.Join(" and ", managers.Select(m => $"azureUniqueId ne '{m}'"));
                 var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
 
-                
+
                 if (managers.Any())
                     queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}' and isResourceOwner eq true"));
-
-
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
                 var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, queryString, requests: requests);
 
+
                 return personnel;
+            }
+
+            private async Task PopulateProjectStateForPositionInstancesAsync(
+                List<QueryInternalPersonnelPerson> departmentPersonnel, CancellationToken cancellationToken = default)
+            {
+                var orgProjectIds = departmentPersonnel
+                    .SelectMany(d => d.PositionInstances.Select(p => p.Project.OrgProjectId))
+                    .Distinct();
+
+
+                var orgProjectIdsDictionary = await db.Projects
+                    .Select(p => new { p.OrgProjectId, p.State })
+                    .Where(p => orgProjectIds.Contains(p.OrgProjectId))
+                    .AsNoTracking()
+                    .ToDictionaryAsync(p => p.OrgProjectId, p => p.State, cancellationToken: cancellationToken);
+
+
+                departmentPersonnel.ForEach(p =>
+                {
+                    p.PositionInstances.ForEach(pi =>
+                    {
+                        pi.Project.State = orgProjectIdsDictionary.GetValueOrDefault(pi.Project.OrgProjectId);
+                    });
+                });
             }
 
             private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)

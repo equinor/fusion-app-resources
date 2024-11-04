@@ -1,9 +1,8 @@
-using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Commands.BaseHandlers;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,23 +22,14 @@ namespace Fusion.Resources.Domain.Commands
         public string Unit { get; set; } = null!;
         public Guid? ResponsibleId { get; set; }
 
-        public class Handler : IRequestHandler<CreateResponsibilityMatrix, QueryResponsibilityMatrix>
+        public class Handler : ResponsibilityMatrixBaseHandler, IRequestHandler<CreateResponsibilityMatrix, QueryResponsibilityMatrix>
         {
-            private readonly ResourcesDbContext resourcesDb;
-            private readonly IProfileService profileService;
-            private readonly IProjectOrgResolver orgResolver;
-            private readonly ILineOrgResolver lineOrgResolver;
-
-            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IProjectOrgResolver orgResolver, ILineOrgResolver lineOrgResolver)
+            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IProjectOrgResolver orgResolver, IMediator mediator)
+                : base(resourcesDb, profileService, orgResolver, mediator)
             {
-                this.resourcesDb = resourcesDb;
-                this.profileService = profileService;
-                this.orgResolver = orgResolver;
-                this.lineOrgResolver = lineOrgResolver;
             }
 
-            public async Task<QueryResponsibilityMatrix> Handle(CreateResponsibilityMatrix request,
-                CancellationToken cancellationToken)
+            public async Task<QueryResponsibilityMatrix> Handle(CreateResponsibilityMatrix request, CancellationToken cancellationToken)
             {
                 DbProject? project = null;
                 if (request.ProjectId != null)
@@ -69,33 +59,6 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.SaveChangesAsync(cancellationToken);
 
                 return new QueryResponsibilityMatrix(newItem);
-            }
-
-            private async Task<DbPerson?> GetResourceOwner(string departmentId)
-            {
-                var department = await lineOrgResolver.ResolveDepartmentAsync(DepartmentId.FromFullPath(departmentId));
-                if (department?.Manager?.AzureUniqueId is not null)
-                {
-                    var azureUniqueId = department.Manager.AzureUniqueId;
-                    return await profileService.EnsurePersonAsync(new PersonId(azureUniqueId));
-                }
-                return null;
-            }
-
-            private async Task<DbProject?> EnsureProjectAsync(Guid projectId)
-            {
-                var orgProject = await orgResolver.ResolveProjectAsync(projectId);
-                if (orgProject == null)
-                    return null;
-
-                var project = await resourcesDb.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == projectId) ?? new DbProject
-                {
-                    Id = Guid.NewGuid(),
-                    Name = orgProject.Name,
-                    OrgProjectId = orgProject.ProjectId,
-                    DomainId = orgProject.DomainId
-                };
-                return project;
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
 {
     public class AddDelegatedResourceOwner : IRequest
     {
-        public AddDelegatedResourceOwner(string departmentId, Guid responsibleAzureUniqueId)
+        public AddDelegatedResourceOwner(LineOrgId departmentId, Guid responsibleAzureUniqueId)
         {
             DepartmentId = departmentId;
             ResponsibleAzureUniqueId = responsibleAzureUniqueId;
@@ -19,7 +19,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
         public DateTimeOffset DateFrom { get; set; }
         public DateTimeOffset DateTo { get; set; }
-        public string DepartmentId { get; }
+        public LineOrgId DepartmentId { get; }
         public Guid ResponsibleAzureUniqueId { get; }
         public Guid? UpdatedByAzureUniqueId { get; set; }
 
@@ -46,7 +46,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
             {
                 var alreadyDelegated = db.DelegatedDepartmentResponsibles.Any(x =>
                     x.ResponsibleAzureObjectId == request.ResponsibleAzureUniqueId &&
-                    x.DepartmentId == request.DepartmentId);
+                    x.DepartmentId == request.DepartmentId.FullDepartment);
 
                 if (alreadyDelegated)
                     throw new RoleDelegationExistsError();
@@ -55,7 +55,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                 {
                     Identifier = Guid.NewGuid().ToString(),
                     RoleName = AccessRoles.ResourceOwner,
-                    Scope = new RoleAssignment.RoleScope("OrgUnit", request.DepartmentId),
+                    Scope = new RoleAssignment.RoleScope("OrgUnit", request.DepartmentId.FullDepartment),
                     Source = "Fusion.Resources.DelegatedResourceOwner",
                     ValidTo = request.DateTo
                 });
@@ -65,7 +65,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                     DateCreated = DateTime.UtcNow,
                     DateFrom = request.DateFrom,
                     DateTo = request.DateTo,
-                    DepartmentId = request.DepartmentId,
+                    DepartmentId = request.DepartmentId.FullDepartment,
                     ResponsibleAzureObjectId = request.ResponsibleAzureUniqueId,
                     Reason = request.Reason,
                     UpdatedBy = request.UpdatedByAzureUniqueId

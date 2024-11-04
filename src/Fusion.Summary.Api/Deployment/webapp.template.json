@@ -1,0 +1,149 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env-name": { "type": "string" },
+        "fusion-env-name": { "type": "string" },
+        "docker-credentials": {
+            "type": "secureObject",
+            "defaultValue": {
+                "username": "pull-token-name",
+                "password": null
+            },
+            "metadata": {
+                "description": "Details for the container registry"
+            }
+        },
+        "docker": {
+            "type": "object",
+            "defaultValue": {
+                "url": "https://fusioncr.azurecr.io",
+                "image": "",
+                "startupCommand": ""
+            },
+            "metadata": {
+                "description": "Docker setup"
+            }
+        },
+        "client-id": { "type": "string" },
+        "clientsecret-secret-id": { "type": "string" },
+        "hosting": { 
+            "type": "object",
+            "defaultValue": {
+                "name": "server-farm-name",
+                "id": "server-farm-id"
+            },
+            "metadata": { "description": "The hosting plan to run the web app on" }
+        }
+    },
+    "variables": {
+        "env-name": "[toLower(parameters('env-name'))]",
+        "fusion-env-name": "[toLower(parameters('fusion-env-name'))]",
+        "location": "[resourceGroup().location]",
+        "api-name": "[concat('fap-summary-api-', variables('env-name'))]",
+        "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
+        "ai-api-name": "[concat('ai-fap-resources-', variables('env-name'))]"
+    },
+    "resources": [   
+        /* API SERVICE */      
+        {
+            "apiVersion": "2018-11-01",            
+            "name": "[variables('api-name')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[variables('location')]",
+            "tags": {
+                "fusion-app": "summary",
+                "fusion-app-env": "[toLower(variables('env-name'))]",
+                "fusion-app-component-type": "api",
+                "fusion-app-component-id": "[concat('summary-api-', variables('env-name'))]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+            ],
+            "properties": {
+                "name": "[variables('api-name')]",
+                "httpsOnly": true,
+                "siteConfig": {
+                    "phpVersion": "off",
+                    "ftpsState": "FtpsOnly",
+                    "minTlsVersion": "1.2",
+                    "webSocketsEnabled": false,
+                    "appSettings": [
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                            "value": "[parameters('docker').url]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                            "value": "[parameters('docker-credentials').username]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                            "value": "[parameters('docker-credentials').password]"
+                        },
+                        {
+                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                            "value": "false"
+                        },
+                        {
+                            "name": "AzureAd__ClientId",
+                            "value": "[parameters('client-id')]"
+                        },
+                        {
+                            "name": "AzureAd__ClientSecret",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('clientsecret-secret-id'), ')')]"
+                        },
+                        {
+                            "name": "FUSION_ENVIRONMENT",
+                            "value": "[variables('fusion-env-name')]"
+                        },
+                        {
+                            "name": "KEYVAULT_URL",
+                            "value": "[concat('https://', variables('keyvault-name'), '.vault.azure.net/')]"
+                        },
+                        {
+                            "name": "ENVNAME",
+                            "value": "[variables('env-name')]"
+                        },
+                      {
+                        "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                        "value": "[reference(concat('microsoft.insights/components/', variables('ai-api-name')), '2015-05-01').InstrumentationKey]"
+                      },
+                      {
+                        "name": "Fusion__ServiceDiscovery__Portal",
+                        "value": "https://fusion.equinor.com"
+                      }
+                    ],
+                    "linuxFxVersion": "[concat('DOCKER|', parameters('docker').image)]",
+                    "appCommandLine": "[parameters('docker').startupCommand]",
+                    "alwaysOn": true,
+                    "healthCheckPath": "/_health/liveness"
+                },
+                "serverFarmId": "[parameters('hosting').id]",
+                "hostingEnvironment": "[parameters('hosting').name]",
+                "clientAffinityEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(variables('keyvault-name'), '/add')]",
+            "apiVersion": "2018-02-14",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantid]",
+                        "objectId": "[reference(concat(resourceId('Microsoft.Web/sites', variables('api-name')), '/providers/Microsoft.ManagedIdentity/Identities/default'), '2015-08-31-PREVIEW').principalId]",
+                        "permissions": {
+                            "secrets": [ "Get" ]
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('api-name'))]"
+            ]
+        }
+    ]
+}

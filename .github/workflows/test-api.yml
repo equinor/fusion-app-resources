@@ -20,7 +20,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
         with:
-          paths: '["src/backend/**"]'
+          paths: '["src/**"]'
 
   build:
     needs: pre_job
@@ -31,14 +31,16 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: src/backend
+        working-directory: src
 
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: | 
+          7.0.x
+          8.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build

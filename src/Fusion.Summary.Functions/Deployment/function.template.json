@@ -1,0 +1,182 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "env-name": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "object",
+      "defaultValue": {
+        "clientId": "",
+        "departmentFilter": "",
+        "secretIds": {
+          "clientSecret": "",
+          "serviceBus": ""
+        },
+        "endpoints": {
+          "lineorg": "https://fusion-s-lineorg-ci.azurewebsites.net",
+          "org": "https://fusion-s-org-ci.azurewebsites.net",
+          "people": "https://fusion-s-people-ci.azurewebsites.net",
+          "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
+          "summary": "https://summary-api.ci.fusion-dev.net/",
+          "notifications": "https://fusion-s-notification-ci.azurewebsites.net",
+          "context": "https://fusion-s-context-ci.azurewebsites.net",
+          "portal": "https://fusion-s-portal-ci.azurewebsites.net"
+        },
+        "resources": {
+          "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
+        },
+        "queues": {
+          "departmentSummaryWeeklyQueue": "department-summary-weekly-queue"
+        }
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for the resources."
+      }
+    },
+    "netFrameworkVersion": {
+      "type": "string",
+      "defaultValue": "v8.0"
+    }
+  },
+  "variables": {
+    "function-name": "[concat('func-fap-summary-', parameters('env-name'))]",
+    "ai-name": "[concat('ai-fap-resources-', parameters('env-name'))]",
+    "storage-name": "[concat('safresources', parameters('env-name'))]",
+    "storage-id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Storage/storageAccounts/', variables('storage-name'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('function-name')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "fusion-app": "resources",
+        "fusion-app-env": "[toLower(parameters('env-name'))]",
+        "fusion-app-component-type": "azFunc",
+        "fusion-app-component-id": "[concat('summary-func-', parameters('env-name'))]",
+        "kv-msi-access": "true"
+      },
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "dependsOn": [],
+      "properties": {
+        "httpsOnly": true,
+        "netFrameworkVersion": "[parameters('netFrameworkVersion')]",
+        "siteConfig": {
+          "location": "North Europe",
+          "phpVersion": "off",
+          "ftpsState": "FtpsOnly",
+          "minTlsVersion": "1.2",
+          "webSocketsEnabled": false,
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys(variables('storage-id'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys(variables('storage-id'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('function-name'))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_INPROC_NET8_ENABLED",
+              "value": "1"
+            },
+            {
+              "name": "WEBSITE_NODE_DEFAULT_VERSION",
+              "value": "~10"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components/', variables('ai-name')), '2015-05-01').InstrumentationKey]"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "AzureAd_ClientId",
+              "value": "[parameters('settings').clientId]"
+            },
+            {
+              "name": "AzureAd_Secret",
+              "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('settings').secretIds.clientSecret, ')')]"
+            },
+            {
+              "name": "AzureAd_TenantId",
+              "value": "[subscription().tenantId]"
+            },
+            {
+              "name": "AzureWebJobsServiceBus",
+              "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('settings').secretIds.serviceBus, ')')]"
+            },
+            {
+              "name": "Endpoints_lineorg",
+              "value": "[parameters('settings').endpoints.lineorg]"
+            },
+            {
+              "name": "Endpoints_org",
+              "value": "[parameters('settings').endpoints.org]"
+            },
+            {
+              "name": "Endpoints_people",
+              "value": "[parameters('settings').endpoints.people]"
+            },
+            {
+              "name": "Endpoints_notifications",
+              "value": "[parameters('settings').endpoints.notifications]"
+            },
+            {
+              "name": "Endpoints_context",
+              "value": "[parameters('settings').endpoints.context]"
+            },
+            {
+              "name": "Endpoints_portal",
+              "value": "[parameters('settings').endpoints.portal]"
+            },
+            {
+              "name": "Endpoints_resources",
+              "value": "[parameters('settings').endpoints.resources]"
+            },
+            {
+              "name": "Endpoints_summary",
+              "value": "[parameters('settings').endpoints.summary]"
+            },
+            {
+              "name": "Endpoints_Resources_Fusion",
+              "value": "[parameters('settings').resources.fusion]"
+            },
+            {
+              "name": "department_summary_weekly_queue",
+              "value": "[parameters('settings').queues.departmentSummaryWeeklyQueue]"
+            },
+            {
+              "name": "departmentFilter",
+              "value": "[parameters('settings').departmentFilter]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

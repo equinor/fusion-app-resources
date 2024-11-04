@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+﻿﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
@@ -66,6 +66,7 @@ namespace Fusion.Resources.Api.Controllers
                 // Must resolve the subType to use when allocation request.
                 if (string.IsNullOrEmpty(request.SubType))
                     request.SubType = await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceId));
+
             }
             // Create all requests as draft
             var command = new CreateInternalRequest(InternalRequestOwner.Project, request.ResolveType())
@@ -207,9 +208,9 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
-        [HttpPost("/departments/{departmentPath}/resources/requests")]
+        [HttpPost("/departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateResourceOwnerRequest(
-            [FromRoute] string departmentPath, [FromBody] CreateResourceOwnerAllocationRequest request)
+            [FromRoute] OrgUnitIdentifier departmentString, [FromBody] CreateResourceOwnerAllocationRequest request)
         {
             #region Authorization
 
@@ -218,8 +219,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
 
@@ -240,8 +241,8 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidInput($"Cannot create change request for resource not in Active Directory.");
 
             var assignedPersonProfile = await profileResolver.ResolvePersonBasicProfileAsync(assignedPerson.AzureUniqueId!);
-            if (!assignedPersonProfile?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
-                return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentPath}'");
+            if (!assignedPersonProfile?.FullDepartment?.Equals(departmentString.FullDepartment, StringComparison.OrdinalIgnoreCase) == true)
+                return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentString.FullDepartment}'");
 
             // Check if change requests are disabled.
             // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims.
@@ -259,7 +260,7 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = position!.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
-                AssignedDepartment = departmentPath
+                AssignedDepartment = departmentString.SapId
             };
 
             try
@@ -293,7 +294,7 @@ namespace Fusion.Resources.Api.Controllers
                     .ExpandConversation(QueryMessageRecipient.ResourceOwner);
                 newRequest = await DispatchAsync(query);
 
-                return Created($"/departments/{departmentPath}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
+                return Created($"/departments/{departmentString.OriginalIdentifier}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (InvalidOperationException iv)
             {
@@ -390,8 +391,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
-            string? departmentString, [FromRoute] RequestIdentifier requestId, [FromBody] PatchInternalRequestRequest request)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest([FromRoute] RequestIdentifier requestId, [FromBody] PatchInternalRequestRequest request)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();
@@ -814,15 +814,15 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result!);
         }
 
-        [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/start")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> StartResourceOwnerRequestWorkflow([FromRoute] string departmentPath, [FromRoute] RequestIdentifier requestId)
+        [HttpPost("/departments/{departmentString}/resources/requests/{requestId}/start")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartResourceOwnerRequestWorkflow([FromRoute] OrgUnitIdentifier departmentString, [FromRoute] RequestIdentifier requestId)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();
 
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-            if (result == null || result.AssignedDepartment != departmentPath)
+            if (result == null || result.AssignedDepartment != departmentString.FullDepartment)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
             var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));
@@ -996,15 +996,20 @@ namespace Fusion.Resources.Api.Controllers
                 await scope.RollbackAsync();
                 return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
+            catch (InvalidWorkflowError ex)
+            {
+                await scope.RollbackAsync();
+                return ApiErrors.InvalidOperation(ex);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             return new ApiResourceAllocationRequest(result!);
         }
 
-        [HttpPost("/departments/{departmentPath}/requests/{requestId}/approve")]
-        [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, [FromRoute] RequestIdentifier requestId)
+        [HttpPost("/departments/{departmentString}/requests/{requestId}/approve")]
+        [HttpPost("/departments/{departmentString}/resources/requests/{requestId}/approve")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] OrgUnitIdentifier departmentString, [FromRoute] RequestIdentifier requestId)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();
@@ -1017,8 +1022,8 @@ namespace Fusion.Resources.Api.Controllers
             if (result.ProposedPerson is null)
                 return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no person is proposed. If the request has more than one candidate, please propose only one of them.");
 
-            if (result.AssignedDepartment != departmentPath)
-                return ApiErrors.InvalidInput($"the request with id '{requestId}' is not assigned to '{departmentPath}'");
+            if (result.AssignedDepartment != departmentString.FullDepartment)
+                return ApiErrors.InvalidInput($"the request with id '{requestId}' is not assigned to '{departmentString.FullDepartment}'");
 
             var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));
             if (actions.Any(x => x.IsRequired && !x.IsResolved) == true)
@@ -1038,6 +1043,11 @@ namespace Fusion.Resources.Api.Controllers
                 await scope.RollbackAsync();
                 return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
+            catch (InvalidWorkflowError ex)
+            {
+                await scope.RollbackAsync();
+                return ApiErrors.InvalidOperation(ex);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -1046,7 +1056,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpDelete("/resources/requests/internal/{requestId}/workflow")]
         [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}/workflow")]
-        public async Task<ActionResult> ResetWorkflow([FromRoute] RequestIdentifier requestId, string? departmentString)
+        public async Task<ActionResult> ResetWorkflow([FromRoute] RequestIdentifier requestId)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();
@@ -1543,8 +1553,8 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath, [FromRoute] RequestIdentifier requestId)
+        [HttpOptions("/departments/{departmentString}/resources/requests/{requestId}")]
+        public async Task<ActionResult> CheckDepartmentRequestAccess([FromRoute] OrgUnitIdentifier departmentString, [FromRoute] RequestIdentifier requestId)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();
@@ -1616,7 +1626,7 @@ namespace Fusion.Resources.Api.Controllers
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
@@ -1634,9 +1644,9 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpOptions("/projects/{projectIdentifier}/requests")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
-        [HttpOptions("/departments/{departmentPath}/resources/requests")]
+        [HttpOptions("/departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions(
-            [FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] string? departmentPath)
+            [FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] OrgUnitIdentifier? departmentString)
         {
             var allowedVerbs = new List<string>();
 
@@ -1645,10 +1655,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (departmentPath is not null)
+                    if (departmentString is not null)
                     {
-                        or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
+                        or.BeResourceOwner(departmentString.FullDepartment, includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -1665,8 +1675,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
-                    if (departmentPath is not null)
-                        or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                    if (departmentString is not null)
+                        or.BeResourceOwner(departmentString.FullDepartment, includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -1678,7 +1688,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, [FromRoute] RequestIdentifier requestId)
+        public async Task<ActionResult> GetWorkflowApprovalOptions([FromRoute] RequestIdentifier requestId)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();

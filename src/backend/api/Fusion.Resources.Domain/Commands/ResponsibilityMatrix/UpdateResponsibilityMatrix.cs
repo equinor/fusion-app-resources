@@ -1,7 +1,7 @@
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Commands.BaseHandlers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
+
     public class UpdateResponsibilityMatrix : TrackableRequest<QueryResponsibilityMatrix>
     {
         public UpdateResponsibilityMatrix(Guid id)
@@ -25,21 +26,12 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<string?> Sector { get; set; } = new MonitorableProperty<string?>();
         public MonitorableProperty<string?> Unit { get; set; } = new MonitorableProperty<string?>();
 
-        public class Handler : IRequestHandler<UpdateResponsibilityMatrix, QueryResponsibilityMatrix>
+        public class Handler : ResponsibilityMatrixBaseHandler, IRequestHandler<UpdateResponsibilityMatrix, QueryResponsibilityMatrix>
         {
-            private readonly ResourcesDbContext resourcesDb;
-            private readonly IMediator mediator;
-            private readonly IProfileService profileService;
-            private readonly IProjectOrgResolver orgResolver;
-            private readonly ILineOrgResolver lineOrgResolver;
 
-            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProfileService profileService, IProjectOrgResolver orgResolver, ILineOrgResolver lineOrgResolver)
+            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProfileService profileService, IProjectOrgResolver orgResolver)
+                : base(resourcesDb, profileService, orgResolver, mediator)
             {
-                this.resourcesDb = resourcesDb;
-                this.mediator = mediator;
-                this.profileService = profileService;
-                this.orgResolver = orgResolver;
-                this.lineOrgResolver = lineOrgResolver;
             }
 
             public async Task<QueryResponsibilityMatrix> Handle(UpdateResponsibilityMatrix request, CancellationToken cancellationToken)
@@ -111,33 +103,7 @@ namespace Fusion.Resources.Domain.Commands
                 var returnItem = await mediator.Send(new GetResponsibilityMatrixItem(request.Id));
                 return returnItem!;
             }
-
-            private async Task<DbPerson?> GetResourceOwner(string departmentId)
-            {
-                var department = await lineOrgResolver.ResolveDepartmentAsync(DepartmentId.FromFullPath(departmentId));
-                if(department?.Manager?.AzureUniqueId is not null)
-                {
-                    var azureUniqueId = department.Manager.AzureUniqueId;
-                    return await profileService.EnsurePersonAsync(new PersonId(azureUniqueId));
-                }
-                return null;
-            }
-
-            private async Task<DbProject?> EnsureProjectAsync(Guid projectId)
-            {
-                var orgProject = await orgResolver.ResolveProjectAsync(projectId);
-                if (orgProject == null)
-                    return null;
-
-                var project = await resourcesDb.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == projectId) ?? new DbProject
-                {
-                    Id = Guid.NewGuid(),
-                    Name = orgProject.Name,
-                    OrgProjectId = orgProject.ProjectId,
-                    DomainId = orgProject.DomainId
-                };
-                return project;
-            }
         }
     }
+
 }

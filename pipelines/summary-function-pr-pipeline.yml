@@ -1,0 +1,60 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+trigger: none
+
+pr: 
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/Fusion.Summary.Functions/*
+    - src/Fusion.Resources.Functions.Common/*
+  
+variables:
+    subscriptionService: 'FRA Automation Non-Prod'
+    webPackage: '$(Pipeline.Workspace)/drop/Fusion.Summary.Functions.zip'
+    prNumber: $(System.PullRequest.PullRequestNumber)
+  
+stages:
+    - template: templates/build-summary-function.yml
+      parameters:
+        project: 'Fusion.Summary.Functions'
+
+
+    - stage: DeployPR
+      displayName: PR
+      dependsOn: BuildFunction
+      condition: succeeded()
+      
+      variables:
+        environment: 'pr'
+        functionServiceName: func-fap-summary-$(environment)
+    
+      jobs:
+      - deployment: Deploy
+    
+        displayName: 'Deploy function app'
+        environment: fra-pr
+    
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-summary-function-pr-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                    pullRequestNumber: $(prNumber)
+                    azureSubscription: $(subscriptionService)
+
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionService)
+                    appType: 'functionApp'
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: 'runFromPackage'

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
@@ -12,8 +12,18 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Should contain the full department string for the org unit. As this can be used for querying
+        /// </summary>
         [MaxLength(100)]
         public string? AssignedDepartment { get; set; }
+
+        /// <summary>
+        /// The identifier for the org unit.
+        /// </summary>
+        [MaxLength(100)]
+        public string? AssignedDepartmentId { get; set; }
+
         public bool IsDraft { get; set; }
 
         public long RequestNumber { get; set; }
@@ -55,6 +65,7 @@ namespace Fusion.Resources.Database.Entities
         /// </summary>
         public string? ProposedChanges { get; set; }
         public string? Properties { get; set; }
+        public DbOpInitialProposedPerson? InitialProposedPerson { get; init; }
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
         public DbOpProposalParameters ProposalParameters { get; set; } = new DbOpProposalParameters();
 
@@ -104,6 +115,7 @@ namespace Fusion.Resources.Database.Entities
                     op.Property(ps => ps.State).HasConversion(new EnumToStringConverter<DbProvisionState>());
                 });
                 entity.OwnsOne(e => e.OrgPositionInstance);
+                entity.OwnsOne(e => e.InitialProposedPerson);
                 entity.OwnsOne(e => e.ProposedPerson);
                 entity.OwnsOne(e => e.State);
                 entity.OwnsOne(e => e.ProposalParameters, op =>
@@ -121,6 +133,11 @@ namespace Fusion.Resources.Database.Entities
                 entity
                     .HasMany(x => x.Candidates)
                     .WithMany(x => x.CandidatesForRequest);
+
+                entity.HasIndex(e => e.AssignedDepartmentId).IsClustered(false);
+                entity.HasIndex(e => e.AssignedDepartment).IsClustered(false);
+                entity.HasIndex(e => e.RequestNumber).IsClustered(false);
+
             });
         }
 
@@ -159,6 +176,12 @@ namespace Fusion.Resources.Database.Entities
                 WasNotified = false;
             }
 
+        }
+
+        public class DbOpInitialProposedPerson
+        {
+            public Guid AzureUniqueId { get; set; }
+            [MaxLength(100)] public string? Mail { get; set; }
         }
 
         public class DbOpState

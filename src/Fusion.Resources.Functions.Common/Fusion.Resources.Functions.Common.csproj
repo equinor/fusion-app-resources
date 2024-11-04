@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AdaptiveCards" Version="3.1.0" />
+        <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.4"/>
+        <PackageReference Include="Fusion.Integration" Version="8.0.8"/>
+        <PackageReference Include="Fusion.Events.Azure.Functions.Extensions" Version="6.0.5"/>
+        <PackageReference Include="Fusion.Events.Services" Version="8.0.2"/>
+        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.10"/>
+
+    </ItemGroup>
+
+
+</Project>

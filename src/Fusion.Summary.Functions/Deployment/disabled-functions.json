@@ -1,0 +1,21 @@
+[
+  {
+    "environment": "pr",
+    "disabledFunctions": []
+  },
+  {
+    "environment": "ci",
+    "disabledFunctions": [
+    ]
+  },
+  {
+    "environment": "fqa",
+    "disabledFunctions": [
+    ]
+  },
+  {
+    "environment": "fprd",
+    "disabledFunctions": [
+    ]
+  }
+]

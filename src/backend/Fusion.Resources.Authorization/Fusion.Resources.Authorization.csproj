@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net7.0</TargetFramework>
+	  <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -12,8 +12,9 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+  
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Authorization" Version="7.0.4" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.10"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\api\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />

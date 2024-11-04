@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Azure;
+using FluentAssertions;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
@@ -8,6 +9,7 @@ using Fusion.Resources.Logic.Workflows;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using MediatR;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -31,6 +33,7 @@ namespace Fusion.Resources.Logic.Tests
         Mock<IOrgApiClient> orgClientMock;
         private readonly Guid testProjectId;
         private readonly Guid draftId;
+        private readonly Guid positionId;
 
         public AllocationTests()
         {
@@ -41,6 +44,7 @@ namespace Fusion.Resources.Logic.Tests
             dbContext = new ResourcesDbContext(options);
             testProjectId = Guid.NewGuid();
             draftId = Guid.NewGuid();
+            positionId = Guid.NewGuid();
 
             orgClientMock = new Mock<IOrgApiClient>();
 
@@ -61,6 +65,7 @@ namespace Fusion.Resources.Logic.Tests
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, Status = "Published" }), Encoding.UTF8, "application/json")
             });
+
         }
 
 
@@ -420,6 +425,13 @@ namespace Fusion.Resources.Logic.Tests
             setup(testPosition);
 
             orgClientMock.Setup(c => c.GetPositionV2Async(It.Is<OrgProjectId>(id => id.ProjectId == testProjectId), testPosition.Id, null)).ReturnsAsync(testPosition);
+            
+            // Not including the ?api-version=2.0 as this breaks the regex check.
+            orgClientMock.Setup(c => c.SendAsync(MockRequest.GET($"/projects/{testProjectId}/drafts/{draftId}/positions/{testPosition.Id}"))).ReturnsAsync(new HttpResponseMessage()
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(testPosition), Encoding.UTF8, "application/json")
+            });
 
             return testPosition;
         }
@@ -433,7 +445,11 @@ namespace Fusion.Resources.Logic.Tests
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
 
             var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);
-            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(dbContext, factoryMock.Object)
+
+            // Add telemetry client that does not send any telemetry.
+            var mockTelemetryClient = new Microsoft.ApplicationInsights.TelemetryClient(new TelemetryConfiguration() { DisableTelemetry = true });
+
+            var handler = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest.Handler(mockTelemetryClient, dbContext, factoryMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.Allocation.ProvisionAllocationRequest>;
             await handler.Handle(cmd, CancellationToken.None);
 

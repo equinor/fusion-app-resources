@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Fusion.Resources.Functions.Common.Configuration;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +17,7 @@ namespace Fusion.Resources.Functions
                 opts.Secret = cfg.GetValue<string>("AzureAd_Secret");
                 opts.TenantId = cfg.GetValue<string>("AzureAd_TenantId");
             });
-            
+
             builder.Services.AddConfigServiceResolver();
             builder.Services.AddHttpClients();
         }
