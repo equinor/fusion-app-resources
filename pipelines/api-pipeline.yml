@@ -45,7 +45,7 @@ stages:
           command: 'buildAndPush'
           buildContext: ./src/backend
           dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
-          tags: $(imageTag)
+          tags: $(imageTag)    
 
       - template: templates/docker-buildx.yml@infra
         parameters:
@@ -253,13 +253,19 @@ stages:
                     $(deploymentManifestFolder)/deployment-service.yml
                     $(deploymentManifestFolder)/deployment-ingress-prod.yml
 
-              - template: templates/deploy-container-app.yml
-                parameters:
+              - task: AzurePowerShell@5
+                displayName: 'Deploy ARM template'
+                inputs:
                   azureSubscription: $(subscriptionServiceProd)
-                  environment: $(envName)
-                  fusionEnvironment: $(fusionEnvironment)
-                  clientId: $(clientId)
-                  imageName: $(fullImageName)
+                  ScriptType: FilePath
+                  FailOnStandardError: true
+                  azurePowerShellVersion: 'LatestVersion'
+                  ScriptPath: src/backend/api/Fusion.Resources.Api/Deployment/deploy-webapp.ps1
+                  ScriptArguments: >
+                    -environment $(envName)
+                    -clientId $(clientId)
+                    -fusionEnvironment $(fusionEnvironment)
+                    -imageName $(fullImageName)
 
   - stage: DeployTR
     displayName: 'Deploy to TR'

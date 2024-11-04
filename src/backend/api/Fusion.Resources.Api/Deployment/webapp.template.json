@@ -40,7 +40,7 @@
         "env-name": "[toLower(parameters('env-name'))]",
         "fusion-env-name": "[toLower(parameters('fusion-env-name'))]",
         "location": "[resourceGroup().location]",
-        "api-name": "[concat('fap-resources-api-', variables('env-name'))]",
+        "api-name": "[concat('fap-resources-api-', variables('env-name'), '-POC')]",
         "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
         "ai-api-name": "[concat('ai-fap-resources-', variables('env-name'))]"
     },
@@ -71,18 +71,18 @@
                     "minTlsVersion": "1.2",
                     "webSocketsEnabled": false,
                     "appSettings": [
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_URL",
-                            "value": "[parameters('docker').url]"
-                        },
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                            "value": "[parameters('docker-credentials').username]"
-                        },
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                            "value": "[parameters('docker-credentials').password]"
-                        },
+                        // {
+                        //     "name": "DOCKER_REGISTRY_SERVER_URL",
+                        //     "value": "[parameters('docker').url]"
+                        // },
+                        // {
+                        //     "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                        //     "value": "[parameters('docker-credentials').username]"
+                        // },
+                        // {
+                        //     "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                        //     "value": "[parameters('docker-credentials').password]"
+                        // },
                         {
                             "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
                             "value": "false"
@@ -117,6 +117,7 @@
                       }
                     ],
                     "linuxFxVersion": "[concat('DOCKER|', parameters('docker').image)]",
+                    "acrUseManagedIdentityCreds": true,
                     "appCommandLine": "[parameters('docker').startupCommand]",
                     "alwaysOn": true,
                     "healthCheckPath": "/_health/liveness"
