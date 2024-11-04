@@ -14,10 +14,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - resources.{{ENVNAME}}.api.fusion-dev.net
+    - fra-resources.{{ENVNAME}}.api.fusion-dev.net
     secretName: wildcard-tls-cert
   rules:
-    - host: resources.{{ENVNAME}}.api.fusion-dev.net
+    - host: fra-resources.{{ENVNAME}}.api.fusion-dev.net
       http:
         paths:
         - path: /

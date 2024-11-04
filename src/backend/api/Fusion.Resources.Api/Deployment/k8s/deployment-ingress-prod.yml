@@ -15,10 +15,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - resources.api.fusion-dev.net
-    secretName: resources.api.fusion-dev.net-tls
+    - fra-resources.api.fusion-dev.net
+    secretName: fra-resources.api.fusion-dev.net-tls
   rules:
-    - host: resources.api.fusion-dev.net
+    - host: fra-resources.api.fusion-dev.net
       http:
         paths:
         - path: /
@@ -47,10 +47,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - resources.api.equinor.com
+    - fra-resources.api.equinor.com
     secretName: wildcard-tls-cert
   rules:
-    - host: resources.api.equinor.com
+    - host: fra-resources.api.equinor.com
       http:
         paths:
         - path: /
