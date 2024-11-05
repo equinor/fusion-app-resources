@@ -19,8 +19,9 @@ resources:
 
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
-    fusionAcr: 'fusioncr.azurecr.io'
-    imageRepo: resources/fusion-resouces-api
+    # fusionAcr: 'fusioncr.azurecr.io'
+    fusionAcr: 'crfsharedhostingall.azurecr.io'
+    imageRepo: fra/resouces-api-pr
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'FRA Automation Non-Prod'
     subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
@@ -34,28 +35,43 @@ stages:
     jobs:
     - job: BuildImage
       steps:
-      - task: Docker@2
-        displayName: Login to fusioncr
+      ## DOCKER CACHE
+      - task: Cache@2
+        displayName: Cache task
         inputs:
-          command: login
-          containerRegistry: fusioncr
+          key: 'docker | "$(Agent.OS)" | cache'
+          path: $(Pipeline.Workspace)/docker
+          cacheHitVar: CACHE_RESTORED
+
+      - script: |
+          docker load -i $(Pipeline.Workspace)/docker/cache.tar
+        displayName: Docker restore
+        condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
+      ## END CACHE STEPS
+
       - task: Docker@2
-        displayName: Login to fusioncachecr
+        displayName: 'Build docker image'
         inputs:
-          command: login
-          containerRegistry: fusioncachecr
-      - template: templates/docker-buildx.yml@infra
-        parameters:
+          containerRegistry: 'fusion-aks-cr'
           repository: $(imageRepo)
+          command: 'buildAndPush'
           buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-          dockerPush: true
-          cacheFrom: |
-            latest
-          cacheTo: |
-            $(prNumber)
-          tags: |
-            $(prNumber)
+          dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
+          tags: $(imageTag)
+
+      # - template: templates/docker-buildx.yml@infra
+      #   parameters:
+      #     containerRegistry: 'fusion-aks-cr'
+      #     repository: $(imageRepo)
+      #     buildContext: ./src/backend
+      #     dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+      #     dockerPush: true
+      #     cacheFrom: |
+      #       latest
+      #     cacheTo: |
+      #       $(prNumber)
+      #     tags: |
+      #       $(prNumber)
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
@@ -65,7 +81,15 @@ stages:
           arguments: |
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(prNumber)
+            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
+
+      ## SET CACHE
+      - script: |
+          mkdir -p $(Pipeline.Workspace)/docker
+          docker save -o $(Pipeline.Workspace)/docker/cache.tar $(imageName)
+        displayName: Docker save
+        condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
+
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:

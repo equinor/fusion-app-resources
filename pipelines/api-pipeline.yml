@@ -45,7 +45,7 @@ stages:
           command: 'buildAndPush'
           buildContext: ./src/backend
           dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
-          tags: $(imageTag)    
+          tags: $(imageTag)
 
       - template: templates/docker-buildx.yml@infra
         parameters:
