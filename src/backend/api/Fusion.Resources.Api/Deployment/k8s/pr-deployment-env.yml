@@ -125,7 +125,7 @@ spec:
   tls:
   - hosts:
     - resources-{{prNumber}}.pr.api.fusion-dev.net
-    secretName: pr.fusion-dev.net-tls
+    secretName: wildcard-tls-secret
 
   rules:
     - host: resources-{{prNumber}}.pr.api.fusion-dev.net
