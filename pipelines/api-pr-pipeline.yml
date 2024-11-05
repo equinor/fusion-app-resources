@@ -19,7 +19,6 @@ resources:
 
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
-    # fusionAcr: 'fusioncr.azurecr.io'
     fusionAcr: 'crfsharedhostingall.azurecr.io'
     imageRepo: fra/resouces-api-pr
     imageName: $(imageRepo):$(prNumber)
@@ -35,7 +34,6 @@ stages:
     jobs:
     - job: BuildImage
       steps:
-
 
       - task: Docker@2
         displayName: 'Build docker image'
@@ -57,13 +55,6 @@ stages:
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
             --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
-
-      ## SET CACHE
-      - script: |
-          mkdir -p $(Pipeline.Workspace)/docker
-          docker save -o $(Pipeline.Workspace)/docker/cache.tar $(fullImageName)
-        displayName: Docker save
-        condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
 
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
