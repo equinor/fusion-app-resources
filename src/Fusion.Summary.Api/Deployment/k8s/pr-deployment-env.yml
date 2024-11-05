@@ -125,11 +125,11 @@ metadata:
 spec:
   tls:
   - hosts:
-    - summary-api-pr-{{prNumber}}.fusion-dev.net
-    secretName: pr.fusion-dev.net-tls
+    - summary-api-{{prNumber}}.pr.api.fusion-dev.net
+    secretName: wildcard-tld-secret
 
   rules:
-    - host: summary-api-pr-{{prNumber}}.fusion-dev.net
+    - host: summary-api-{{prNumber}}.pr.fusion-dev.net
       http:
         paths:
         - path: /
