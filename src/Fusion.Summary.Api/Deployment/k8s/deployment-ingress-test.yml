@@ -12,6 +12,7 @@ metadata:
     nginx.ingress.kubernetes.io/client-max-body-size: "50m"
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
     - fra-summary.{{ENVNAME}}.api.fusion-dev.net
