@@ -54,12 +54,20 @@ stages:
         inputs:
           containerRegistry: 'fusion-aks-cr'
           repository: $(imageRepo)
-          command: 'buildAndPush'
+          command: 'build'
           buildContext: ./src/backend
           dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
           tags: $(prNumber)
           arguments: |
             --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
+
+      - task: Docker@2
+        displayName: 'Push image'
+        inputs:
+          containerRegistry: 'fusion-aks-cr'
+          repository: $(imageRepo)
+          command: push
+          tags: $(prNumber)
 
       # - template: templates/docker-buildx.yml@infra
       #   parameters:
