@@ -35,57 +35,18 @@ stages:
     jobs:
     - job: BuildImage
       steps:
-      ## DOCKER CACHE
-      - task: Cache@2
-        displayName: Cache task
-        inputs:
-          key: 'docker | "$(Agent.OS)" | cache'
-          path: $(Pipeline.Workspace)/docker
-          cacheHitVar: CACHE_RESTORED
 
-      - script: |
-          docker load -i $(Pipeline.Workspace)/docker/cache.tar
-        displayName: Docker restore
-        condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
-      ## END CACHE STEPS
-
-      - script: | 
-          docker images
-        displayName: List images
 
       - task: Docker@2
         displayName: 'Build docker image'
         inputs:
           containerRegistry: 'fusion-aks-cr'
           repository: $(imageRepo)
-          command: 'build'
+          command: buildAndPush
           buildContext: ./src/backend
           dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
           tags: $(prNumber)
-          arguments: |
-            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
 
-      - task: Docker@2
-        displayName: 'Push image'
-        inputs:
-          containerRegistry: 'fusion-aks-cr'
-          repository: $(imageRepo)
-          command: push
-          tags: $(prNumber)
-
-      # - template: templates/docker-buildx.yml@infra
-      #   parameters:
-      #     containerRegistry: 'fusion-aks-cr'
-      #     repository: $(imageRepo)
-      #     buildContext: ./src/backend
-      #     dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-      #     dockerPush: true
-      #     cacheFrom: |
-      #       latest
-      #     cacheTo: |
-      #       $(prNumber)
-      #     tags: |
-      #       $(prNumber)
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
