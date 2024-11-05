@@ -14,10 +14,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - summary.{{ENVNAME}}.api.fusion-dev.net
+    - fra-summary.{{ENVNAME}}.api.fusion-dev.net
     secretName: wildcard-tls-cert
   rules:
-    - host: summary.{{ENVNAME}}.api.fusion-dev.net
+    - host: fra-summary.{{ENVNAME}}.api.fusion-dev.net
       http:
         paths:
         - path: /
