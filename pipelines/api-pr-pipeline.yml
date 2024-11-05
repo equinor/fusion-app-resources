@@ -195,4 +195,3 @@ stages:
                 action: deploy
                 manifests: |
                   $(deploymentManifest)
-                    
