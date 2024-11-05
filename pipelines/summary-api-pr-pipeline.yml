@@ -24,7 +24,7 @@ variables:
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'FRA Automation Non-Prod'
     subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
-    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/pr-deployment-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     buildNr: $(Build.BuildNumber)
   
