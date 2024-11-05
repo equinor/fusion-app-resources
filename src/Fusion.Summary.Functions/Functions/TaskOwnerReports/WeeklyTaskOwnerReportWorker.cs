@@ -58,44 +58,46 @@ public class WeeklyTaskOwnerReportWorker
 
     private async Task CreateAndStoreReportAsync(WeeklyTaskOwnerReportMessage message, CancellationToken cancellationToken)
     {
-        var allProjectPositions = await orgApiClient.GetProjectPositions(message.OrgProjectExternalId.ToString(), cancellationToken);
+        var now = DateTime.UtcNow;
+        WeeklyTaskOwnerReportDataCreator.NowDate = now;
+        // Exclude Products
+        var allProjectPositions = (await orgApiClient.GetProjectPositions(message.OrgProjectExternalId.ToString(), cancellationToken))
+            .Where(p => p.BasePosition.ProjectType != "Product").ToArray();
         var activeRequestsForProject = await resourcesApiClient.GetActiveRequestsForProjectAsync(message.OrgProjectExternalId, cancellationToken);
         var admins = await ResolveAdminsAsync(message, cancellationToken);
 
-
-        // KPIs
         var expiringAdmins = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
         var actionsAwaitingTaskOwner = WeeklyTaskOwnerReportDataCreator.GetActionsAwaitingTaskOwnerAsync(activeRequestsForProject);
         var expiringPositions = WeeklyTaskOwnerReportDataCreator.GetPositionsEndingNextThreeMonths(allProjectPositions);
-        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonts(allProjectPositions);
+        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonts(allProjectPositions, activeRequestsForProject);
 
-        var now = DateTime.UtcNow;
+        var lastMonday = now.GetPreviousWeeksMondayDate();
         var report = new ApiWeeklyTaskOwnerReport()
         {
             Id = Guid.Empty,
-            PeriodStart = now.GetPreviousWeeksMondayDate(),
-            PeriodEnd = now,
+            PeriodStart = lastMonday,
+            PeriodEnd = lastMonday.AddDays(7),
             ProjectId = message.ProjectId,
             ActionsAwaitingTaskOwnerAction = actionsAwaitingTaskOwner,
             AdminAccessExpiringInLessThanThreeMonths = expiringAdmins.Select(ea => new ApiAdminAccessExpiring()
             {
                 AzureUniqueId = ea.AzureUniqueId,
                 FullName = ea.FullName,
-                Expires = ea.ValidTo.DateTime
+                Expires = ea.ValidTo
             }).ToArray(),
             PositionAllocationsEndingInNextThreeMonths = expiringPositions.Select(ep => new ApiPositionAllocationEnding()
             {
                 PositionName = ep.Position.BasePosition.Name ?? string.Empty,
                 PositionNameDetailed = ep.Position.Name,
                 PositionExternalId = ep.Position.ExternalId ?? string.Empty,
-                PositionAppliesTo = ep.ExpiresAt.DateTime
+                PositionAppliesTo = ep.ExpiresAt
             }).ToArray(),
             TBNPositionsStartingInLessThanThreeMonths = tbnPositions.Select(tp => new ApiTBNPositionStartingSoon()
             {
                 PositionName = tp.Position.BasePosition.Name ?? string.Empty,
                 PositionNameDetailed = tp.Position.Name,
                 PositionExternalId = tp.Position.ExternalId ?? string.Empty,
-                PositionAppliesFrom = tp.StartsAt.DateTime
+                PositionAppliesFrom = tp.StartsAt
             }).ToArray()
         };
 
@@ -137,7 +139,7 @@ public class WeeklyTaskOwnerReportWorker
             if (projectAdmin.ValidTo == null)
                 continue;
 
-            admins.Add(new PersonAdmin(profile.AzureUniqueId.Value, profile.Name, projectAdmin.ValidTo.Value));
+            admins.Add(new PersonAdmin(profile.AzureUniqueId.Value, profile.Name, projectAdmin.ValidTo.Value.DateTime));
         }
 
 
