@@ -129,7 +129,7 @@ spec:
     secretName: wildcard-tld-secret
 
   rules:
-    - host: fra-summary-{{prNumber}}.pr.fusion-dev.net
+    - host: fra-summary-{{prNumber}}.pr.api.fusion-dev.net
       http:
         paths:
         - path: /
