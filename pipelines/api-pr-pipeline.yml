@@ -57,7 +57,7 @@ stages:
           command: 'buildAndPush'
           buildContext: ./src/backend
           dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
-          tags: $(imageTag)
+          tags: $(prNumber)
 
       # - template: templates/docker-buildx.yml@infra
       #   parameters:
