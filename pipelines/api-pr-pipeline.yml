@@ -58,6 +58,8 @@ stages:
           buildContext: ./src/backend
           dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
           tags: $(prNumber)
+          arguments: |
+            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
 
       # - template: templates/docker-buildx.yml@infra
       #   parameters:
