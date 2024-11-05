@@ -42,7 +42,7 @@ stages:
           repository: $(imageRepo)
           command: buildAndPush
           buildContext: ./src
-          dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
+          dockerfile: src/Fusion.Summary.Api/Dockerfile
           tags: $(prNumber)
 
       - template: templates/docker-buildx.yml@infra
