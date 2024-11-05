@@ -86,7 +86,7 @@ stages:
       ## SET CACHE
       - script: |
           mkdir -p $(Pipeline.Workspace)/docker
-          docker save -o $(Pipeline.Workspace)/docker/cache.tar $(imageName)
+          docker save -o $(Pipeline.Workspace)/docker/cache.tar $(fullImageName)
         displayName: Docker save
         condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
 
