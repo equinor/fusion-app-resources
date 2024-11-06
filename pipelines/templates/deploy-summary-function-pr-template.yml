@@ -45,7 +45,7 @@ steps:
       #
       # Sett correct resources URI based on environment
       $resourcesFunctionUri =  "https://resources-api-pr-$pullRequestNumber.fusion-dev.net/"
-      $summaryFunctionUri =  "https://summary-api-pr-$pullRequestNumber.fusion-dev.net/"
+      $summaryFunctionUri =  "https://fra-summary-$pullRequestNumber.pr.api.fusion-dev.net/"
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
