@@ -100,18 +100,6 @@ public class DepartmentsController : BaseController
         if (string.IsNullOrWhiteSpace(sapDepartmentId))
             return SapDepartmentIdRequired();
 
-        var personIdentifiers = request.ResourceOwnersAzureUniqueId
-            .Concat(request.DelegateResourceOwnersAzureUniqueId)
-            .Select(p => new PersonIdentifier(p));
-
-        var unresolvedProfiles = (await ResolvePersonsAsync(personIdentifiers))
-            .Where(r => !r.Success)
-            .ToList();
-
-        if (unresolvedProfiles.Count != 0)
-            return FusionApiError.NotFound(string.Join(',', unresolvedProfiles), "Profiles could not be resolved");
-
-
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department exist
