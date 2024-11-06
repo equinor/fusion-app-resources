@@ -45,7 +45,7 @@ steps:
         $resources = "https://fap-resources-api-fprd.azurewebsites.net"
         $notifications = "https://notifications.api.fusion.equinor.com""
         $context =  "https://context.api.fusion.equinor.com""
-        $portal = "https://portal.api.fusion.equinor.com"  
+        $portal = "https://fusion.equinor.com"  
       }
       else {
         $lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
@@ -54,7 +54,7 @@ steps:
         $resources = "https://resources-api.$environment.fusion-dev.net"
         $notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
         $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
-        $portal = "https://portal.$fusionEnvironment.api.fusion-dev.net"
+        $portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
       }
 
       $settings = @{

@@ -48,7 +48,8 @@ steps:
           $resources = "https://fap-resources-api-fprd.azurewebsites.net"
           $notifications = "https://notifications.api.fusion.equinor.com""
           $context =  "https://context.api.fusion.equinor.com""
-          $portal = "https://portal.api.fusion.equinor.com"  
+          $roles =  "https://roles.api.fusion.equinor.com""
+          $portal = "https://fusion.equinor.com"  
       }
       else {
          $resourcesFunctionUri = "https://resources-api.$environment.fusion-dev.net"
@@ -59,17 +60,20 @@ steps:
          $resources = "https://resources-api.$environment.fusion-dev.net"
          $notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
          $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
-         $portal = "https://portal.$fusionEnvironment.api.fusion-dev.net"
+         $portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
+         $roles = "https://roles.$fusionEnvironment.api.fusion-dev.net"
       }
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           departmentFilter = "PRD"
+          projectTypeFilter = "PRD"
           secretIds = @{
               clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
           }
           endpoints = @{
+<<<<<<< HEAD
             lineorg = $lineorg
               org = $org
               people = $people
@@ -79,12 +83,24 @@ steps:
               portal = $portal
               summary = $summaryFunctionUri
               resources = $resourcesFunctionUri
+=======
+              lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
+              org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
+              people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
+              resources = "$resourcesFunctionUri"
+              summary = "$summaryFunctionUri"
+              notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
+              context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
+              portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
+              roles = "https://fusion-s-roles-$fusionEnvironment.azurewebsites.net"
+>>>>>>> master
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
           }
           queues = @{
               departmentSummaryWeeklyQueue = "scheduled-weekly-department-report"
+              projectSummaryWeeklyQueue = "scheduled-weekly-project-report"
           }
       }
 

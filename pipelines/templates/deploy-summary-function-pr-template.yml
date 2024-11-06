@@ -43,10 +43,10 @@ steps:
       #
       # Generate the app settings      
       #
-      
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           departmentFilter = "PRD"
+          projectTypeFilter = "PRD"
           secretIds = @{
               clientSecret = "https://$envVaultName.vault.azure.net:443/secrets/AzureAd--ClientSecret"
               serviceBus = "https://$envVaultName.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
@@ -61,6 +61,7 @@ steps:
               portal = "https://portal.$fusionEnvironment.api.fusion-dev.net
               resources = "https://resources-api-pr-$pullRequestNumber.fusion-dev.net"
               summary = "https://summary-api-pr-$pullRequestNumber.fusion-dev.net"
+              roels = "https://roles.$fusionEnvironment.api.fusion-dev.net"
              
           }
           resources = @{
@@ -68,6 +69,7 @@ steps:
           }
           queues = @{
               departmentSummaryWeeklyQueue = "scheduled-weekly-department-report"
+              projectSummaryWeeklyQueue = "scheduled-weekly-project-report"
           }
       }
      

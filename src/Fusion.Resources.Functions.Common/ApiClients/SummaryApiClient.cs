@@ -32,6 +32,20 @@ public class SummaryApiClient : ISummaryApiClient
         await ThrowIfUnsuccessfulAsync(response);
     }
 
+    public async Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default)
+    {
+        using var body = new JsonContent(JsonSerializer.Serialize(project, jsonSerializerOptions));
+
+        // Error logging is handled by http middleware => FunctionHttpMessageHandler
+        using var response = await summaryClient.PutAsync($"projects/{project.Id}", body, cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return (await JsonSerializer.DeserializeAsync<ApiProject>(contentStream, jsonSerializerOptions, cancellationToken: cancellationToken))!;
+    }
+
     public async Task<ICollection<ApiResourceOwnerDepartment>?> GetDepartmentsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -76,6 +90,18 @@ public class SummaryApiClient : ISummaryApiClient
             cancellationToken);
 
         await ThrowIfUnsuccessfulAsync(response);
+    }
+
+    public async Task<ICollection<ApiProject>> GetProjectsAsync(CancellationToken cancellationToken = default)
+    {
+        using var response = await summaryClient.GetAsync("projects", cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return await JsonSerializer.DeserializeAsync<ICollection<ApiProject>>(contentStream,
+            jsonSerializerOptions, cancellationToken: cancellationToken) ?? [];
     }
 
     private async Task ThrowIfUnsuccessfulAsync(HttpResponseMessage response)

@@ -4,7 +4,8 @@ namespace Fusion.Resources.Functions.Common.Integration.Errors
 {
     public class ApiError : Exception
     {
-        public ApiError(string url, HttpStatusCode statusCode, string body, string message) : base($"{message}. Status code: {statusCode}, Body: {body.Substring(0, 500)}")
+        public ApiError(string url, HttpStatusCode statusCode, string body, string message) :
+            base($"{message}. Status code: {statusCode}, Body: {(body.Length > 500 ? body[..500] : body)}")
         {
             Url = url;
             StatusCode = statusCode;

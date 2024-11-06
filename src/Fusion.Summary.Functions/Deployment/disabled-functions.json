@@ -11,11 +11,13 @@
   {
     "environment": "fqa",
     "disabledFunctions": [
+      "weekly-project-recipients-sync"
     ]
   },
   {
     "environment": "fprd",
     "disabledFunctions": [
+      "weekly-project-recipients-sync"
     ]
   }
 ]
