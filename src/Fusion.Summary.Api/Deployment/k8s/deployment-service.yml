@@ -17,7 +17,7 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: resources-api
+  name: summary-api
 spec:
   replicas: 1
   strategy:
@@ -27,11 +27,11 @@ spec:
       maxUnavailable: 50%
   selector:
     matchLabels:
-      app: resources-api
+      app: summary-api
   template:
     metadata:
       labels:
-        app: resources-api
+        app: summary-api
     spec:
       volumes:
       - name: env-secrets-volumes
@@ -39,10 +39,10 @@ spec:
           secretName: env-secrets
 
       containers:
-      - name: resources-api
+      - name: summary-api
         image: {{fusionAcr}}/{{imageName}}
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         volumeMounts:
         - name: env-secrets-volumes
           mountPath: "/app/secrets" 
@@ -78,7 +78,7 @@ spec:
 
         readinessProbe:
           httpGet:
-            path: /_health/ready
+            path: /_health/readiness
             port: 8080
           initialDelaySeconds: 10
           timeoutSeconds: 30
@@ -87,41 +87,10 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: resources-api
+  name: summary-api
 spec:
   selector:
-    app: resources-api
+    app: summary-api
   ports:
   - port: 80
     targetPort: 8080
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: resources-api-fusion-ingress
-  annotations:
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
-    nginx.org/client-max-body-size: "50m"
-    nginx.ingress.kubernetes.io/client-max-body-size: "50m"
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-spec:
-  tls:
-  - hosts:
-    - resources-api.{{ENVNAME}}.fusion-dev.net
-    secretName: {{ENVNAME}}.fusion-dev.net-tls
-  rules:
-    - host: resources-api.{{ENVNAME}}.fusion-dev.net
-      http:
-        paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: resources-api
-              port:
-                number: 80
