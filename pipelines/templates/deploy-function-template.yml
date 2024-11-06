@@ -43,7 +43,7 @@ steps:
         $org = "https://org.api.fusion.equinor.com"
         $people = "https://people.api.fusion.equinor.com"
         $resources = "https://fap-resources-api-fprd.azurewebsites.net"
-        $notifications = "https://notifications.api.fusion.equinor.com"
+        $notifications = "https://notification.api.fusion.equinor.com"
         $context =  "https://context.api.fusion.equinor.com"
         $portal = "https://fusion.equinor.com"  
       }
@@ -52,7 +52,7 @@ steps:
         $org = "https://org.$fusionEnvironment.api.fusion-dev.net"
         $people = "https://people.$fusionEnvironment.api.fusion-dev.net"
         $resources = "https://resources-api.$environment.fusion-dev.net"
-        $notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
+        $notifications = "https://notification.$fusionEnvironment.api.fusion-dev.net"
         $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
         $portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
       }

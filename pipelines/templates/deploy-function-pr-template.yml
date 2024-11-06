@@ -53,7 +53,7 @@ steps:
             org = "https://org.$fusionEnvironment.api.fusion-dev.net"
             people = "https://people.$fusionEnvironment.api.fusion-dev.net"
             resources = "https://resources-api-pr-$pullRequestNumber.fusion-dev.net"
-            notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
+            notifications = "https://notification.$fusionEnvironment.api.fusion-dev.net"
             context = "https://context.$fusionEnvironment.api.fusion-dev.net"
             portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
           }
