@@ -63,6 +63,7 @@ stages:
               Inline: |
                 Write-Host "Deleting secret @ kv-fap-resources-pr/ConnectionStrings--ResourcesDbContext"
                 Remove-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name ConnectionStrings--ResourcesDbContext -Force
+                Remove-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name ConnectionStrings--ResourcesDbContext -InRemovedState -Force
 
 
 - stage: DeployQA
