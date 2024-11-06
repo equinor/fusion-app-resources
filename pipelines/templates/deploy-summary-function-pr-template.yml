@@ -45,11 +45,12 @@ steps:
       #
       # Sett correct resources URI based on environment
       $resourcesFunctionUri =  "https://resources-api-pr-$pullRequestNumber.fusion-dev.net/"
-      $summaryFunctionUri =  "https://summary-api-pr-$pullRequestNumber.fusion-dev.net/"
+      $summaryFunctionUri =  "https://fra-summary-$pullRequestNumber.pr.api.fusion-dev.net/"
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           departmentFilter = "PRD"
+          projectTypeFilter = "PRD"
           secretIds = @{
               clientSecret = "https://$envVaultName.vault.azure.net:443/secrets/AzureAd--ClientSecret"
               serviceBus = "https://$envVaultName.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
@@ -63,12 +64,14 @@ steps:
               notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
               context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
               portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
+              roles = "https://fusion-s-roles-$fusionEnvironment.azurewebsites.net"
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
           }
           queues = @{
               departmentSummaryWeeklyQueue = "scheduled-weekly-department-report"
+              projectSummaryWeeklyQueue = "scheduled-weekly-project-report"
           }
       }
      

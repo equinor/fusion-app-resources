@@ -11,5 +11,6 @@
         public static ServiceEndpoint Notifications = new ServiceEndpoint { Key = "notifications" };
         public static ServiceEndpoint Context = new ServiceEndpoint { Key = "context" };
         public static ServiceEndpoint LineOrg = new ServiceEndpoint { Key = "lineorg" };
+        public static ServiceEndpoint Roles = new ServiceEndpoint { Key = "roles" };
     }
 }

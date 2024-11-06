@@ -48,6 +48,7 @@ steps:
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           departmentFilter = "PRD"
+          projectTypeFilter = "PRD"
           secretIds = @{
               clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
@@ -61,12 +62,14 @@ steps:
               notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
               context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
               portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
+              roles = "https://fusion-s-roles-$fusionEnvironment.azurewebsites.net"
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
           }
           queues = @{
               departmentSummaryWeeklyQueue = "scheduled-weekly-department-report"
+              projectSummaryWeeklyQueue = "scheduled-weekly-project-report"
           }
       }
 

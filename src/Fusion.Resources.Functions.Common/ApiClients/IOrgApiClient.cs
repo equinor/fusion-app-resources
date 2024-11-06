@@ -1,4 +1,5 @@
-﻿using Fusion.ApiClients.Org;
+﻿using Fusion.Integration.Core.Http.OData;
+using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;
@@ -6,6 +7,8 @@ namespace Fusion.Resources.Functions.Common.ApiClients;
 public interface IOrgClient
 {
     Task<ApiChangeLog> GetChangeLog(string projectId, DateTime timestamp);
+
+    Task<List<ApiProjectV2>> GetProjectsAsync(ODataQuery? query = null, CancellationToken cancellationToken = default);
 }
 
 #region model

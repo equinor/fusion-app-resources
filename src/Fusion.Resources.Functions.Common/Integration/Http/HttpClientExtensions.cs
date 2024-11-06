@@ -5,10 +5,10 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
 {
     public static class HttpClientExtensions
     {
-        public static async Task<T> GetAsJsonAsync<T>(this HttpClient client, string url) where T : class
+        public static async Task<T> GetAsJsonAsync<T>(this HttpClient client, string url, CancellationToken cancellationToken = default) where T : class
         {
-            var response = await client.GetAsync(url);
-            var body = await response.Content.ReadAsStringAsync();
+            var response = await client.GetAsync(url, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
             if (!response.IsSuccessStatusCode)
                 throw new ApiError(response.RequestMessage!.RequestUri!.ToString(), response.StatusCode, body, "Response from API call indicates error");
@@ -17,10 +17,10 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             return deserialized;
         }
 
-        public static async Task<IEnumerable<string>> OptionsAsync(this HttpClient client, string url)
+        public static async Task<IEnumerable<string>> OptionsAsync(this HttpClient client, string url, CancellationToken cancellationToken = default)
         {
             var message = new HttpRequestMessage(HttpMethod.Options, url);
-            var resp = await client.SendAsync(message);
+            var resp = await client.SendAsync(message, cancellationToken);
 
             resp.Content.Headers.TryGetValues("Allow", out var allowHeaders);
 
