@@ -126,7 +126,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     ValidTo = DateTime.Today.AddDays(daysTo),
                     Source = "Department.Test"
                 }).GetAwaiter().GetResult();
-
             }
         }
 
