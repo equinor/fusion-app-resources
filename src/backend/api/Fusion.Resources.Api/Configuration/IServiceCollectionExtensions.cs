@@ -54,10 +54,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     var intgConfig = sp.GetRequiredService<IOptions<FusionIntegrationOptions>>();
                     var fusionEnv = intgConfig.Value.ServiceDiscovery?.Environment ?? "ci";
                     
-                    if (fusionEnv.equals("fprd"), stringComparison.OrdinalIgnoreCase)
+                    if (fusionEnv.Equals("fprd", StringComparison.OrdinalIgnoreCase))
                         return Task.FromResult("https://lineorg.api.fusion.equinor.com");
-                    else
-                        return Task.FromResult($"https://lineorg.{fusionEnv}.api.fusion-dev.net");
+                    return Task.FromResult($"https://lineorg.{fusionEnv}.api.fusion-dev.net");
                 };
 
                 // Bug, must be specified
