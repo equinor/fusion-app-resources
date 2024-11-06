@@ -46,10 +46,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - fra-resources.api.equinor.com
+    - fra-resources.api.fusion.equinor.com
     secretName: wildcard-tls-cert
   rules:
-    - host: fra-resources.api.equinor.com
+    - host: fra-resources.api.fusion.equinor.com
       http:
         paths:
         - path: /
