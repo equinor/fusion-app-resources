@@ -33,12 +33,29 @@ steps:
           if ($value.Id -eq $null) { return "" } else { return $value.Id.replace($value.Version,'') }
       }
 
-      #
       # Generate the app settings      
       #
-      # Sett correct resources URI based on environment
-      $resourcesFunctionUri =  "https://resources-api.$environment.fusion-dev.net/"
-      if ($environment -eq "fprd") { $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"}
+      # Set correct resources URI based on environment
+   
+      if ($fusionEnvironment -eq "fprd") {
+        $portal = "https://fusion.equinor.com"
+        $lineorg = "https://lineorg.api.fusion.equinor.com"
+        $org = "https://org.api.fusion.equinor.com"
+        $people = "https://people.api.fusion.equinor.com"
+        $resources = "https://fap-resources-api-fprd.azurewebsites.net"
+        $notifications = "https://notifications.api.fusion.equinor.com""
+        $context =  "https://context.api.fusion.equinor.com""
+        $portal = "https://portal.api.fusion.equinor.com"  
+      }
+      else {
+        $lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
+        $org = "https://org.$fusionEnvironment.api.fusion-dev.net"
+        $people = "https://people.$fusionEnvironment.api.fusion-dev.net"
+        $resources = "https://resources-api.$environment.fusion-dev.net"
+        $notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
+        $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
+        $portal = "https://portal.$fusionEnvironment.api.fusion-dev.net"
+      }
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
@@ -47,13 +64,13 @@ steps:
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
           }
           endpoints = @{
-              lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
-              org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
-              people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
-              resources = "$resourcesFunctionUri"
-              notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
-              context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
-              portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
+              lineorg = $lineorg
+              org = $org
+              people = $people
+              resources = $resources
+              notifications = $notifications
+              context =  $context
+              portal = $portal
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
@@ -65,9 +82,6 @@ steps:
           }
       }
 
-      if ($fusionEnvironment -eq "fprd") {
-            $settings.endpoints.portal = "https://fusion.equinor.com"
-      }
      
       New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
           -env-name $environment `
