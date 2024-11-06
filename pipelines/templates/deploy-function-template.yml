@@ -44,7 +44,7 @@ steps:
         $people = "https://people.api.fusion.equinor.com"
         $resources = "https://fap-resources-api-fprd.azurewebsites.net"
         $notifications = "https://notifications.api.fusion.equinor.com"
-        $context =  "https://context.api.fusion.equinor.com""
+        $context =  "https://context.api.fusion.equinor.com"
         $portal = "https://fusion.equinor.com"  
       }
       else {
