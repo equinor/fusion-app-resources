@@ -4,16 +4,6 @@
     "parameters": {
         "env-name": { "type": "string" },
         "fusion-env-name": { "type": "string" },
-        "docker-credentials": {
-            "type": "secureObject",
-            "defaultValue": {
-                "username": "pull-token-name",
-                "password": null
-            },
-            "metadata": {
-                "description": "Details for the container registry"
-            }
-        },
         "docker": {
             "type": "object",
             "defaultValue": {
@@ -72,18 +62,6 @@
                     "webSocketsEnabled": false,
                     "appSettings": [
                         {
-                            "name": "DOCKER_REGISTRY_SERVER_URL",
-                            "value": "[parameters('docker').url]"
-                        },
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                            "value": "[parameters('docker-credentials').username]"
-                        },
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                            "value": "[parameters('docker-credentials').password]"
-                        },
-                        {
                             "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
                             "value": "false"
                         },
@@ -117,6 +95,7 @@
                       }
                     ],
                     "linuxFxVersion": "[concat('DOCKER|', parameters('docker').image)]",
+                    "acrUseManagedIdentityCreds": true,
                     "appCommandLine": "[parameters('docker').startupCommand]",
                     "alwaysOn": true,
                     "healthCheckPath": "/_health/liveness"
