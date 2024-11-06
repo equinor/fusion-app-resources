@@ -108,6 +108,20 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             return this;
         }
 
+        public HttpClientFactoryBuilder AddRolesClient()
+        {
+            services.AddTransient<RolesHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Roles, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-notifications");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<RolesHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
         private readonly TimeSpan[] DefaultSleepDurations = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) };
 
         private Func<PolicyBuilder<HttpResponseMessage>, IAsyncPolicy<HttpResponseMessage>> DefaultRetryPolicy(TimeSpan[] sleepDurations = null) =>
