@@ -63,8 +63,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var creator = fixture.AddProfile(FusionAccountType.Employee);
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
-            
-
 
             var resourceOwnerCreator = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwnerCreator.IsResourceOwner = true;
@@ -832,34 +830,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 Identifier = $"{Guid.NewGuid()}",
                 RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", scope),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
-            });
-            testUser.Department = "EPN SUB WS WPN";
-            testUser.Roles = new List<ApiPersonRoleV3>
-            {
-                new ApiPersonRoleV3
-                {
-                    Name = AccessRoles.ResourceOwner,
-                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = scope },
-                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
-                    IsActive = true,
-                }
-            };
-            return testUser;
-        }
-
-        private ApiPersonProfileV3 CreateOrgUnitManager(string department)
-        {
-            var testUser = fixture.AddProfile(FusionAccountType.Employee);
-            
-            // Ref workday, managers will exist in parent department.
-            var userDepartment = new DepartmentPath(department).Parent();
-            RolesClientMock.AddPersonRole(testUser.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = "Fusion.LineOrg.Manager",
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", scope),
                 ValidTo = DateTime.UtcNow.AddDays(1),
                 Source = "Test project"
