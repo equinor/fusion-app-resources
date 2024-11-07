@@ -1,98 +1,95 @@
 #
-# Template for deploying pull request function app. 
-# 
+# Template for deploying pull request function app.
+#
 # Done this instead of making one template to include all ifs-and-buts.
 #
 
-
 parameters:
-  envName: ''
-  clientId: ''
-  pullRequestNumber: ''
-  fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+  envName: ""
+  clientId: ""
+  pullRequestNumber: ""
+  fusionResource: "5a842df8-3238-415d-b168-9f16a6a6031b"
   templateFile: $(Build.SourcesDirectory)/src/Fusion.Summary.Functions/Deployment/function.template.json
   disabledFunctionsFile: $(Build.SourcesDirectory)/src/Fusion.Summary.Functions/Deployment/disabled-functions.json
-  azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
-
+  azureSubscription: "PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)"
 
 steps:
-- checkout: self
-- task: AzurePowerShell@5
-  displayName: 'Deploy Function ARM template'
-  inputs:
-    azureSubscription: ${{ parameters.azureSubscription }}
-    ScriptType: 'InlineScript'
-    FailOnStandardError: true
-    azurePowerShellVersion: 'LatestVersion'
-    Inline: |
-      # 
-      # Hardcoded to PR env
-      #
-      $environment = "pr"
-      $pullRequestNumber = "${{ parameters.pullRequestNumber }}"
-      $fusionEnvironment = "ci"
-      $functionAppName = "func-fap-summary-$environment"
-      $envVaultName = "kv-fap-resources-$environment"
-      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
+  - checkout: self
+  - task: AzurePowerShell@5
+    displayName: "Deploy Function ARM template"
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      ScriptType: "InlineScript"
+      FailOnStandardError: true
+      azurePowerShellVersion: "LatestVersion"
+      Inline: |
+        # 
+        # Hardcoded to PR env
+        #
+        $environment = "pr"
+        $pullRequestNumber = "${{ parameters.pullRequestNumber }}"
+        $fusionEnvironment = "ci"
+        $functionAppName = "func-fap-summary-$environment"
+        $envVaultName = "kv-fap-resources-$environment"
+        $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
 
-      if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
+        if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
 
-      $resourceGroup = $envResourceGroup.ResourceGroupName
-      Write-Host "Using resource group $resourceGroup"
+        $resourceGroup = $envResourceGroup.ResourceGroupName
+        Write-Host "Using resource group $resourceGroup"
 
-      #
-      # Generate the app settings      
-      #
-      $settings = @{
-          clientId = "${{ parameters.clientId }}"
-          departmentFilter = "PRD"
-          projectTypeFilter = "PRD"
-          secretIds = @{
-              clientSecret = "https://$envVaultName.vault.azure.net:443/secrets/AzureAd--ClientSecret"
-              serviceBus = "https://$envVaultName.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
-          }
-          endpoints = @{
-              lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
-              org = "https://org.$fusionEnvironment.api.fusion-dev.net"
-              people = "https://people.$fusionEnvironment.api.fusion-dev.net"
-              notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
-              context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
-              portal = "https://portal.$fusionEnvironment.api.fusion-dev.net"
-              resources = "https://resources-api-pr-$pullRequestNumber.fusion-dev.net"
-              summary = "https://summary-api-pr-$pullRequestNumber.fusion-dev.net"
-              roles = "https://roles.$fusionEnvironment.api.fusion-dev.net"
-          }
-          resources = @{
-              fusion = "${{ parameters.fusionResource }}"
-          }
-          queues = @{
-              departmentSummaryWeeklyQueue = "scheduled-weekly-department-report"
-              projectSummaryWeeklyQueue = "scheduled-weekly-project-report"
-          }
-      }
-     
-      New-AzResourceGroupDeployment -Mode Incremental -Name "summary-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
-          -env-name $environment `
-          -settings $settings
+        #
+        # Generate the app settings      
+        #
+        $settings = @{
+            clientId = "${{ parameters.clientId }}"
+            departmentFilter = "PRD"
+            projectTypeFilter = "PRD"
+            secretIds = @{
+                clientSecret = "https://$envVaultName.vault.azure.net:443/secrets/AzureAd--ClientSecret"
+                serviceBus = "https://$envVaultName.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
+            }
+            endpoints = @{
+                lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
+                org = "https://org.$fusionEnvironment.api.fusion-dev.net"
+                people = "https://people.$fusionEnvironment.api.fusion-dev.net"
+                notifications = "https://notifications.$fusionEnvironment.api.fusion-dev.net"
+                context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
+                portal = "https://portal.$fusionEnvironment.fusion-dev.net"
+                resources = "https://resources-api-pr-$pullRequestNumber.fusion-dev.net"
+                summary = "https://summary-api-pr-$pullRequestNumber.fusion-dev.net"
+                roles = "https://roles.$fusionEnvironment.api.fusion-dev.net"
+            }
+            resources = @{
+                fusion = "${{ parameters.fusionResource }}"
+            }
+            queues = @{
+                departmentSummaryWeeklyQueue = "scheduled-weekly-department-report"
+                projectSummaryWeeklyQueue = "scheduled-weekly-project-report"
+            }
+        }
 
-      $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
-      Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
-      
-      ## Load disabled functions
-      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "${{ parameters.disabledFunctionsFile }}" -Raw)
-      $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
+        New-AzResourceGroupDeployment -Mode Incremental -Name "summary-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
+            -env-name $environment `
+            -settings $settings
 
-      Write-Host "Disabled functions"
-      $disabledFunctions
+        $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
+        Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
 
-      $settings = @{}
-      ForEach ($kvp in $functionApp.SiteConfig.AppSettings) {
-          $settings[$kvp.Name] = $kvp.Value
-      }
+        ## Load disabled functions
+        $disabledFunctionConfig = ConvertFrom-Json (Get-Content "${{ parameters.disabledFunctionsFile }}" -Raw)
+        $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
 
-      ## Mark functions as disabled
-      $disabledFunctions | ForEach-Object { $settings["AzureWebJobs.$_.Disabled"] = "true" }
-      
-      ## Update web app settings for function app
-      Set-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName -AppSettings $settings
+        Write-Host "Disabled functions"
+        $disabledFunctions
 
+        $settings = @{}
+        ForEach ($kvp in $functionApp.SiteConfig.AppSettings) {
+            $settings[$kvp.Name] = $kvp.Value
+        }
+
+        ## Mark functions as disabled
+        $disabledFunctions | ForEach-Object { $settings["AzureWebJobs.$_.Disabled"] = "true" }
+
+        ## Update web app settings for function app
+        Set-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName -AppSettings $settings
