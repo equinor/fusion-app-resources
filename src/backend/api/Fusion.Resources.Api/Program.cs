@@ -33,6 +33,8 @@ namespace Fusion.Resources.Api
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+        
+        
 
 
         private static void AddKeyVault(HostBuilderContext hostBuilderContext, IConfigurationBuilder configBuilder)
