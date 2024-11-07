@@ -33,6 +33,7 @@ namespace Fusion.Resources.Api
         {
             Configuration = configuration;
         }
+        
 
         public IConfiguration Configuration { get; }
 
