@@ -24,6 +24,12 @@ public interface ISummaryApiClient
     public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
         CancellationToken cancellationToken = default);
 
+    /// <exception cref="SummaryApiError" />
+    public Task<ICollection<ApiProject>> GetProjectsAsync(CancellationToken cancellationToken = default);
+
+    /// <exception cref="SummaryApiError" />
+    public Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
+
     /// <exception cref="SummaryApiError"></exception>
     public Task PutWeeklyTaskOwnerReportAsync(Guid projectId, ApiWeeklyTaskOwnerReport report, CancellationToken cancellationToken = default);
 }
@@ -85,6 +91,19 @@ public record ApiEndingPosition
 {
     public string FullName { get; set; } = "-";
     public DateTime EndDate { get; set; }
+}
+
+[DebuggerDisplay("{Id} - {Name}")]
+public class ApiProject
+{
+    public required Guid Id { get; set; }
+
+    public required string Name { get; set; }
+    public required Guid OrgProjectExternalId { get; set; }
+
+    public Guid? DirectorAzureUniqueId { get; set; }
+
+    public Guid[] AssignedAdminsAzureUniqueId { get; set; } = [];
 }
 
 public class ApiWeeklyTaskOwnerReport

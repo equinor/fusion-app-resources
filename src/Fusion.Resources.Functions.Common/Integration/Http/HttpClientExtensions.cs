@@ -34,10 +34,10 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             return deserialized;
         }
 
-        public static async Task<IEnumerable<string>> OptionsAsync(this HttpClient client, string url)
+        public static async Task<IEnumerable<string>> OptionsAsync(this HttpClient client, string url, CancellationToken cancellationToken = default)
         {
             var message = new HttpRequestMessage(HttpMethod.Options, url);
-            var resp = await client.SendAsync(message);
+            var resp = await client.SendAsync(message, cancellationToken);
 
             resp.Content.Headers.TryGetValues("Allow", out var allowHeaders);
 

@@ -17,7 +17,7 @@ namespace Fusion.Summary.Api.Controllers;
 [Authorize]
 [ApiController]
 [ApiVersion("1.0")]
-public class SummaryReportsController : BaseController
+public class ResourceOwnerReportsController : BaseController
 {
     [HttpGet("resource-owners-summary-reports/{sapDepartmentId}/weekly")]
     [MapToApiVersion("1.0")]

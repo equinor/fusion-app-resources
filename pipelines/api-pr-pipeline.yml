@@ -19,12 +19,12 @@ resources:
 
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
-    fusionAcr: 'fusioncr.azurecr.io'
-    imageRepo: resources/fusion-resouces-api
+    fusionAcr: 'crfsharedhostingall.azurecr.io'
+    imageRepo: fra/resouces-api-pr
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'FRA Automation Non-Prod'
     subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
-    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/pr-deployment-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     buildNr: $(Build.BuildNumber)
   
@@ -34,28 +34,17 @@ stages:
     jobs:
     - job: BuildImage
       steps:
+
       - task: Docker@2
-        displayName: Login to fusioncr
+        displayName: 'Build docker image'
         inputs:
-          command: login
-          containerRegistry: fusioncr
-      - task: Docker@2
-        displayName: Login to fusioncachecr
-        inputs:
-          command: login
-          containerRegistry: fusioncachecr
-      - template: templates/docker-buildx.yml@infra
-        parameters:
+          containerRegistry: 'fusion-aks-cr'
           repository: $(imageRepo)
+          command: buildAndPush
           buildContext: ./src/backend
-          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
-          dockerPush: true
-          cacheFrom: |
-            latest
-          cacheTo: |
-            $(prNumber)
-          tags: |
-            $(prNumber)
+          dockerfile: ./src/backend/api/Fusion.Resources.Api/Dockerfile
+          tags: $(prNumber)
+
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
@@ -65,13 +54,14 @@ stages:
           arguments: |
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(prNumber)
+            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
+
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
           SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
           Contents: |
-            deployment-pr-env.yml
+            pr-deployment-env.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
@@ -84,11 +74,12 @@ stages:
       envName: 'pr'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      aks-namespace: 'fusion-resource-allocation-pr'
   
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      environment: fra-pr.fusion-resources-app-pr
+      environment: fra-pr
       strategy:
         runOnce:
           deploy:
@@ -162,9 +153,11 @@ stages:
                 azureSubscription: $(subscriptionService)
                 dbTagPrefix: resources
 
-  
-            - task: KubernetesManifest@0
+            - task: KubernetesManifest@1
               displayName: Deploy to Kubernetes cluster
               inputs:
+                kubernetesServiceConnection: fra-k8s-pr
+                namespace: $(aks-namespace)
                 action: deploy
-                manifests: $(deploymentManifest) 
+                manifests: |
+                  $(deploymentManifest)

@@ -17,7 +17,7 @@ namespace Fusion.Summary.Api.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -42,6 +42,35 @@ namespace Fusion.Summary.Api.Database.Migrations
                     b.HasKey("DepartmentSapId");
 
                     b.ToTable("Departments", (string)null);
+                });
+
+            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbProject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssignedAdminsAzureUniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("DirectorAzureUniqueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("OrgProjectExternalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgProjectExternalId")
+                        .IsUnique();
+
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklySummaryReport", b =>
@@ -99,6 +128,32 @@ namespace Fusion.Summary.Api.Database.Migrations
                         .IsUnique();
 
                     b.ToTable("WeeklySummaryReports", (string)null);
+                });
+
+            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklyTaskOwnerReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ActionsAwaitingTaskOwnerAction")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PeriodEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PeriodStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "PeriodStart", "PeriodEnd")
+                        .IsUnique();
+
+                    b.ToTable("WeeklyTaskOwnerReports", (string)null);
                 });
 
             modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklySummaryReport", b =>
@@ -166,6 +221,127 @@ namespace Fusion.Summary.Api.Database.Migrations
                     b.Navigation("PersonnelMoreThan100PercentFTE");
 
                     b.Navigation("PositionsEnding");
+                });
+
+            modelBuilder.Entity("Fusion.Summary.Api.Database.Models.DbWeeklyTaskOwnerReport", b =>
+                {
+                    b.HasOne("Fusion.Summary.Api.Database.Models.DbProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsMany("Fusion.Summary.Api.Database.Models.DbAdminAccessExpiring", "AdminAccessExpiringInLessThanThreeMonths", b1 =>
+                        {
+                            b1.Property<Guid>("DbWeeklyTaskOwnerReportId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<Guid>("AzureUniqueId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTime>("Expires")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("FullName")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.HasKey("DbWeeklyTaskOwnerReportId", "Id");
+
+                            b1.ToTable("WeeklyTaskOwnerReports");
+
+                            b1.ToJson("AdminAccessExpiringInLessThanThreeMonths");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbWeeklyTaskOwnerReportId");
+                        });
+
+                    b.OwnsMany("Fusion.Summary.Api.Database.Models.DbPositionAllocationEnding", "PositionAllocationsEndingInNextThreeMonths", b1 =>
+                        {
+                            b1.Property<Guid>("DbWeeklyTaskOwnerReportId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<DateTime>("PositionAppliesTo")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("PositionExternalId")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.Property<string>("PositionName")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.Property<string>("PositionNameDetailed")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.HasKey("DbWeeklyTaskOwnerReportId", "Id");
+
+                            b1.ToTable("WeeklyTaskOwnerReports");
+
+                            b1.ToJson("PositionAllocationsEndingInNextThreeMonths");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbWeeklyTaskOwnerReportId");
+                        });
+
+                    b.OwnsMany("Fusion.Summary.Api.Database.Models.DbTBNPositionStartingSoon", "TBNPositionsStartingInLessThanThreeMonths", b1 =>
+                        {
+                            b1.Property<Guid>("DbWeeklyTaskOwnerReportId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<DateTime>("PositionAppliesFrom")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("PositionExternalId")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.Property<string>("PositionName")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.Property<string>("PositionNameDetailed")
+                                .IsRequired()
+                                .HasMaxLength(120)
+                                .HasColumnType("nvarchar(120)");
+
+                            b1.HasKey("DbWeeklyTaskOwnerReportId", "Id");
+
+                            b1.ToTable("WeeklyTaskOwnerReports");
+
+                            b1.ToJson("TBNPositionsStartingInLessThanThreeMonths");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbWeeklyTaskOwnerReportId");
+                        });
+
+                    b.Navigation("AdminAccessExpiringInLessThanThreeMonths");
+
+                    b.Navigation("PositionAllocationsEndingInNextThreeMonths");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("TBNPositionsStartingInLessThanThreeMonths");
                 });
 #pragma warning restore 612, 618
         }
