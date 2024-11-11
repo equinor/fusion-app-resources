@@ -30,6 +30,13 @@ public interface ISummaryApiClient
     /// <exception cref="SummaryApiError" />
     public Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// When putting a weekly task owner report, it will replace the existing report for the given period based on the project id.
+    /// If the report does not exist, it will be created. Duration should be from Monday to Monday.
+    /// <para>
+    ///     The key is the combination of the project id, period start and period end.
+    /// </para>
+    /// </summary>
     /// <exception cref="SummaryApiError"></exception>
     public Task PutWeeklyTaskOwnerReportAsync(Guid projectId, ApiWeeklyTaskOwnerReport report, CancellationToken cancellationToken = default);
 }
@@ -52,7 +59,6 @@ public class ApiResourceOwnerDepartment
     public Guid[] ResourceOwnersAzureUniqueId { get; init; } = null!;
 
     public Guid[] DelegateResourceOwnersAzureUniqueId { get; init; } = null!;
-
 }
 
 public record ApiCollection<T>(ICollection<T> Items);

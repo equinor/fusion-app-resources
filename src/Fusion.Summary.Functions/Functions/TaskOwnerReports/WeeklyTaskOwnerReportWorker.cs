@@ -71,7 +71,7 @@ public class WeeklyTaskOwnerReportWorker
         var expiringPositions = WeeklyTaskOwnerReportDataCreator.GetPositionsEndingNextThreeMonths(allProjectPositions);
         var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonts(allProjectPositions, activeRequestsForProject);
 
-        var lastMonday = now.GetPreviousWeeksMondayDate();
+        var lastMonday = now.GetPreviousWeeksMondayDate().Date;
         var report = new ApiWeeklyTaskOwnerReport()
         {
             Id = Guid.Empty,
