@@ -64,6 +64,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
 
+
+
             var resourceOwnerCreator = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwnerCreator.IsResourceOwner = true;
             resourceOwnerCreator.FullDepartment = TestDepartment;
@@ -476,7 +478,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 await client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
                 await client.ProposePersonAsync(request.Id, testUser);
             }
-            
+
             var user = GetUser(role, department);
             using var userScope = fixture.UserScope(user);
 
@@ -619,7 +621,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         {
             var absence = await CreateAbsence();
 
-            var user = role switch {
+            var user = role switch
+            {
                 "consultant" => fixture.AddProfile(FusionAccountType.Consultant),
                 _ => GetUser(role, department)
             };
@@ -847,6 +850,34 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             };
             return testUser;
         }
+
+        //private ApiPersonProfileV3 CreateOrgUnitManager(string department)
+        //{
+        //    var testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+        //    // Ref workday, managers will exist in parent department.
+        //    var userDepartment = new DepartmentPath(department).Parent();
+        //    RolesClientMock.AddPersonRole(testUser.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
+        //    {
+        //        Identifier = $"{Guid.NewGuid()}",
+        //        RoleName = "Fusion.LineOrg.Manager",
+        //        Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", scope),
+        //        ValidTo = DateTime.UtcNow.AddDays(1),
+        //        Source = "Test project"
+        //    });
+        //    testUser.Department = "EPN SUB WS WPN";
+        //    testUser.Roles = new List<ApiPersonRoleV3>
+        //    {
+        //        new ApiPersonRoleV3
+        //        {
+        //            Name = AccessRoles.ResourceOwner,
+        //            Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = scope },
+        //            ActiveToUtc = DateTime.UtcNow.AddDays(1),
+        //            IsActive = true,
+        //        }
+        //    };
+        //    return testUser;
+        //}
 
         private Task<TestApiInternalRequestModel> CreateAndStartRequest()
             => CreateAndStartRequest(testPosition);
