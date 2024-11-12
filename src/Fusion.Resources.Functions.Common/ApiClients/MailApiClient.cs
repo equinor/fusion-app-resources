@@ -27,7 +27,7 @@ public class MailApiClient : IMailApiClient
         await ThrowIfNotSuccess(response);
     }
 
-    public async Task SendEmailWithTemplate(SendEmailWithTemplateRequest request, string? templateName = "default", CancellationToken cancellationToken = default)
+    public async Task SendEmailWithTemplateAsync(SendEmailWithTemplateRequest request, string? templateName = "default", CancellationToken cancellationToken = default)
     {
         var json = JsonConvert.SerializeObject(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");

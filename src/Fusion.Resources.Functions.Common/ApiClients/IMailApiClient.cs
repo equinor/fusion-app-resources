@@ -6,5 +6,5 @@ public interface IMailApiClient
 {
     public Task SendEmailAsync(SendEmailRequest request, CancellationToken cancellationToken = default);
 
-    public Task SendEmailWithTemplate(SendEmailWithTemplateRequest request, string? templateName = "default", CancellationToken cancellationToken = default);
+    public Task SendEmailWithTemplateAsync(SendEmailWithTemplateRequest request, string? templateName = "default", CancellationToken cancellationToken = default);
 }

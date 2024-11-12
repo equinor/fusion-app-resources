@@ -23,8 +23,9 @@ public class WeeklyTaskOwnerReportSender
     private readonly ISummaryApiClient summaryApiClient;
     private readonly IMailApiClient mailApiClient;
     private readonly IPeopleApiClient peopleApiClient;
-    private AdaptiveCardRenderer cardHtmlRenderer;
+    private readonly AdaptiveCardRenderer cardHtmlRenderer;
     private readonly bool sendingNotificationEnabled = true; // Default to true so that we don't accidentally disable sending notifications
+    private readonly string fusionUri;
 
     public WeeklyTaskOwnerReportSender(ILogger<WeeklyTaskOwnerReportSender> logger, IConfiguration configuration, ISummaryApiClient summaryApiClient, IMailApiClient mailApiClient, IPeopleApiClient peopleApiClient)
     {
@@ -33,6 +34,7 @@ public class WeeklyTaskOwnerReportSender
         this.mailApiClient = mailApiClient;
         this.peopleApiClient = peopleApiClient;
         cardHtmlRenderer = new AdaptiveCardRenderer();
+        fusionUri = (configuration["Endpoints_portal"] ?? "https://fusion.equinor.com/").TrimEnd('/');
 
         // Need to explicitly add the configuration key to the app settings to disable sending of notifications
         if (int.TryParse(configuration["isSendingNotificationEnabled"], out var enabled))
@@ -113,7 +115,7 @@ public class WeeklyTaskOwnerReportSender
             try
             {
                 // TODO: Email resolution should be done before the az func sender runs, and the resolved emails should be stored on the report/project
-                recipientEmails = await ResolveEmailsAsync(recipients, cancellationToken);
+                recipientEmails = await ResolveEmailsAsync(recipients.Distinct(), cancellationToken);
             }
             catch (Exception e)
             {
@@ -135,6 +137,24 @@ public class WeeklyTaskOwnerReportSender
         return requests;
     }
 
+    public async Task SendTaskOwnerReportsAsync(IEnumerable<SendEmailWithTemplateRequest> emailReportRequests)
+    {
+        foreach (var request in emailReportRequests)
+        {
+            try
+            {
+                if (sendingNotificationEnabled)
+                    await mailApiClient.SendEmailWithTemplateAsync(request);
+                else
+                    logger.LogInformation("Sending of notifications is disabled. Skipping sending mail to {Recipients}", string.Join(',', request.Recipients));
+            }
+            catch (ApiError e)
+            {
+                logger.LogError(e, "Failed to send task owner report mail. Request: {Request}", request.ToJson());
+            }
+        }
+    }
+
 
     private async Task<string[]> ResolveEmailsAsync(IEnumerable<Guid> azureUniqueId, CancellationToken cancellationToken)
     {
@@ -151,29 +171,93 @@ public class WeeklyTaskOwnerReportSender
 
     private SendEmailWithTemplateRequest CreateReportMail(string[] recipients, ApiProject project, ApiWeeklyTaskOwnerReport report)
     {
-        var subject = $"Weekly summary - {project.Name}";
-
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {project.Name}**")
             .AddTextRow(report.ActionsAwaitingTaskOwnerAction.ToString(), "Actions awaiting task owners")
-            .AddListContainer("Admin access expire less than 3 months", report.AdminAccessExpiringInLessThanThreeMonths
-                .Select(a => new List<AdaptiveCardBuilder.ListObject>()
+            .AddGrid("Admin access expiring in less than 3 months", new List<GridColumn>()
+            {
+                new()
                 {
-                    new()
-                    {
-                        Value = a.FullName,
-                        Alignment = AdaptiveHorizontalAlignment.Left
-                    },
-                    new()
-                    {
-                        Value = a.Expires.ToString(),
-                        Alignment = AdaptiveHorizontalAlignment.Right
-                    }
-                }).ToList())
-            .AddTextRow(report.PositionAllocationsEndingInNextThreeMonths.Length.ToString(), "Position allocations expiring next 3 months")
-            .AddTextRow(report.TBNPositionsStartingInLessThanThreeMonths.Length.ToString(), "TBN positions with start date in less than 3 months")
+                    Width = AdaptiveColumnWidth.Stretch,
+                    Cells =
+                    [
+                        new GridCell(isHeader: true, value: "Name"),
+                        ..report.AdminAccessExpiringInLessThanThreeMonths.Select(a
+                            => new GridCell(isHeader: false, value: a.FullName))
+                    ]
+                },
+                new()
+                {
+                    Width = AdaptiveColumnWidth.Auto,
+                    Cells =
+                    [
+                        new GridCell(isHeader: true, value: "Expires"),
+                        ..report.AdminAccessExpiringInLessThanThreeMonths.Select(a
+                            => new GridCell(isHeader: false, value: a.Expires.ToString("dd/MM/yyyy")))
+                    ]
+                }
+            }, new GoToAction()
+            {
+                Title = "Go to Access Management",
+                Url = $"{fusionUri}/apps/org-admin/{project.OrgProjectExternalId}/access-control"
+            })
+            .AddGrid("Position allocations expiring next 3 months", new List<GridColumn>()
+            {
+                new()
+                {
+                    Width = AdaptiveColumnWidth.Stretch,
+                    Cells =
+                    [
+                        new GridCell(isHeader: true, value: "Position"),
+                        ..report.PositionAllocationsEndingInNextThreeMonths.Select(p
+                            => new GridCell(isHeader: false, value: $"{p.PositionExternalId} {p.PositionNameDetailed}"))
+                    ]
+                },
+                new()
+                {
+                    Width = AdaptiveColumnWidth.Auto,
+                    Cells =
+                    [
+                        new GridCell(isHeader: true, value: "End date"),
+                        ..report.PositionAllocationsEndingInNextThreeMonths.Select(p
+                            => new GridCell(isHeader: false, value: p.PositionAppliesTo.ToString("dd/MM/yyyy")))
+                    ]
+                }
+            }, new GoToAction()
+            {
+                Title = "Go to Position Overview",
+                Url = $"{fusionUri}/apps/org-admin/{project.OrgProjectExternalId}/edit-positions/listing-view"
+            })
+            .AddGrid("TBN positions with start date in less than 3 months", new List<GridColumn>()
+            {
+                new()
+                {
+                    Width = AdaptiveColumnWidth.Stretch,
+                    Cells =
+                    [
+                        new GridCell(isHeader: true, value: "Position"),
+                        ..report.TBNPositionsStartingInLessThanThreeMonths.Select(p
+                            => new GridCell(isHeader: false, value: $"{p.PositionExternalId} {p.PositionNameDetailed}"))
+                    ]
+                },
+                new()
+                {
+                    Width = AdaptiveColumnWidth.Auto,
+                    Cells =
+                    [
+                        new GridCell(isHeader: true, value: "Start date"),
+                        ..report.TBNPositionsStartingInLessThanThreeMonths.Select(p
+                            => new GridCell(isHeader: false, value: p.PositionAppliesFrom.ToString("dd/MM/yyyy")))
+                    ]
+                }
+            }, new GoToAction()
+            {
+                Title = "Go to Position Overview",
+                Url = $"{fusionUri}/apps/org-admin/{project.OrgProjectExternalId}/edit-positions/listing-view"
+            })
             .Build();
 
+        var subject = $"Weekly summary - {project.Name}";
 
         return new SendEmailWithTemplateRequest()
         {
@@ -184,23 +268,5 @@ public class WeeklyTaskOwnerReportSender
                 HtmlContent = cardHtmlRenderer.RenderCard(card).Html.ToString()
             }
         };
-    }
-
-    public async Task SendTaskOwnerReportsAsync(IEnumerable<SendEmailWithTemplateRequest> emailReportRequests)
-    {
-        foreach (var request in emailReportRequests)
-        {
-            try
-            {
-                if (sendingNotificationEnabled)
-                    await mailApiClient.SendEmailWithTemplate(request);
-                else
-                    logger.LogInformation("Sending of notifications is disabled. Skipping sending mail to {Recipients}", string.Join(',', request.Recipients));
-            }
-            catch (ApiError e)
-            {
-                logger.LogError(e, "Failed to send task owner report mail. Request: {Request}", request.ToJson());
-            }
-        }
     }
 }
