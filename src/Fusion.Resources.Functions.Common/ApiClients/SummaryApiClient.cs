@@ -80,6 +80,25 @@ public class SummaryApiClient : ISummaryApiClient
             cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
     }
 
+    public async Task<ApiWeeklyTaskOwnerReport?> GetLatestWeeklyTaskOwnerReportAsync(Guid projectId, CancellationToken cancellationToken = default)
+    {
+        var lastMonday = DateTime.UtcNow.GetPreviousWeeksMondayDate();
+
+        var queryString = $"/projects/{projectId}/task-owners-summary-reports/weekly?$filter=PeriodStart eq '{lastMonday.Date:O}'&$top=1";
+
+
+        using var response = await summaryClient.GetAsync(queryString, cancellationToken);
+
+        await ThrowIfUnsuccessfulAsync(response);
+
+
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        return (await JsonSerializer.DeserializeAsync<ApiCollection<ApiWeeklyTaskOwnerReport>>(contentStream,
+            jsonSerializerOptions,
+            cancellationToken: cancellationToken))?.Items?.FirstOrDefault();
+    }
+
     public async Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
         CancellationToken cancellationToken = default)
     {

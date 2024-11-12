@@ -21,6 +21,10 @@ public interface ISummaryApiClient
         CancellationToken cancellationToken = default);
 
     /// <exception cref="SummaryApiError"></exception>
+    public Task<ApiWeeklyTaskOwnerReport?> GetLatestWeeklyTaskOwnerReportAsync(Guid projectId,
+        CancellationToken cancellationToken = default);
+
+    /// <exception cref="SummaryApiError"></exception>
     public Task PutWeeklySummaryReportAsync(string departmentSapId, ApiWeeklySummaryReport report,
         CancellationToken cancellationToken = default);
 

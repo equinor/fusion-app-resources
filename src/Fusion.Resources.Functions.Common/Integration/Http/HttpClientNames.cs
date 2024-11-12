@@ -12,6 +12,7 @@
             public const string Context = "App.Context";
             public const string LineOrg = "App.LineOrg";
             public const string Roles = "App.Roles";
+            public const string Mail = "App.Mail";
         }
 
     }
