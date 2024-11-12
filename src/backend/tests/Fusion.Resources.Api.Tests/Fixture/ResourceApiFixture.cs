@@ -86,6 +86,51 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return resourceOwner;
         }
 
+        /// <summary>
+        /// Sets the profile as manager for the org unit. 
+        /// Returns the org unit created for the full department string.
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="department"></param>
+        /// <returns></returns>
+        internal ApiOrgUnit SetAsResourceOwner(ApiPersonProfileV3 person, string department)
+        {
+            person.IsResourceOwner = true;
+
+            DepartmentPath d = new DepartmentPath(department);
+
+            person.FullDepartment = d.Parent();
+            person.Department = d.ParentDeparment.GetShortName();
+
+            // Must add roles.. Create SAP id
+            var orgUnit = LineOrgServiceMock.AddOrgUnit(department);
+
+            if (person.Roles is null)
+                person.Roles = new List<ApiPersonRoleV3>();
+
+            person.Roles = new List<ApiPersonRoleV3>
+                {
+                    new ApiPersonRoleV3
+                    {
+                        Name = "Fusion.LineOrg.Manager",
+                        Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = orgUnit.SapId },
+                        IsActive = true,
+                        OnDemandSupport = false
+                    }
+                };
+
+            RolesClientMock.AddPersonRole(person.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = "Fusion.LineOrg.Manager",
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", orgUnit.SapId),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = "Test project"
+            });
+
+            return orgUnit;
+        }
+
         internal ApiOrgUnit AddOrgUnit(string sapId, string name, string fullDepartment)
         {
             return LineOrgServiceMock.AddOrgUnit(sapId, name, fullDepartment, fullDepartment, fullDepartment);
