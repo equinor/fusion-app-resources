@@ -123,8 +123,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // User has access if the parent department matches..
                     var resourceParent = path.ParentDeparment;
-                    var userDepartments = c.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
-                        .Select(c => c.Value);
+                    var userDepartments = c.User.GetManagerForDepartments();
 
                     return userDepartments.Any(d => resourceParent.IsDepartment(new DepartmentPath(d).Parent()));
                 })
@@ -144,8 +143,7 @@ namespace Fusion.Resources.Api.Controllers
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c =>
                 {
-                    var userDepartments = c.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
-                        .Select(c => c.Value)
+                    var userDepartments = c.User.GetManagerForDepartments()
                         .Select(d => new DepartmentPath(d).Parent());
 
                     return userDepartments.Any(d => path.IsDepartment(d));

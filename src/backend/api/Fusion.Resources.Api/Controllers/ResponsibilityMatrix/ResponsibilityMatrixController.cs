@@ -44,7 +44,7 @@ namespace Fusion.Resources.Api.Controllers
             // filter items if limited auth
             if (authResult.LimitedAuth)
             {
-                var resourceOwnerDepartments = User.GetResponsibleForDepartments()
+                var resourceOwnerDepartments = User.GetManagerForDepartments()
                     .Select(d => new DepartmentPath(d))
                     .ToList();
 
