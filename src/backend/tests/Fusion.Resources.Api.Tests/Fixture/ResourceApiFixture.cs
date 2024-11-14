@@ -76,9 +76,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             var resourceOwner = this.AddProfile(FusionAccountType.Employee);
 
             SetAsResourceOwner(resourceOwner, department);
-
-
-
+            
             return resourceOwner;
         }
 

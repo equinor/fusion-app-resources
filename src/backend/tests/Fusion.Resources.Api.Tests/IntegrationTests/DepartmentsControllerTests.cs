@@ -239,14 +239,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task SearchShouldBeCaseInsensitive()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().SaveProfile();
+            var orgUnit = fixture.SetAsResourceOwner(fakeResourceOwner, fakeResourceOwner.FullDepartment);
+            
 
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.FullDepartment);
+            resp.Value.Should().Contain(x => x.Name == orgUnit.Name);
         }
 
         [Fact]
@@ -285,7 +286,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 fixture.EnsureDepartment(dep);
 
             var testDepartment = "AAA BBB CCC XXX";
-            var resourceOwner = fixture.AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
+            var resourceOwner = fixture.AddResourceOwner(testDepartment); // AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
             using var adminScope = fixture.UserScope(resourceOwner);
 
             var result = await Client.TestClientOptionsAsync($"/departments/{fullDepartment}/delegated-resource-owners");
@@ -306,7 +307,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var testDepartment = "AAA BBB CCC XXX";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var resourceOwner = fixture.AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
+            var resourceOwner = fixture.AddResourceOwner(testDepartment);
             using var adminScope = fixture.UserScope(resourceOwner);
 
             var result = await Client.TestClientPostAsync<dynamic>($"/departments/{fullDepartment}/delegated-resource-owners", new
