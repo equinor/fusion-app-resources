@@ -569,16 +569,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 absence = absenceResp.Value;
             }
 
-            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwner.IsResourceOwner = true;
-            resourceOwner.FullDepartment = "TPD TST QWE";
-            resourceOwner.Department = "TPD TST QWE";
-
-            LineOrgServiceMock.AddTestUser()
-                .MergeWithProfile(resourceOwner)
-                .AsResourceOwner()
-                .WithDepartment("TPD TST QWE")
-                .SaveProfile();
+            var resourceOwner = fixture.AddResourceOwner("TPD TST QWE");
 
             using (var userScope = fixture.UserScope(resourceOwner))
             {

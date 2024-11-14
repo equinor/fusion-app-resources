@@ -74,14 +74,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
         internal ApiPersonProfileV3 AddResourceOwner(string department)
         {
             var resourceOwner = this.AddProfile(FusionAccountType.Employee);
-            resourceOwner.IsResourceOwner = true;
-            resourceOwner.FullDepartment = department;
-            resourceOwner.Department = new DepartmentPath(department).GetShortName();
-            LineOrgServiceMock.AddTestUser()
-                .MergeWithProfile(resourceOwner)
-                .WithFullDepartment(department)
-                .AsResourceOwner()
-                .SaveProfile();
+
+            SetAsResourceOwner(resourceOwner, department);
 
             return resourceOwner;
         }

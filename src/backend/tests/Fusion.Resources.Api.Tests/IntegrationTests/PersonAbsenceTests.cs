@@ -319,10 +319,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetAbsence_ShouldBeHiddenForOtherResourceOwners_WhenPrivate()
         {
-            var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            siblingResourceOwner.FullDepartment = "TPD PRD TST QWE ABC";
-            siblingResourceOwner.Department = "TST QWE ABC";
-            siblingResourceOwner.IsResourceOwner = true;
+            var siblingResourceOwner = fixture.AddResourceOwner("TPD PRD TST QWE ABC");
 
             var request = new CreatePersonAbsenceRequest
             {

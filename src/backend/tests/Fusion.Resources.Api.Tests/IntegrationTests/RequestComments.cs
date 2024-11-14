@@ -45,6 +45,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser.FullDepartment = testDepartment;
             testUser.Department = "L2 L3 L4";
 
+            fixture.EnsureDepartment(testDepartment);
             resourceOwner = fixture.AddResourceOwner(testDepartment);
 
             taskOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -80,7 +81,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 pos => pos.WithParentPosition(taskOwnerPosition.Id));
             //await adminClient.StartProjectRequestAsync(testProject, request.Id);
             await adminClient.StartProjectRequestAsync(testProject, request.Id);
-            await adminClient.AssignDepartmentAsync(request.Id, resourceOwner.FullDepartment);
+            await adminClient.AssignDepartmentAsync(request.Id, testDepartment);
 
             var comment = new { content = "Resource owner gossip." };
             var response = await adminClient.TestClientPostAsync<TestApiComment>($"/resources/requests/internal/{request.Id}/comments", comment);
