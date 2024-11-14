@@ -77,6 +77,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
             SetAsResourceOwner(resourceOwner, department);
 
+
+
             return resourceOwner;
         }
 
@@ -121,6 +123,9 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 ValidTo = DateTime.UtcNow.AddDays(1),
                 Source = "Test project"
             });
+
+            LineOrgServiceMock.AddOrgUnit(department);
+            LineOrgServiceMock.AddOrgUnitManager(department, person);
 
             return orgUnit;
         }
