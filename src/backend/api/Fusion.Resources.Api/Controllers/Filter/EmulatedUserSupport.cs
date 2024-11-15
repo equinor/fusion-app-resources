@@ -35,12 +35,14 @@ namespace Fusion.Resources.Api.Controllers
                 var authorizationService = context.HttpContext.RequestServices.GetRequiredService<IAuthorizationService>();
                 var authResult = await context.HttpContext.Request.RequireAuthorizationAsync(r =>
                 {
-                    r.AlwaysAccessWhen().FullControl();
+                    r.AlwaysAccessWhen().GlobalRoleAccess("Fusion.Resources.FullControl");
                     r.AlwaysAccessWhen().GlobalRoleAccess("Fusion.Resources.EmulateUser");
                 });
 
                 if (authResult.Unauthorized)
-                    throw new NotAuthorizedError(new ApiErrorMessage() { Message = "You do not have permissions to enter emulation mode." });
+                {
+                    context.Result = authResult.CreateForbiddenResponse();
+                }
 
 
                 var user = await context.HttpContext.GetEmulatedClaimsUserAsync(emulatedUserId!);
