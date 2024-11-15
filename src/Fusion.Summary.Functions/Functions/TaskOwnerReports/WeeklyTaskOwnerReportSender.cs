@@ -255,7 +255,7 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to Access Management",
+                Title = "Go to access management",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/access-control"
             })
             .AddGrid("Position allocations expiring next 3 months", new List<GridColumn>()
@@ -282,7 +282,7 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to Position Overview",
+                Title = "Go to position overview",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
             })
             .AddGrid("TBN positions with start date in less than 3 months", new List<GridColumn>()
@@ -309,12 +309,16 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to Position Overview",
+                Title = "Go to position overview",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
             })
             .Build();
 
         var subject = $"Weekly summary - {project.Name}";
+
+        var html = cardHtmlRenderer.RenderCard(card).Html;
+
+        TransformActionButtonsToLinks(html);
 
         return new SendEmailWithTemplateRequest()
         {
@@ -322,9 +326,25 @@ public class WeeklyTaskOwnerReportSender
             Subject = subject,
             MailBody = new()
             {
-                HtmlContent = cardHtmlRenderer.RenderCard(card).Html.ToString()
+                HtmlContent = html.ToString()
             }
         };
+    }
+
+    private static void TransformActionButtonsToLinks(HtmlTag htmlTag)
+    {
+        if (htmlTag.Classes.Contains("ac-action-openUrl") && htmlTag.Attributes.Any(a => a.Key == "data-ac-url"))
+        {
+            var url = htmlTag.Attributes.First(a => a.Key == "data-ac-url").Value;
+            htmlTag.Element = "a";
+            htmlTag.Attributes.Add("href", url);
+            return;
+        }
+
+        foreach (var child in htmlTag.Children)
+        {
+            TransformActionButtonsToLinks(child);
+        }
     }
 
 
