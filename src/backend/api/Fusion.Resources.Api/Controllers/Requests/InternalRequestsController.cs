@@ -1097,6 +1097,7 @@ namespace Fusion.Resources.Api.Controllers
 
         #region Comments
 
+        [EmulatedUserSupport]
         [HttpOptions("/resources/requests/internal/{requestId}/comments")]
         public async Task<ActionResult> GetCommentOptions([FromRoute] RequestIdentifier requestId)
         {
@@ -1139,6 +1140,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> GetCommentOptions([FromRoute] RequestIdentifier requestId, Guid commentId)
         {
@@ -1396,6 +1398,7 @@ namespace Fusion.Resources.Api.Controllers
 
         #endregion Comments
 
+        [EmulatedUserSupport]
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] RequestIdentifier requestId)
@@ -1425,6 +1428,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] RequestIdentifier requestId)
@@ -1525,6 +1529,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="instanceId">Instance / allocation to target</param>
         /// <param name="requestType">The request type to create</param>
         /// <returns></returns>
+        [EmulatedUserSupport]
         [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
         public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] PathProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery] string? requestType)
         {
@@ -1553,6 +1558,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckDepartmentRequestAccess([FromRoute] OrgUnitIdentifier departmentString, [FromRoute] RequestIdentifier requestId)
         {
@@ -1642,6 +1648,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/projects/{projectIdentifier}/requests")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
         [HttpOptions("/departments/{departmentString}/resources/requests")]
@@ -1687,6 +1694,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult> GetWorkflowApprovalOptions([FromRoute] RequestIdentifier requestId)
         {

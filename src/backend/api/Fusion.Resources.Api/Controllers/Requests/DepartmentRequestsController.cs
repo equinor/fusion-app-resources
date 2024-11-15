@@ -5,8 +5,10 @@ using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,6 +21,42 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiController]
     public class DepartmentRequestsController : ResourceControllerBase
     {
+
+        [EmulatedUserSupport]
+        [HttpOptions("departments/{departmentString}/resources/requests")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> OptionsDepartmentRequests([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                });
+            });
+            
+            // Do not return 403, just dont return GET header
+
+            #endregion
+
+            var allowed = new List<string>();
+
+            if (authResult.Success)
+            {
+                allowed.Add("GET");
+            }
+
+            Response.Headers.Append("Allow", string.Join(',', allowed));
+            return NoContent();
+        }
+
+
         [HttpGet("departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentRequests(
             [FromRoute] OrgUnitIdentifier departmentString,
@@ -50,6 +88,36 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+        }
+
+
+        [EmulatedUserSupport]
+        [HttpGet("/departments/positions/{positionId}/requests")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> OptionsRequestsForPosition(Guid positionId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForAnyDepartment();
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
+                });
+            });
+
+            #endregion
+
+            var allowed = new List<string>();
+
+            if (authResult.Success)
+            {
+                allowed.Add("GET");
+            }
+
+            Response.Headers.Append("Allow", string.Join(',', allowed));
+            return NoContent();
         }
 
         /// <summary>

@@ -257,6 +257,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/persons/{personId}/resources/notes")]
         public async Task<ActionResult> GetPersonNoteOptions(string personId)
         {

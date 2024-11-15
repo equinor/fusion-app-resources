@@ -359,6 +359,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/persons/{personId}/absence")]
         public async Task<ActionResult> GetOptionsForPerson(string personId)
         {
@@ -411,6 +412,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/persons/{personId}/absence/{absenceId}")]
         public async Task<ActionResult> GetOptions(string personId, Guid absenceId)
         {
