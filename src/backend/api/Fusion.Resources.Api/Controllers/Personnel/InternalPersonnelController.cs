@@ -26,6 +26,48 @@ namespace Fusion.Resources.Api.Controllers
         {
         }
 
+        [EmulatedUserSupport]
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
+        [HttpOptions("departments/{departmentString}/resources/personnel")]
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> OptionsDepartmentPersonnel([FromRoute] OrgUnitIdentifier departmentString)
+        {
+
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department does not exist");
+
+            #region Authorization
+
+            var sector = new DepartmentPath(departmentString.FullDepartment).Parent();
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+
+                    or.FullControlInternal();
+                    or.BeResourceOwnerForDepartment(sector, includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                    // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
+            });
+
+            #endregion
+
+
+            if (authResult.Success)
+            {
+                Response.Headers["Allow"] = authResult.LimitedAuth ? "GET,LIMITED" : "GET";
+            }
+
+            return NoContent();
+        }
+
         /// <summary>
         /// Get personnel for a department.
         /// 
