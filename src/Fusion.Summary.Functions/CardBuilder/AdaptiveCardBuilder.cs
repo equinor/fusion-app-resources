@@ -121,7 +121,6 @@ public class AdaptiveCardBuilder
             };
 
             actionSet.Actions.Add(action);
-
             listContainer.Items.Add(actionSet);
         }
 

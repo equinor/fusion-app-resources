@@ -64,6 +64,9 @@ namespace Fusion.Resources.Functions.Common.Configuration
             builder.AddMailClient();
             services.AddScoped<IMailApiClient, MailApiClient>();
 
+            builder.AddContextClient();
+            services.AddScoped<IContextApiClient, ContextApiClient>();
+
             return services;
         }
     }

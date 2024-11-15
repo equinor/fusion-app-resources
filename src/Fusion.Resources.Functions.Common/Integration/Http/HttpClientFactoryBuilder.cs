@@ -136,6 +136,20 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             return this;
         }
 
+        public HttpClientFactoryBuilder AddContextClient()
+        {
+            services.AddTransient<ContextHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Context, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-context");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<ContextHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
         private readonly TimeSpan[] DefaultSleepDurations = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) };
 
         private Func<PolicyBuilder<HttpResponseMessage>, IAsyncPolicy<HttpResponseMessage>> DefaultRetryPolicy(TimeSpan[] sleepDurations = null) =>
