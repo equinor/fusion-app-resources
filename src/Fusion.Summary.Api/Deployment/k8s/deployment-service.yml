@@ -1,7 +1,7 @@
 ﻿apiVersion: v1
 kind: Secret
 metadata:
-  name: env-secrets
+  name: summary-api-env-secrets
   labels: 
     environment: {{ENVNAME}}
 type: Opaque
@@ -36,7 +36,7 @@ spec:
       volumes:
       - name: env-secrets-volumes
         secret: 
-          secretName: env-secrets
+          secretName: summary-api-env-secrets
 
       containers:
       - name: summary-api
