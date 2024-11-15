@@ -24,6 +24,8 @@ metadata:
   labels: 
     environment: pr
     prNumber: '{{prNumber}}'
+  annotations:
+    k8s-ttl-controller.twin.sh/ttl: '3d'    
 spec:
   replicas: 1
   strategy:
@@ -96,6 +98,8 @@ metadata:
   labels: 
     environment: pr
     prNumber: '{{prNumber}}'
+  annotations:
+    k8s-ttl-controller.twin.sh/ttl: '3d'    
 
 spec:
   selector:
@@ -113,6 +117,7 @@ metadata:
     environment: pr
     prNumber: '{{prNumber}}'
   annotations:
+    k8s-ttl-controller.twin.sh/ttl: '3d'
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
     nginx.org/client-max-body-size: "50m"
