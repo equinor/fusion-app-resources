@@ -1651,25 +1651,9 @@ namespace Fusion.Resources.Api.Controllers
         [EmulatedUserSupport]
         [HttpOptions("/projects/{projectIdentifier}/requests")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
-        [HttpOptions("/departments/{departmentString}/resources/requests")]
-        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions(
-            [FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] OrgUnitIdentifier? departmentString)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions([FromRoute] PathProjectIdentifier projectIdentifier)
         {
             var allowedVerbs = new List<string>();
-
-            var postAuth = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (departmentString is not null)
-                    {
-                        or.BeResourceOwnerForDepartment(departmentString.FullDepartment, includeParents: false, includeDescendants: true);
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
-                    }
-                });
-            });
-            if (postAuth.Success) allowedVerbs.Add("POST");
 
             var getAuth = await Request.RequireAuthorizationAsync(r =>
             {
@@ -1682,8 +1666,6 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
-                    if (departmentString is not null)
-                        or.BeResourceOwnerForDepartment(departmentString.FullDepartment, includeParents: false, includeDescendants: true);
                 });
             });
 

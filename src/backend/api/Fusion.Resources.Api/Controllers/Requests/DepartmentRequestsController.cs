@@ -22,6 +22,41 @@ namespace Fusion.Resources.Api.Controllers.Requests
     public class DepartmentRequestsController : ResourceControllerBase
     {
 
+        [EmulatedUserSupport]
+        [HttpOptions("departments/{departmentString}/resources/requests")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> OptionsDepartmentRequests([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                });
+            });
+            
+            // Do not return 403, just dont return GET header
+
+            #endregion
+
+            var allowed = new List<string>();
+
+            if (authResult.Success)
+            {
+                allowed.Add("GET, POST");
+            }
+
+            Response.Headers.Append("Allow", string.Join(',', allowed));
+            return NoContent();
+        }
+
+
         [HttpGet("departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentRequests(
             [FromRoute] OrgUnitIdentifier departmentString,
