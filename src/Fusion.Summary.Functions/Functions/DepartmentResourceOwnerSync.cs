@@ -78,7 +78,8 @@ public class DepartmentResourceOwnerSync
         // Fetch all departments
         var departments = (await lineOrgApiClient.GetOrgUnitDepartmentsAsync())
             .DistinctBy(d => d.SapId)
-            .Where(d => d.FullDepartment != null && d.SapId != null);
+            .Where(d => d.FullDepartment != null && d.SapId != null)
+            .Where(d => d.Level >= 4);
 
         if (_departmentFilter.Length != 0)
             departments = departments.Where(d => _departmentFilter.Any(df => d.FullDepartment!.Contains(df)));

@@ -49,7 +49,7 @@ steps:
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
-          departmentFilter = "PRD"
+          departmentFilter = ""
           projectTypeFilter = "PRD"
           secretIds = @{
               clientSecret = "https://$envVaultName.vault.azure.net:443/secrets/AzureAd--ClientSecret"
