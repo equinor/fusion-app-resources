@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: env-secrets
+  name: summary-api-env-secrets
   labels: 
     environment: pr
 type: Opaque
@@ -42,7 +42,7 @@ spec:
       volumes:
       - name: env-secrets-volumes
         secret: 
-          secretName: env-secrets
+          secretName: summary-api-env-secrets
 
       containers:
       - name: summary-api-pr-{{prNumber}}
