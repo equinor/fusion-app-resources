@@ -38,7 +38,6 @@ steps:
       # Set correct resources URI based on environment
    
       if ($fusionEnvironment -eq "fprd") {
-        $portal = "https://fusion.equinor.com"
         $lineorg = "https://lineorg.api.fusion.equinor.com"
         $org = "https://org.api.fusion.equinor.com"
         $people = "https://people.api.fusion.equinor.com"
