@@ -67,7 +67,7 @@ namespace Fusion.Resources.Api.Authentication
             foreach (var orgUnitId in managerRoles)
             {
                 var orgUnit = await mediator.Send(new ResolveLineOrgUnit(orgUnitId));
-                if (orgUnit != null)
+                if (orgUnit?.FullDepartment != null)
                 {
                     claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, orgUnit.FullDepartment));
                     logger.LogInformation($"Adding claim for {orgUnitId} -> [{orgUnit.FullDepartment}]");
