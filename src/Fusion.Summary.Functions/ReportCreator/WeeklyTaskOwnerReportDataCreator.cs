@@ -39,9 +39,6 @@ public abstract class WeeklyTaskOwnerReportDataCreator
             if (startingInstance is null)
                 continue;
 
-            // TODO: In the fronted they dont show the warning if the instance has a resource allocation request
-            // I'm wondering if we should do the same here...
-            // If we don't do it here then it will be inconsistent with the frontend
             var instanceHasPersonalRequest = requests.Any(r => r.OrgPositionInstance?.Id == startingInstance.Id);
 
             if (instanceHasPersonalRequest)
