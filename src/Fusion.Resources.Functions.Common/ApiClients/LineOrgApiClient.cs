@@ -45,6 +45,7 @@ public class LineOrgApiClient : ILineOrgApiClient
         public string? FullDepartment { get; set; }
         public string? SapId { get; set; }
         public Management Management { get; set; }
+        public int Level { get; set; }
     }
 
     public class Management

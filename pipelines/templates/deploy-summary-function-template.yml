@@ -47,7 +47,7 @@ steps:
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
-          departmentFilter = "PRD"
+          departmentFilter = ""
           projectTypeFilter = "PRD"
           secretIds = @{
               clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
