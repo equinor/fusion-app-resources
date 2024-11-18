@@ -17,7 +17,7 @@
           "lineorg": "https://lineorg.ci.api.fusion-dev.net",
           "org": "https://org.ci.api.fusion-dev.net",
           "people": "https://people.ci.api.fusion-dev.net",
-          "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
+          "resources": "[concat('https://fra-resources.', parameters('env-name'), '.api.fusion-dev.net')]",
           "notifications": "https://notification.ci.api.fusion-dev.net",
           "context": "https://context.ci.api.fusion-dev.net",
           "portal": "https://fusion.ci.fusion-dev.net"
