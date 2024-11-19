@@ -58,7 +58,7 @@ public class WeeklyTaskOwnerReportWorker
 
     private async Task CreateAndStoreReportAsync(WeeklyTaskOwnerReportMessage message, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow.Date;
         WeeklyTaskOwnerReportDataCreator.NowDate = now;
         // Exclude Products
         var allProjectPositions = (await orgApiClient.GetProjectPositions(message.OrgProjectExternalId.ToString(), cancellationToken))
@@ -68,10 +68,10 @@ public class WeeklyTaskOwnerReportWorker
 
         var expiringAdmins = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
         var actionsAwaitingTaskOwner = WeeklyTaskOwnerReportDataCreator.GetActionsAwaitingTaskOwnerAsync(activeRequestsForProject);
-        var expiringPositions = WeeklyTaskOwnerReportDataCreator.GetPositionsEndingNextThreeMonths(allProjectPositions);
-        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonts(allProjectPositions, activeRequestsForProject);
+        var expiringPositionAllocations = WeeklyTaskOwnerReportDataCreator.GetPositionAllocationsEndingNextThreeMonths(allProjectPositions);
+        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(allProjectPositions, activeRequestsForProject);
 
-        var lastMonday = now.GetPreviousWeeksMondayDate().Date;
+        var lastMonday = now.GetPreviousWeeksMondayDate();
         var report = new ApiWeeklyTaskOwnerReport()
         {
             Id = Guid.Empty,
@@ -85,7 +85,7 @@ public class WeeklyTaskOwnerReportWorker
                 FullName = ea.FullName,
                 Expires = ea.ValidTo
             }).ToArray(),
-            PositionAllocationsEndingInNextThreeMonths = expiringPositions.Select(ep => new ApiPositionAllocationEnding()
+            PositionAllocationsEndingInNextThreeMonths = expiringPositionAllocations.Select(ep => new ApiPositionAllocationEnding()
             {
                 PositionName = ep.Position.BasePosition.Name ?? string.Empty,
                 PositionNameDetailed = ep.Position.Name,

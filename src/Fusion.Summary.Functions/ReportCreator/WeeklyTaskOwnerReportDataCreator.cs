@@ -12,7 +12,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
     // Logic taken/inspired from the frontend
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/a9330b2aa8d104e51536692a72334252d5e474e1/apps/org-admin/src/pages/ProjectPage/components/ChartComponent/components/utils.ts#L28
-    public static List<TBNPosition> GetTBNPositionsStartingWithinThreeMonts(IEnumerable<ApiPositionV2> allProjectPositions,
+    public static List<TBNPosition> GetTBNPositionsStartingWithinThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions,
         ICollection<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
         var nowDate = NowDate;
@@ -58,30 +58,97 @@ public abstract class WeeklyTaskOwnerReportDataCreator
         return supportNames.Any(s => position.Name.Contains(s, StringComparison.OrdinalIgnoreCase));
     }
 
-    public static List<ExpiringPosition> GetPositionsEndingNextThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions)
+    public static List<ExpiringPosition> GetPositionAllocationsEndingNextThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions)
     {
+        /*
+         * Remember that it's the position*Allocation* that is expiring, not the position itself.
+         * So a position allocation can be considered expiring if:
+         * 1. The position is active and the next split within the next 3 months does not have a person assigned
+         *      - We want to notify task owners that an upcoming split is missing an allocation and that they should assign someone
+         *
+         * 2. The last split is expiring within the next 3 months.
+         *    There can be more splits after this but if they're not starting (appliesFrom) within the next 3 months (from NowDate), we consider the position expiring.
+         *    Once the later split comes within the 3-month window, the position will fall under TBNPositionsStartingWithinThreeMonths
+         *      - We want to notify task owners that the position is expiring
+         *
+         * Note: If there is a gap between two splits and the gap/time-period is fully within the 3-month window,
+         * then we DO NOT consider the position expiring. This is also an unusual case.
+         */
+
         var nowDate = NowDate;
+        var expiringDate = nowDate.AddMonths(3);
 
         var expiringPositions = new List<ExpiringPosition>();
 
         foreach (var position in allProjectPositions)
         {
-            var isPositionActiveNow = position.Instances.Any(i => i.AppliesFrom.Date <= nowDate.Date && i.AppliesTo.Date >= nowDate.Date);
-
-            if (!isPositionActiveNow)
+            if (position.Instances.Count == 0) // No instances, skip
                 continue;
 
-            var endingInstance = position.Instances.MaxBy(i => i.AppliesTo);
+            var activeInstance = position.Instances.FirstOrDefault(i => i.AppliesFrom <= nowDate && i.AppliesTo >= nowDate);
 
-            if (endingInstance is null)
+
+            // Find future instances with a start date within the 3-month window
+            var futureInstances = position.Instances
+                .Where(i => i.AppliesFrom >= nowDate && i.AppliesFrom < expiringDate)
+                .OrderBy(i => i.AppliesFrom)
+                .ToList();
+
+            // Handle case where the position is not currently active
+            if (activeInstance is null)
+            {
+                if (futureInstances.Count == 0)
+                    continue; // This is a past position
+
+                var endingPositionAllocation = FindFirstTBNOrLastExpiringInstance(futureInstances);
+
+                var isEndingInstanceLast = futureInstances.Last() == endingPositionAllocation;
+
+                if (endingPositionAllocation is not null && isEndingInstanceLast)
+                    expiringPositions.Add(new ExpiringPosition(position, endingPositionAllocation.AppliesTo));
+
                 continue;
+            }
 
-            if (endingInstance.AppliesTo.Date < nowDate.AddMonths(3).Date)
-                expiringPositions.Add(new ExpiringPosition(position, endingInstance.AppliesTo));
+
+            // Handle case where the position is currently active
+
+            var isActiveInstanceExpiring = activeInstance.AppliesTo < expiringDate;
+
+            if (isActiveInstanceExpiring && futureInstances.Count == 0)
+            {
+                expiringPositions.Add(new ExpiringPosition(position, activeInstance.AppliesTo));
+                continue;
+            }
+
+            if (isActiveInstanceExpiring)
+            {
+                var endingPositionAllocation = FindFirstTBNOrLastExpiringInstance(futureInstances);
+
+                if (endingPositionAllocation is not null)
+                    expiringPositions.Add(new ExpiringPosition(position, endingPositionAllocation.AppliesTo));
+            }
+
+            // The instance is active and not expiring, continue to next position
         }
 
 
         return expiringPositions;
+    }
+
+    private static ApiPositionInstanceV2? FindFirstTBNOrLastExpiringInstance(IEnumerable<ApiPositionInstanceV2> futureOrderedInstances)
+    {
+        ApiPositionInstanceV2? lastExpiringInstance = null;
+        foreach (var instance in futureOrderedInstances)
+        {
+            if (instance.AssignedPerson is null)
+                return instance; // We found a TBN instance
+
+            if (instance.AppliesTo < NowDate.AddMonths(3))
+                lastExpiringInstance = instance; // We found an expiring instance
+        }
+
+        return lastExpiringInstance;
     }
 
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/utils.ts#L53
