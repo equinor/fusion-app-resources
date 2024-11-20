@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
                     if (projectIdentifier is not null)
                         or.OrgChartReadAccess(projectIdentifier.ProjectId);
 
-                    or.BeResourceOwner();
+                    or.BeResourceOwnerForAnyDepartment();
                 });
             });
 

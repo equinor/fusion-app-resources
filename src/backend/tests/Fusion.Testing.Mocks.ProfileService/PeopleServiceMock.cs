@@ -8,6 +8,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using static System.Net.Mime.MediaTypeNames;
+using System.Threading.Tasks;
+using HashLib;
+using HashLib.Checksum;
 
 namespace Fusion.Testing.Mocks.ProfileService
 {
@@ -58,9 +62,59 @@ namespace Fusion.Testing.Mocks.ProfileService
             return this;
         }
 
+        /// <summary>
+        /// Will flag the profile as resource owner by setting the bool property to true. 
+        /// The profile will also be added to the department above or CEC.
+        /// 
+        /// A LineOrg role will be added as well.
+        /// 
+        /// Should be called after the full department has been updated.
+        /// </summary>
+        /// <returns></returns>
         public FusionTestUserBuilder AsResourceOwner()
         {
             profile.IsResourceOwner = true;
+
+            try
+            {
+                var depTokens = profile.FullDepartment.Split(' ');
+                // Lift manager 1 level up. 
+
+                var parentFullDepartment = string.Join(" ", depTokens.SkipLast(1));
+                var parentDepartment = string.Join(" ", depTokens.SkipLast(1).TakeLast(3));
+
+                if (string.IsNullOrEmpty(parentDepartment))
+                    parentDepartment = "CEC";
+                if (string.IsNullOrEmpty(parentFullDepartment))
+                    parentFullDepartment = "CEC";
+                
+                profile.FullDepartment = parentFullDepartment;
+                profile.Department = parentDepartment;
+
+            }
+            catch (Exception) {  /* */ }
+
+            // Must add roles.. Create SAP id
+            if (profile.Roles is null)
+                profile.Roles = new List<ApiPersonRoleV3>();
+
+            // Generate sapId same way as lineorg mock
+            var hash = HashFactory.Checksum.CreateCRC32(0xF0F0F0F0);
+            var hashResult = hash.ComputeString(profile.FullDepartment);
+            var sapId = $"{Math.Abs(hashResult.GetInt())}";
+
+
+            profile.Roles = new List<ApiPersonRoleV3>
+                {
+                    new ApiPersonRoleV3
+                    {
+                        Name = "Fusion.LineOrg.Manager",
+                        Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = sapId },
+                        IsActive = true,
+                        OnDemandSupport = false
+                    }
+                };
+
             return this;
         }
         public FusionTestUserBuilder WithAccountType(FusionAccountType type)
@@ -90,6 +144,13 @@ namespace Fusion.Testing.Mocks.ProfileService
         public FusionTestUserBuilder WithDepartment(string department)
         {
             profile.Department = department;
+            return this;
+        }
+
+        public FusionTestUserBuilder WithPositions(IEnumerable<ApiPositionV2> positions)
+        {
+            foreach (var position in positions)
+                WithPosition(position);
             return this;
         }
 

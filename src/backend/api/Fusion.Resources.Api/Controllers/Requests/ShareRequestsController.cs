@@ -31,7 +31,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
@@ -111,7 +111,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -119,7 +119,7 @@ namespace Fusion.Resources.Api.Controllers
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });

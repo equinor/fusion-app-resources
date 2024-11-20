@@ -12,6 +12,7 @@ using Fusion.Testing.Authentication.User;
 using Xunit;
 using Xunit.Abstractions;
 using Fusion.Testing.Mocks.OrgService;
+using System.Collections.Generic;
 #nullable enable
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -318,10 +319,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetAbsence_ShouldBeHiddenForOtherResourceOwners_WhenPrivate()
         {
-            var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            siblingResourceOwner.FullDepartment = "TPD PRD TST QWE ABC";
-            siblingResourceOwner.Department = "TST QWE ABC";
-            siblingResourceOwner.IsResourceOwner = true;
+            var siblingResourceOwner = fixture.AddResourceOwner("TPD PRD TST QWE ABC");
 
             var request = new CreatePersonAbsenceRequest
             {
@@ -503,6 +501,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public TestTaskDetails? TaskDetails { get; set; }
     }
+    public class TestAbsenceCollection
+    {
+        public List<TestAbsence> Value { get; set; }
+    }
+
     public class TestTaskDetails
     {
         public bool IsHidden { get; set; }

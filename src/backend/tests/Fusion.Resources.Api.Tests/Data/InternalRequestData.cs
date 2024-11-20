@@ -29,8 +29,13 @@ namespace Fusion.Resources.Api
 
             foreach (var department in SupportedDepartments)
             {
-                var user = PeopleServiceMock.AddTestProfile().SaveProfile();
-                LineOrgServiceMock.AddTestUser().MergeWithProfile(user).AsResourceOwner().WithFullDepartment(department).SaveProfile();
+                var user = PeopleServiceMock.AddTestProfile()
+                    .WithFullDepartment(department)
+                    .AsResourceOwner()
+                    .SaveProfile();
+
+                LineOrgServiceMock.AddOrgUnit(department);
+                LineOrgServiceMock.AddOrgUnitManager(department, user);
             }
         }
     }

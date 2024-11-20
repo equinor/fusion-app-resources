@@ -60,9 +60,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             // Generate random test user
-            resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwner.IsResourceOwner = true;
-            resourceOwner.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
+            resourceOwner = fixture.AddResourceOwner(normalRequest.AssignedDepartment ?? "PDP TST DPT");
 
             taskOwner = fixture.AddProfile(FusionAccountType.Employee);
             taskOwnerPosition = testProject.AddPosition()
