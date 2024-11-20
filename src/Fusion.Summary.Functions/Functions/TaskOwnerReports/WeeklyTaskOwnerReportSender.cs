@@ -318,7 +318,9 @@ public class WeeklyTaskOwnerReportSender
 
         var html = cardHtmlRenderer.RenderCard(card).Html;
 
-        TransformActionButtonsToLinks(html);
+        // If for some reason the context id is not found, we will not be able to create the links
+        if (project.ContextProjectId != null)
+            TransformActionButtonsToLinks(html);
 
         return new SendEmailWithTemplateRequest()
         {
