@@ -157,6 +157,12 @@ public class WeeklyTaskOwnerReportDataCreatorTests
             .Build();
         AddPosition(nonEndingPosition);
 
+        if (shouldBeIncludedInReport.Distinct().Count() != shouldBeIncludedInReport.Count)
+            throw new InvalidOperationException($"Test setup error: Duplicate position names in {nameof(shouldBeIncludedInReport)}");
+
+        if (positionsToTest.Distinct().Count() != positionsToTest.Count)
+            throw new InvalidOperationException($"Test setup error: Duplicate positions in {nameof(positionsToTest)}");
+
         #endregion
 
         var data = WeeklyTaskOwnerReportDataCreator.GetPositionAllocationsEndingNextThreeMonths(positionsToTest);
