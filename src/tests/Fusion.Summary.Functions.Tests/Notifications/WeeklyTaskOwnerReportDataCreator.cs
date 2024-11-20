@@ -1,8 +1,8 @@
-﻿using FluentAssertions;
+﻿using System.Runtime.CompilerServices;
+using FluentAssertions;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Services.Org.ApiModels;
 using Fusion.Summary.Functions.ReportCreator;
-using Google.Protobuf.WellKnownTypes;
 
 namespace Fusion.Summary.Functions.Tests.Notifications;
 
@@ -19,7 +19,6 @@ public class WeeklyTaskOwnerReportDataCreatorTests
     }
 
     private DateTime Past => now.Subtract(TimeSpan.FromDays(1));
-    private DateTime Future => now.Add(TimeSpan.FromDays(1));
 
     [Fact]
     public void ActiveAdmins_AreConsideredExpiring_IfValidToIsLessThanThreeMonths()
@@ -44,6 +43,8 @@ public class WeeklyTaskOwnerReportDataCreatorTests
     [Fact]
     public void GetPositionAllocationsEndingNextThreeMonthsTest()
     {
+        #region Arrange
+
         var personA = new ApiPersonV2()
         {
             AzureUniqueId = Guid.NewGuid(),
@@ -56,132 +57,130 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         };
 
         var shouldBeIncludedInReport = new List<string>();
+        var positionsToTest = new List<ApiPositionV2>();
 
         var activeWithFutureInstance = new PositionBuilder()
             .WithInstance(Past, now.AddDays(30 * 1.5), person: personA)
             .AddNextInstance(TimeSpan.FromDays(30 * 4), person: personA)
             .Build();
-        activeWithFutureInstance.Name = nameof(activeWithFutureInstance);
+        AddPosition(activeWithFutureInstance);
 
         var activeWithoutFutureInstance = new PositionBuilder()
             .WithInstance(Past, now.AddDays(30), person: personA)
             .AddNextInstance(TimeSpan.FromDays(30), person: personA)
             .Build();
-        activeWithoutFutureInstance.Name = nameof(activeWithoutFutureInstance);
-        shouldBeIncludedInReport.Add(activeWithoutFutureInstance.Name);
+        AddPosition(activeWithoutFutureInstance, shouldBeIncludedInReportList: true);
+
 
         var activeWithFutureInstanceDifferentPerson = new PositionBuilder()
             .WithInstance(Past, now.AddDays(30 * 1.5), person: personA)
             .AddNextInstance(TimeSpan.FromDays(30 * 4), person: personB)
             .Build();
-        activeWithFutureInstanceDifferentPerson.Name = nameof(activeWithFutureInstanceDifferentPerson);
+        AddPosition(activeWithFutureInstanceDifferentPerson);
 
 
         var singleActiveWithoutFutureInstance = new PositionBuilder()
             .WithInstance(Past, now.Add(TimeSpan.FromDays(30 * 1.5)), person: personA)
             .Build();
-        singleActiveWithoutFutureInstance.Name = nameof(singleActiveWithoutFutureInstance);
-        shouldBeIncludedInReport.Add(singleActiveWithoutFutureInstance.Name);
+        AddPosition(singleActiveWithoutFutureInstance, shouldBeIncludedInReportList: true);
 
 
         var activeWithFutureInstanceUnassignedPerson = new PositionBuilder()
             .WithInstance(Past, now.AddDays(30 * 2), person: personA)
             .AddNextInstance(TimeSpan.FromDays(30 * 2), person: null)
             .Build();
-        activeWithFutureInstanceUnassignedPerson.Name = nameof(activeWithFutureInstanceUnassignedPerson);
-        shouldBeIncludedInReport.Add(activeWithFutureInstanceUnassignedPerson.Name);
+        AddPosition(activeWithFutureInstanceUnassignedPerson, shouldBeIncludedInReportList: true);
 
 
         var futureInstanceThatIsAlsoExpiring = new PositionBuilder()
             .WithInstance(now.AddDays(30), now.AddDays(30 * 2), person: personA)
             .Build();
-        futureInstanceThatIsAlsoExpiring.Name = nameof(futureInstanceThatIsAlsoExpiring);
-        shouldBeIncludedInReport.Add(futureInstanceThatIsAlsoExpiring.Name);
+        AddPosition(futureInstanceThatIsAlsoExpiring, shouldBeIncludedInReportList: true);
+
+
+        var futureInstancesThatIsAlsoExpiring = new PositionBuilder()
+            .WithInstance(now.AddDays(30), now.AddDays(30 * 2), person: personA)
+            .AddNextInstance(TimeSpan.FromDays(1), person: personA)
+            .Build();
+        AddPosition(futureInstancesThatIsAlsoExpiring, shouldBeIncludedInReportList: true);
 
 
         var futureInstanceThatIsMissingAllocation = new PositionBuilder()
             .WithInstance(now.AddDays(30), now.AddDays(30 * 2), person: personA)
             .AddNextInstance(TimeSpan.FromDays(1), person: null)
             .Build();
-        futureInstanceThatIsMissingAllocation.Name = nameof(futureInstanceThatIsMissingAllocation);
-        shouldBeIncludedInReport.Add(futureInstanceThatIsMissingAllocation.Name);
+        AddPosition(futureInstanceThatIsMissingAllocation, shouldBeIncludedInReportList: true);
 
 
         var futureInstanceThatIsNotExpiring = new PositionBuilder()
             .WithInstance(now.AddDays(30), now.AddDays(60), person: personA)
             .AddNextInstance(TimeSpan.FromDays(100), person: personA)
             .Build();
-        futureInstanceThatIsNotExpiring.Name = nameof(futureInstanceThatIsNotExpiring);
+        AddPosition(futureInstanceThatIsNotExpiring);
 
 
         // Entire gap/time-period is within the 3-month window
         var activePositionWithFutureInstanceWithSmallGap = new PositionBuilder()
-            .WithInstance(now.Subtract(TimeSpan.FromDays(1)), now.AddDays(30 * 1.5), person: personA)
+            .WithInstance(Past, now.AddDays(30), person: personA)
             .AddNextInstance(now.AddDays(30 * 2), now.AddDays(30 * 4), person: personA)
             .Build();
-        activePositionWithFutureInstanceWithSmallGap.Name = nameof(activePositionWithFutureInstanceWithSmallGap);
+
+        AddPosition(activePositionWithFutureInstanceWithSmallGap);
 
 
         var activePositionWithFutureInstanceWithLargerGap = new PositionBuilder()
-            .WithInstance(now.Subtract(TimeSpan.FromDays(1)), now.AddDays(30), person: personA)
+            .WithInstance(Past, now.AddDays(30), person: personA)
             .AddNextInstance(now.AddDays(30 * 5), now.AddDays(30 * 7), person: personA)
             .AddNextInstance(TimeSpan.FromDays(10), person: personA)
             .Build();
-        activePositionWithFutureInstanceWithLargerGap.Name = nameof(activePositionWithFutureInstanceWithLargerGap);
-        shouldBeIncludedInReport.Add(activePositionWithFutureInstanceWithLargerGap.Name);
+        AddPosition(activePositionWithFutureInstanceWithLargerGap, shouldBeIncludedInReportList: true);
 
 
         var manySmallInstancesWithoutFutureInstance = new PositionBuilder()
-            .WithInstance(now.Subtract(TimeSpan.FromDays(1)), now.AddDays(10), person: personA)
+            .WithInstance(Past, now.AddDays(10), person: personA)
             .AddNextInstance(TimeSpan.FromDays(10), person: personA)
             .AddNextInstance(TimeSpan.FromDays(10), person: personB)
             .AddNextInstance(TimeSpan.FromDays(10), person: personA)
             .Build();
-        manySmallInstancesWithoutFutureInstance.Name = nameof(manySmallInstancesWithoutFutureInstance);
-        shouldBeIncludedInReport.Add(manySmallInstancesWithoutFutureInstance.Name);
+        AddPosition(manySmallInstancesWithoutFutureInstance, shouldBeIncludedInReportList: true);
 
 
         var endingPosition = new PositionBuilder()
-            .WithInstance(now.Subtract(TimeSpan.FromDays(1)), now.AddMonths(2))
+            .WithInstance(Past, now.AddMonths(2))
             .Build();
-        endingPosition.Name = nameof(endingPosition);
-        shouldBeIncludedInReport.Add(endingPosition.Name);
+        AddPosition(endingPosition, shouldBeIncludedInReportList: true);
 
 
         var nonEndingPosition = new PositionBuilder()
-            .WithInstance(now.Subtract(TimeSpan.FromDays(1)), now.AddMonths(2), person: personA)
+            .WithInstance(Past, now.AddMonths(2), person: personA)
             .AddNextInstance(TimeSpan.FromDays(31), person: personB)
             .Build();
-        nonEndingPosition.Name = nameof(nonEndingPosition);
+        AddPosition(nonEndingPosition);
 
+        #endregion
 
-        var data = WeeklyTaskOwnerReportDataCreator.GetPositionAllocationsEndingNextThreeMonths(new List<ApiPositionV2>
-        {
-            activeWithFutureInstance,
-            activeWithoutFutureInstance,
-            activeWithFutureInstanceDifferentPerson,
-            singleActiveWithoutFutureInstance,
-            activeWithFutureInstanceUnassignedPerson,
-            futureInstanceThatIsAlsoExpiring,
-            futureInstanceThatIsMissingAllocation,
-            futureInstanceThatIsNotExpiring,
-            activePositionWithFutureInstanceWithSmallGap,
-            activePositionWithFutureInstanceWithLargerGap,
-            manySmallInstancesWithoutFutureInstance,
-            endingPosition,
-            nonEndingPosition
-        });
+        var data = WeeklyTaskOwnerReportDataCreator.GetPositionAllocationsEndingNextThreeMonths(positionsToTest);
 
         data.Should().OnlyHaveUniqueItems();
-
-        foreach (var positionId in shouldBeIncludedInReport)
+        foreach (var positionName in shouldBeIncludedInReport)
         {
-            data.Should().Contain(p => p.Position.Name == positionId);
+            data.Should().ContainSingle(p => p.Position.Name == positionName, $"Position {positionName} should be included in the report");
         }
 
-        foreach (var expiringPosition in data)
+        // Check that there are no extra positions that should not be included
+        data.Should().HaveSameCount(shouldBeIncludedInReport, "All positions that should be included in the report should be included");
+        return;
+
+        // Helper method
+        void AddPosition(ApiPositionV2 position, bool shouldBeIncludedInReportList = false, [CallerArgumentExpression("position")] string positionName = null!)
         {
-            shouldBeIncludedInReport.Should().Contain(expiringPosition.Position.Name);
+            ArgumentNullException.ThrowIfNull(position);
+
+            if (shouldBeIncludedInReportList)
+                shouldBeIncludedInReport.Add(positionName);
+
+            positionsToTest.Add(position);
+            position.Name = positionName;
         }
     }
 

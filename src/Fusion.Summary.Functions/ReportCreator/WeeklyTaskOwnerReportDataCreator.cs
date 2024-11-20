@@ -88,7 +88,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
             var activeInstance = position.Instances.FirstOrDefault(i => i.AppliesFrom <= nowDate && i.AppliesTo >= nowDate);
 
 
-            // Find future instances with a start date within the 3-month window
+            // Find future instances with a start date within the 3-month window that may or may not end within the 3-month window
             var futureInstances = position.Instances
                 .Where(i => i.AppliesFrom >= nowDate && i.AppliesFrom < expiringDate)
                 .OrderBy(i => i.AppliesFrom)
@@ -102,6 +102,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
                 var endingPositionAllocation = FindFirstTBNOrLastExpiringInstance(futureInstances);
 
+                // If the last instance is not the last instance then there are more instances after it that are not within the 3-month window or TBN
                 var isEndingInstanceLast = futureInstances.Last() == endingPositionAllocation;
 
                 if (endingPositionAllocation is not null && isEndingInstanceLast)
