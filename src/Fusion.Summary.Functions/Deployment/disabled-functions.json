@@ -11,13 +11,15 @@
   {
     "environment": "fqa",
     "disabledFunctions": [
-      "weekly-project-recipients-sync"
+      "weekly-project-recipients-sync",
+      "weekly-task-owner-report-sender"
     ]
   },
   {
     "environment": "fprd",
     "disabledFunctions": [
-      "weekly-project-recipients-sync"
+      "weekly-project-recipients-sync",
+      "weekly-task-owner-report-sender"
     ]
   }
 ]
