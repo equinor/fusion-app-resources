@@ -58,6 +58,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
         var shouldBeIncludedInReport = new List<string>();
         var positionsToTest = new List<ApiPositionV2>();
+        var instanceToBeIncluded = new Dictionary<ApiPositionV2, ApiPositionInstanceV2>();
 
         var activeWithFutureInstance = new PositionBuilder()
             .WithInstance(Past, now.AddDays(30 * 1.5), person: personA)
@@ -67,9 +68,9 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
         var activeWithoutFutureInstance = new PositionBuilder()
             .WithInstance(Past, now.AddDays(30), person: personA)
-            .AddNextInstance(TimeSpan.FromDays(30), person: personA)
+            .AddNextInstance(TimeSpan.FromDays(30), person: personA, extId: "1")
             .Build();
-        AddPosition(activeWithoutFutureInstance, shouldBeIncludedInReportList: true);
+        AddPosition(activeWithoutFutureInstance, shouldBeIncludedInReportList: true, instanceSelector: i => i.ExternalId == "1");
 
 
         var activeWithFutureInstanceDifferentPerson = new PositionBuilder()
@@ -89,7 +90,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
             .WithInstance(Past, now.AddDays(30 * 2), person: personA)
             .AddNextInstance(TimeSpan.FromDays(30 * 2), person: null)
             .Build();
-        AddPosition(activeWithFutureInstanceUnassignedPerson, shouldBeIncludedInReportList: true);
+        AddPosition(activeWithFutureInstanceUnassignedPerson, shouldBeIncludedInReportList: true, instanceSelector: i => i.AssignedPerson is null);
 
 
         var futureInstanceThatIsAlsoExpiring = new PositionBuilder()
@@ -100,16 +101,23 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
         var futureInstancesThatIsAlsoExpiring = new PositionBuilder()
             .WithInstance(now.AddDays(30), now.AddDays(30 * 2), person: personA)
-            .AddNextInstance(TimeSpan.FromDays(1), person: personA)
+            .AddNextInstance(TimeSpan.FromDays(1), person: personA, extId: "1")
             .Build();
-        AddPosition(futureInstancesThatIsAlsoExpiring, shouldBeIncludedInReportList: true);
+        AddPosition(futureInstancesThatIsAlsoExpiring, shouldBeIncludedInReportList: true, instanceSelector: i => i.ExternalId == "1");
 
 
         var futureInstanceThatIsMissingAllocation = new PositionBuilder()
             .WithInstance(now.AddDays(30), now.AddDays(30 * 2), person: personA)
             .AddNextInstance(TimeSpan.FromDays(1), person: null)
             .Build();
-        AddPosition(futureInstanceThatIsMissingAllocation, shouldBeIncludedInReportList: true);
+        AddPosition(futureInstanceThatIsMissingAllocation, shouldBeIncludedInReportList: true, instanceSelector: i => i.AssignedPerson is null);
+
+        var futureInstancesWhereOneIsTBN = new PositionBuilder()
+            .WithInstance(now.AddDays(10), now.AddDays(30), person: personA)
+            .AddNextInstance(TimeSpan.FromDays(2), person: null)
+            .AddNextInstance(TimeSpan.FromDays(6), person: personA)
+            .Build();
+        AddPosition(futureInstancesWhereOneIsTBN, shouldBeIncludedInReportList: true, instanceSelector: i => i.AssignedPerson is null);
 
 
         var futureInstanceThatIsNotExpiring = new PositionBuilder()
@@ -129,20 +137,20 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
 
         var activePositionWithFutureInstanceWithLargerGap = new PositionBuilder()
-            .WithInstance(Past, now.AddDays(30), person: personA)
+            .WithInstance(Past, now.AddDays(30), person: personA, extId: "1")
             .AddNextInstance(now.AddDays(30 * 5), now.AddDays(30 * 7), person: personA)
             .AddNextInstance(TimeSpan.FromDays(10), person: personA)
             .Build();
-        AddPosition(activePositionWithFutureInstanceWithLargerGap, shouldBeIncludedInReportList: true);
+        AddPosition(activePositionWithFutureInstanceWithLargerGap, shouldBeIncludedInReportList: true, instanceSelector: i => i.ExternalId == "1");
 
 
         var manySmallInstancesWithoutFutureInstance = new PositionBuilder()
             .WithInstance(Past, now.AddDays(10), person: personA)
             .AddNextInstance(TimeSpan.FromDays(10), person: personA)
-            .AddNextInstance(TimeSpan.FromDays(10), person: personB)
             .AddNextInstance(TimeSpan.FromDays(10), person: personA)
+            .AddNextInstance(TimeSpan.FromDays(10), person: personB, extId: "1")
             .Build();
-        AddPosition(manySmallInstancesWithoutFutureInstance, shouldBeIncludedInReportList: true);
+        AddPosition(manySmallInstancesWithoutFutureInstance, shouldBeIncludedInReportList: true, instanceSelector: i => i.ExternalId == "1");
 
 
         var endingPosition = new PositionBuilder()
@@ -173,12 +181,18 @@ public class WeeklyTaskOwnerReportDataCreatorTests
             data.Should().ContainSingle(p => p.Position.Name == positionName, $"Position {positionName} should be included in the report");
         }
 
+        // Ensure that the right expiry date is set
+        foreach (var (position, apiPositionInstanceV2) in instanceToBeIncluded)
+        {
+            data.Should().ContainSingle(p => p.ExpiresAt == apiPositionInstanceV2.AppliesTo && p.Position.Id == position.Id, $"Position {position.Name} should have an instance that expires at {apiPositionInstanceV2.AppliesTo}");
+        }
+
         // Check that there are no extra positions that should not be included
         data.Should().HaveSameCount(shouldBeIncludedInReport, "All positions that should be included in the report should be included");
         return;
 
         // Helper method
-        void AddPosition(ApiPositionV2 position, bool shouldBeIncludedInReportList = false, [CallerArgumentExpression("position")] string positionName = null!)
+        void AddPosition(ApiPositionV2 position, bool shouldBeIncludedInReportList = false, Func<ApiPositionInstanceV2, bool>? instanceSelector = null, [CallerArgumentExpression("position")] string positionName = null!)
         {
             ArgumentNullException.ThrowIfNull(position);
 
@@ -187,6 +201,19 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
             positionsToTest.Add(position);
             position.Name = positionName;
+
+            if (shouldBeIncludedInReportList && instanceSelector is not null)
+            {
+                var instances = position.Instances.Where(instanceSelector).ToArray();
+
+                if (instances.Length == 0)
+                    throw new InvalidOperationException($"Test setup error: No instance found for position {positionName} that matches the selector");
+
+                if (instances.Length > 1)
+                    throw new InvalidOperationException($"Test setup error: Multiple instances found for position {positionName} that matches the selector");
+
+                instanceToBeIncluded.Add(position, instances.First());
+            }
         }
     }
 
@@ -274,11 +301,12 @@ public class WeeklyTaskOwnerReportDataCreatorTests
             return new InstanceChainBuilder(this);
         }
 
-        public InstanceChainBuilder WithInstance(DateTime appliesFrom, DateTime appliesTo, ApiPersonV2? person = null, string type = "Normal")
+        public InstanceChainBuilder WithInstance(DateTime appliesFrom, DateTime appliesTo, ApiPersonV2? person = null, string? extId = null, string type = "Normal")
         {
             instances.Add(new ApiPositionInstanceV2()
             {
                 Id = Guid.NewGuid(),
+                ExternalId = extId,
                 AssignedPerson = person,
                 Type = type,
                 AppliesFrom = appliesFrom,
@@ -309,11 +337,12 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         {
             private readonly PositionBuilder builder = builder;
 
-            public InstanceChainBuilder AddNextInstance(TimeSpan duration, ApiPersonV2? person = null, string type = "Normal")
+            public InstanceChainBuilder AddNextInstance(TimeSpan duration, ApiPersonV2? person = null, string? extId = null, string type = "Normal")
             {
                 builder.instances.Add(new ApiPositionInstanceV2()
                 {
                     Id = Guid.NewGuid(),
+                    ExternalId = extId,
                     AssignedPerson = person,
                     Type = type,
                     AppliesFrom = builder.instances.Last().AppliesTo.AddDays(1),
@@ -322,7 +351,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
                 return this;
             }
 
-            public InstanceChainBuilder AddNextInstance(DateTime appliesFrom, DateTime appliesTo, ApiPersonV2? person = null, string type = "Normal")
+            public InstanceChainBuilder AddNextInstance(DateTime appliesFrom, DateTime appliesTo, ApiPersonV2? person = null, string? extId = null, string type = "Normal")
             {
                 builder.instances.Add(new ApiPositionInstanceV2()
                 {

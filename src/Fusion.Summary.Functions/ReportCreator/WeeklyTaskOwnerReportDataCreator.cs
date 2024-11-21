@@ -102,10 +102,15 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
                 var endingPositionAllocation = FindFirstTBNOrLastExpiringInstance(futureInstances);
 
-                // If the last instance is not the last instance then there are more instances after it that are not within the 3-month window or TBN
+                if (endingPositionAllocation is null)
+                    // No TBN/expiring instances found within the 3-month window, could be an instance that starts within the 3-month window
+                    // But ends after the 3-month window
+                    continue;
+
+                // If the first TBN/expiring instance found is not the last instance, then there are more instances after it
                 var isEndingInstanceLast = futureInstances.Last() == endingPositionAllocation;
 
-                if (endingPositionAllocation is not null && isEndingInstanceLast)
+                if (isEndingInstanceLast || endingPositionAllocation.AssignedPerson is null)
                     expiringPositions.Add(new ExpiringPosition(position, endingPositionAllocation.AppliesTo));
 
                 continue;
