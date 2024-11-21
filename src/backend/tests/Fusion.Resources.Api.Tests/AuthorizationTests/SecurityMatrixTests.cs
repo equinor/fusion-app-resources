@@ -1,4 +1,6 @@
-﻿using Fusion.ApiClients.Org;
+﻿using Azure.Core;
+using FluentAssertions;
+using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
@@ -11,6 +13,7 @@ using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -43,6 +46,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
         private OrgRequestInterceptor creatorInterceptor;
 
+        public enum ManagerRoleType { None, ResourceOwner, DelegatedResourceOwner }
+
+
         public Dictionary<string, ApiPersonProfileV3> Users { get; private set; }
 
         public SecurityMatrixTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -64,9 +70,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
 
+
+
             var resourceOwnerCreator = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwnerCreator.IsResourceOwner = true;
-            resourceOwnerCreator.FullDepartment = TestDepartment;
+            SetupManagerRole(ManagerRoleType.ResourceOwner, resourceOwnerCreator, TestDepartment);
 
             var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
             //var taskOwnerBasePosition = testProject.AddBasePosition($"TO: {Guid.NewGuid()}");
@@ -100,18 +107,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         public Task InitializeAsync() => Task.CompletedTask;
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, false)]
-        [InlineData("resourceOwner", SiblingDepartment, false)]
-        [InlineData("resourceOwner", ParentDepartment, false)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, false)]
-        [InlineData("resourceOwnerRole", WildcardScope, false)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanDeleteRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanDeleteRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientDeleteAsync<dynamic>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}");
@@ -121,18 +131,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanReadRequestsAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanReadRequestsAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+            
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}");
@@ -142,18 +155,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanEditGeneralOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanEditGeneralOnRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+            
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
@@ -172,18 +188,20 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, false)]
-        [InlineData("resourceOwner", SiblingDepartment, false)]
-        [InlineData("resourceOwner", ParentDepartment, false)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, false)]
-        [InlineData("resourceOwnerRole", WildcardScope, false)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanEditAdditionalCommentOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanEditAdditionalCommentOnRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
@@ -199,18 +217,20 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanReassignDepartmentOnRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanReassignDepartmentOnRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
-            var user = GetUser(role, department);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
 
             var request = await CreateAndStartRequest();
             using (var adminScope = fixture.AdminScope())
@@ -223,7 +243,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 result.Should().BeSuccessfull();
             }
 
-            using (var userScope = fixture.UserScope(user))
+            using (var userScope = fixture.UserScope(actor))
             {
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
@@ -237,14 +257,14 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, "PDP PRD FE ANE ANE5", true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        public async Task CanAssignDepartmentOnUnassignedRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TDI UPD QWE RTY1";
             fixture.EnsureDepartment(changedDepartment);
@@ -257,8 +277,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 .WithTaskOwner(taskOwnerPosition.Id);
 
             var request = await CreateAndStartRequest(position);
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
@@ -271,18 +293,19 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanCreateResourceOwnerRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanCreateResourceOwnerRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
-            var user = GetUser(role, department);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
 
-            using var userScope = fixture.UserScope(user);
+            using var userScope = fixture.UserScope(actor);
 
             var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = TestDepartment);
             var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -317,19 +340,20 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, false)]
-        [InlineData("resourceOwner", SiblingDepartment, false)]
-        [InlineData("resourceOwner", ParentDepartment, false)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, false)]
-        [InlineData("resourceOwnerRole", WildcardScope, false)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanStartNormalRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanStartNormalRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateRequest();
-            var user = GetUser(role, department);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
 
-            using var userScope = fixture.UserScope(user);
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPostAsync<dynamic>(
@@ -341,20 +365,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
         //[InlineData("creator", "TPD RND WQE FQE", false)]
-        public async Task CanProposePersonNormalRequest(string role, string department, bool shouldBeAllowed)
+        public async Task CanProposePersonNormalRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
 
-            using var userScope = fixture.UserScope(user);
+            using var userScope = fixture.UserScope(actor);
 
             var proposedPerson = PeopleServiceMock.AddTestProfile()
                 .SaveProfile();
@@ -367,20 +392,26 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
         }
-
+        public enum ActorType { Manager, TaskOwner, RequestCreator }
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("taskOwner", TestDepartment, false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ActorType.TaskOwner, ManagerRoleType.None, TestDepartment, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanProposeNormalRequest(ActorType actorType, ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
+            var actor = actorType switch
+            {
+                ActorType.Manager => fixture.AddProfile(FusionAccountType.Employee),
+                ActorType.TaskOwner => Users["taskOwner"],
+                _ => throw new NotSupportedException("Unsupported actor type")
+            };
+            SetupManagerRole(role, actor, department);
 
             using (var adminScope = fixture.AdminScope())
             {
@@ -393,31 +424,34 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 await adminClient.ProposePersonAsync(request.Id, proposedPerson);
             }
 
-            using var userScope = fixture.UserScope(user);
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
-            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                $"/departments/{TestDepartment}/resources/requests/{request.Id}/approve",
-                null
-            );
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{TestDepartment}/resources/requests/{request.Id}/approve", null);
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, false)]
-        [InlineData("resourceOwner", SiblingDepartment, false)]
-        [InlineData("resourceOwner", ParentDepartment, false)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("taskOwner", TestDepartment, true)]
-        [InlineData("resourceOwnerRole", ExactScope, false)]
-        [InlineData("resourceOwnerRole", WildcardScope, false)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, TestDepartment, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SiblingDepartment, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, ParentDepartment, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ActorType.TaskOwner, ManagerRoleType.None, TestDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanAcceptNormalRequest(ActorType actorType, ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
-            var user = GetUser(role, department);
+            var actor = actorType switch
+            {
+                ActorType.Manager => fixture.AddProfile(FusionAccountType.Employee),
+                ActorType.TaskOwner => Users["taskOwner"],
+                _ => throw new NotSupportedException("Unsupported actor type")
+            };
+            SetupManagerRole(role, actor, department);
 
             using (var adminScope = fixture.AdminScope())
             {
@@ -434,8 +468,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             OrgRequestInterceptor taskOwnerInterceptor = null;
 
-            using var userScope = fixture.UserScope(user);
-            if (role == "taskOwner")
+            using var userScope = fixture.UserScope(actor);
+            if (actorType == ActorType.TaskOwner)
             {
                 taskOwnerInterceptor = OrgRequestMocker
                     .InterceptOption($"/{testPosition.Id}")
@@ -455,16 +489,17 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerCreator", TestDepartment, true)]
-        [InlineData("taskOwner", TestDepartment, false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanStartChangeRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        // This should be reconsidered. Just being the creator should not give you any additional access, as roles can be changed.
+        [InlineData(ActorType.RequestCreator, ManagerRoleType.None, TestDepartment, true)]  
+        [InlineData(ActorType.TaskOwner, ManagerRoleType.None, TestDepartment, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanStartChangeRequest(ActorType actorType, ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateChangeRequest(TestDepartment);
 
@@ -476,39 +511,49 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 await client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
                 await client.ProposePersonAsync(request.Id, testUser);
             }
-            
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
 
-            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}/start",
-                null
-            );
+            var actor = actorType switch
+            {
+                ActorType.Manager => fixture.AddProfile(FusionAccountType.Employee),
+                ActorType.TaskOwner => Users["taskOwner"],
+                ActorType.RequestCreator=> Users["resourceOwnerCreator"],
+                _ => throw new NotSupportedException("Unsupported actor type")
+            };
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
+
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}/start", null);
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanAddPersonAbsence(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanAddPersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
-            var testUser = fixture.AddProfile(FusionAccountType.Employee);
-            testUser.FullDepartment = TestDepartment;
-
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
-
             var client = fixture.ApiFactory.CreateClient();
 
+            // Setup the subject we want to create absence on
+            var testSubject = fixture.AddProfile(FusionAccountType.Employee);
+            testSubject.FullDepartment = TestDepartment;
+
+
+            // Create the actor we want to confirm permissions for
+            var testUser = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, testUser, department);
+            
+            using var userScope = fixture.UserScope(testUser);
+
             var result = await client.TestClientPostAsync<TestAbsence>(
-                $"/persons/{testUser.AzureUniqueId}/absence",
+                $"/persons/{testSubject.AzureUniqueId}/absence",
                 new CreatePersonAbsenceRequest
                 {
                     AppliesFrom = new DateTime(2021, 04, 30),
@@ -524,21 +569,24 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanEditPersonAbsence(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanEditPersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
+            var client = fixture.ApiFactory.CreateClient();
             var absence = await CreateAbsence();
 
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            // Create the actor we want to confirm permissions for
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
 
-            var client = fixture.ApiFactory.CreateClient();
+            using var userScope = fixture.UserScope(actor);
+
 
             var result = await client.TestClientPutAsync<dynamic>(
                 $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}",
@@ -557,19 +605,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanDeletePersonAbsence(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanDeletePersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
 
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
 
@@ -582,19 +632,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanGetPersonAbsence(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanGetPersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
 
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
 
@@ -606,117 +658,141 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
+        public enum AbsenceAccessLevel{ None, All, Limited, OtherTasksOnly }
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, true)] // Switch from false to true, as this grants limited access when employee
-        [InlineData("consultant", UnrelatedScope, false)]
-        public async Task CanGetAllAbsenceForPerson(string role, string department, bool shouldBeAllowed)
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, TestDepartment, AbsenceAccessLevel.All)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, SiblingDepartment, AbsenceAccessLevel.All)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, ParentDepartment, AbsenceAccessLevel.All)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, SameL2Department, AbsenceAccessLevel.Limited)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, ExactScope, AbsenceAccessLevel.All)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, WildcardScope, AbsenceAccessLevel.All)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, AbsenceAccessLevel.OtherTasksOnly)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.None, UnrelatedScope, AbsenceAccessLevel.OtherTasksOnly)]
+        [InlineData(FusionAccountType.Consultant, ManagerRoleType.None, UnrelatedScope, AbsenceAccessLevel.None)]
+        public async Task CanGetAllAbsenceForPerson(FusionAccountType accountType, ManagerRoleType role, string department, AbsenceAccessLevel accessLevel)
         {
             var absence = await CreateAbsence();
+            var privateAdditionlTask = await CreateAdditionlTask(true);
+            var additionlTask = await CreateAdditionlTask(false);
 
-            var user = role switch {
-                "consultant" => fixture.AddProfile(FusionAccountType.Consultant),
-                _ => GetUser(role, department)
-            };
-            using var userScope = fixture.UserScope(user);
+
+            var actor = fixture.AddProfile(accountType);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientGetAsync<dynamic>(
-                $"/persons/{testUser.AzureUniqueId}/absence/"
-            );
+            var result = await client.TestClientGetAsync<TestAbsenceCollection>($"/persons/{testUser.AzureUniqueId}/absence");
 
-            if (shouldBeAllowed) result.Should().BeSuccessfull();
-            else result.Should().BeUnauthorized();
-        }
 
-        [Theory]
-        [InlineData("resourceOwner", TestDepartment, "GET,POST")]
-        [InlineData("resourceOwner", SiblingDepartment, "GET,POST")]
-        [InlineData("resourceOwner", ParentDepartment, "GET,POST")]
-        [InlineData("resourceOwner", SameL2Department, "GET,!POST")]
-        [InlineData("resourceOwnerRole", ExactScope, "GET,POST")]
-        [InlineData("resourceOwnerRole", WildcardScope, "GET,POST")]
-        [InlineData("resourceOwnerRole", UnrelatedScope, "GET,!POST")]
-        [InlineData("consultant", UnrelatedScope, "!GEET,!POST")]
-        public async Task CanGetAbsenceOptionsForPerson(string role, string department, string allowed)
-        {
-            var user = role switch
+            switch (accessLevel)
             {
-                "consultant" => fixture.AddProfile(FusionAccountType.Consultant),
-                _ => GetUser(role, department)
-            };
-            using var userScope = fixture.UserScope(user);
+                case AbsenceAccessLevel.All:
+                case AbsenceAccessLevel.Limited:    // Limited auth should contain all elements, but hide details if marked private.
+                    result.Should().BeSuccessfull();
+                    result.Value.Value.Should().Contain(a => a.Id == absence.Id, "should contain absence");
+                    result.Value.Value.Should().Contain(a => a.Id == additionlTask.Id, "should contain other task");
+                    result.Value.Value.Should().Contain(a => a.Id == privateAdditionlTask.Id, "should contain private other task");
+                    break;
+
+                case AbsenceAccessLevel.OtherTasksOnly:
+                    result.Should().BeSuccessfull();
+                    result.Value.Value.Should().NotContain(a => a.Id == absence.Id, "absence should not be displayed in limited mode");
+                    result.Value.Value.Should().NotContain(a => a.Id == privateAdditionlTask.Id, "should not contain private other task");
+                    result.Value.Value.Should().Contain(a => a.Id == additionlTask.Id, "should contain other task");
+                    break;
+
+                case AbsenceAccessLevel.None:
+                    result.Should().BeUnauthorized();
+                    break;
+
+
+            }
+            //if (shouldBeAllowed) result.Should().BeSuccessfull();
+            //else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, TestDepartment, "GET,POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, SiblingDepartment, "GET,POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, ParentDepartment, "GET,POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, SameL2Department, "GET,!POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, ExactScope, "GET,POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, WildcardScope, "GET,POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, "GET,!POST")]
+        [InlineData(FusionAccountType.Consultant, ManagerRoleType.None, UnrelatedScope, "!GET,!POST")]
+        public async Task CanGetAbsenceOptionsForPerson(FusionAccountType accountType, ManagerRoleType role, string department, string allowed)
+        {
+            var actor = fixture.AddProfile(accountType);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientOptionsAsync(
-                $"/persons/{testUser.AzureUniqueId}/absence"
-            );
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence");
 
             result.CheckAllowHeader(allowed);
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, "GET,PUT,DELETE")]
-        [InlineData("resourceOwner", SiblingDepartment, "GET,PUT,DELETE")]
-        [InlineData("resourceOwner", ParentDepartment, "GET,PUT,DELETE")]
-        [InlineData("resourceOwner", SameL2Department, "GET,!PUT,!DELETE")]
-        [InlineData("resourceOwnerRole", ExactScope, "GET,PUT,DELETE")]
-        [InlineData("resourceOwnerRole", WildcardScope, "GET,PUT,DELETE")]
-        public async Task CanGetAbsenceOptions(string role, string department, string allowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, "GET,PUT,DELETE")]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, "GET,PUT,DELETE")]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, "GET,PUT,DELETE")]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, "GET,!PUT,!DELETE")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, "GET,PUT,DELETE")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, "GET,PUT,DELETE")]
+        public async Task CanGetAbsenceOptions(ManagerRoleType role, string department, string allowed)
         {
             var absence = await CreateAbsence();
 
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientOptionsAsync(
-                $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
-            );
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}");
 
             result.CheckAllowHeader(allowed);
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        public async Task CanGetDepartmentUnassignedRequests(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        public async Task CanGetDepartmentUnassignedRequests(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             fixture.EnsureDepartment(TestDepartment);
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientGetAsync<dynamic>(
-                $"/departments/{TestDepartment}/resources/requests/unassigned"
-            );
+            var result = await client.TestClientGetAsync<dynamic>($"/departments/{TestDepartment}/resources/requests/unassigned");
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, "GET,PATCH")]
-        [InlineData("resourceOwner", SiblingDepartment, "GET,PATCH")]
-        [InlineData("resourceOwner", ParentDepartment, "GET,PATCH")]
-        [InlineData("resourceOwner", SameL2Department, "GET,PATCH")]
-        [InlineData("resourceOwnerRole", ExactScope, "GET,PATCH")]
-        [InlineData("resourceOwnerRole", WildcardScope, "GET,PATCH")]
-        public async Task CanGetOptionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, "GET,PATCH")]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, "GET,PATCH")]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, "GET,PATCH")]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, "GET,PATCH")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, "GET,PATCH")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, "GET,PATCH")]
+        public async Task CanGetOptionsDepartmentUnassignedRequests(ManagerRoleType role, string department, string allowedVerbs)
         {
             fixture.EnsureDepartment(TestDepartment);
+
 
             var request = await CreateChangeRequest(TestDepartment);
 
@@ -728,8 +804,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 await client.AssignDepartmentAsync(request.Id, null);
             }
 
-            var user = GetUser(role, department);
-            using (var userScope = fixture.UserScope(user))
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using (var userScope = fixture.UserScope(actor))
             {
                 var client = fixture.ApiFactory.CreateClient();
 
@@ -741,23 +819,25 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwner", "PDP PRS XXX YYY", false)]
-        [InlineData("resourceOwner", "CFO GBS XXX YYY", false)]
-        [InlineData("resourceOwner", "TDI XXX YYY", false)]
-        [InlineData("resourceOwner", "CFO SBG YYY", false)]
-        [InlineData("resourceOwnerRole", ExactScope, true)]
-        [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
-        public async Task CanGetInternalRequests(string role, string department, bool shouldBeAllowed)
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, "PDP PRS XXX YYY", false)]
+        [InlineData(ManagerRoleType.ResourceOwner, "CFO GBS XXX YYY", false)]
+        [InlineData(ManagerRoleType.ResourceOwner, "TDI XXX YYY", false)]
+        [InlineData(ManagerRoleType.ResourceOwner, "CFO SBG YYY", false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        public async Task CanGetInternalRequests(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             fixture.EnsureDepartment(TestDepartment);
 
-            var user = GetUser(role, department);
-            using var userScope = fixture.UserScope(user);
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+            
+            using var userScope = fixture.UserScope(actor);
             var client = fixture.ApiFactory.CreateClient();
 
             var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal?$filter=assignedDepartment eq {TestDepartment}");
@@ -767,23 +847,47 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
 
+        /// <summary>
+        /// Create an absence which is active, today +- 10 days.
+        /// </summary>
+        /// <returns></returns>
         private async Task<TestAbsence> CreateAbsence()
         {
             using var adminScope = fixture.AdminScope();
 
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientPostAsync<TestAbsence>(
-                $"/persons/{testUser.AzureUniqueId}/absence",
-                new CreatePersonAbsenceRequest
-                {
-                    AppliesFrom = new DateTime(2021, 04, 30),
-                    AppliesTo = new DateTime(2022, 04, 30),
-                    Comment = "A comment",
-                    Type = ApiPersonAbsence.ApiAbsenceType.Absence,
-                    AbsencePercentage = 100
-                }
-            );
+            var result = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence", new
+            {
+                appliesFrom = DateTime.Today.AddDays(-10),
+                appliesTo = DateTime.Today.AddDays(10),
+                comment = "A comment",
+                type = "absence",
+                absencePercentage = 100
+            });
+
+            return result.Value;
+        }
+        /// <summary>
+        /// Create absence of type otherTasks, which is active, today +- 10 days.
+        /// </summary>
+        /// <param name="isPrivate">Should be marked private</param>
+        /// <returns></returns>
+        private async Task<TestAbsence> CreateAdditionlTask(bool isPrivate)
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence", new
+            {
+                appliesFrom = DateTime.Today.AddDays(-10),
+                appliesTo = DateTime.Today.AddDays(10),
+                comment = "A comment",
+                type = "otherTasks",
+                absencePercentage = 100,
+                isPrivate = isPrivate
+            });
 
             return result.Value;
         }
@@ -812,41 +916,27 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             return req;
         }
 
-        private ApiPersonProfileV3 GetUser(string role, string departmentOrScope)
+        /// <summary>
+        /// Will set up the provided test user as manager as configured in "SAP", or with a local delegated resource owner.
+        /// </summary>
+        private void SetupManagerRole(ManagerRoleType role, ApiPersonProfileV3 testUser, string fullDepartment)
         {
-            if (role == "resourceOwnerRole")
+            switch (role)
             {
-                return CreateTestUserWithRole(departmentOrScope);
+                case ManagerRoleType.ResourceOwner:
+                    fixture.SetAsResourceOwner(testUser, fullDepartment);
+                    break;
+                case ManagerRoleType.DelegatedResourceOwner:
+                    testUser.WithDelegatedManagerRole(fullDepartment);
+                    break;
+                case ManagerRoleType.None:
+                    break;
+                default:
+                    throw new NotSupportedException("Role setup not supported");
+
             }
-
-            Users[role].FullDepartment = departmentOrScope;
-            return Users[role];
         }
 
-        private ApiPersonProfileV3 CreateTestUserWithRole(string scope)
-        {
-            var testUser = fixture.AddProfile(FusionAccountType.Employee);
-            RolesClientMock.AddPersonRole(testUser.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", scope),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
-            });
-            testUser.Department = "EPN SUB WS WPN";
-            testUser.Roles = new List<ApiPersonRoleV3>
-            {
-                new ApiPersonRoleV3
-                {
-                    Name = AccessRoles.ResourceOwner,
-                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = scope },
-                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
-                    IsActive = true,
-                }
-            };
-            return testUser;
-        }
 
         private Task<TestApiInternalRequestModel> CreateAndStartRequest()
             => CreateAndStartRequest(testPosition);

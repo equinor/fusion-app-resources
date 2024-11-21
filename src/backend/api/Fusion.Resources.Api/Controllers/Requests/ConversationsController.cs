@@ -33,7 +33,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -42,7 +42,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
@@ -79,7 +79,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -88,7 +88,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
@@ -154,14 +154,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
-                    or.BeResourceOwner();
+                    or.BeResourceOwnerForAnyDepartment();
                     or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                 });
             });
@@ -222,7 +222,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     and.RequireConversationForResourceOwner(conversation.Recipient);
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        and.BeResourceOwner(
+                        and.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -231,7 +231,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        and.BeResourceOwner();
+                        and.BeResourceOwnerForAnyDepartment();
                     }
                 });
             });
@@ -301,7 +301,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     and.RequireConversationForResourceOwner(conversation.Recipient);
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        and.BeResourceOwner(
+                        and.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -310,7 +310,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        and.BeResourceOwner();
+                        and.BeResourceOwnerForAnyDepartment();
                     }
                 });
             });

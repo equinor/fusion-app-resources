@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Fusion.Authorization;
 using Microsoft.AspNetCore.Authorization;
 
-namespace Fusion.Resources.Api.Authorization
+namespace Fusion.Resources.Api.Authorization.Requirements
 {
     public class GlobalRoleRequirement : FusionAuthorizationRequirement, IAuthorizationHandler
     {

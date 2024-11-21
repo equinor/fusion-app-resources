@@ -6,11 +6,9 @@ using Fusion.Resources.Authorization.Requirements;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,8 +34,8 @@ namespace Fusion.Resources.Logic.Requests
                 builder.AlwaysAccessWhen(or =>
                 {
                     or.BeTrustedApplication();
-                    or.AddRule(new AssertionRequirement(ctx => ctx.User.IsInRole("Fusion.Resources.FullControl")));
-                    or.AddRule(new AssertionRequirement(ctx => ctx.User.IsInRole("Fusion.Resources.Internal.FullControl")));
+                    or.GlobalRoleAccess("Fusion.Resources.FullControl");
+                    or.GlobalRoleAccess("Fusion.Resources.Internal.FullControl");
                 });
 
                 builder.AnyOf(or =>
@@ -47,17 +45,17 @@ namespace Fusion.Resources.Logic.Requests
                         var path = new DepartmentPath(request.AssignedDepartment);
 
                         if (row.IsAllResourceOwnersAllowed)
-                            or.BeResourceOwner(path.GoToLevel(2), includeDescendants: true);
+                            or.BeResourceOwnerForDepartment(path.GoToLevel(2), includeDescendants: true);
 
                         if (row.IsParentResourceOwnerAllowed)
-                            or.BeResourceOwner(path.Parent(), includeDescendants: false);
+                            or.BeResourceOwnerForDepartment(path.Parent(), includeDescendants: false);
 
                         if (row.IsSiblingResourceOwnerAllowed)
-                            or.BeResourceOwner(path.Parent(), includeDescendants: true);
+                            or.BeResourceOwnerForDepartment(path.Parent(), includeDescendants: true);
 
                         if (row.IsResourceOwnerAllowed)
                         {
-                            or.BeResourceOwner(request.AssignedDepartment, includeDescendants: false);
+                            or.BeResourceOwnerForDepartment(request.AssignedDepartment, includeDescendants: false);
                             or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
                     }

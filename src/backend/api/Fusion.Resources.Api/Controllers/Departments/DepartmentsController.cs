@@ -63,6 +63,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/departments/{departmentString}/delegated-resource-owners")]
+        [EmulatedUserSupport]
         public async Task<ActionResult> GetDelegatedResourceOwnersOptions([FromRoute] OrgUnitIdentifier departmentString)
         {
             if (!departmentString.Exists)

@@ -15,6 +15,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiController]
     public class SecondOpinionController : ResourceControllerBase
     {
+        [EmulatedUserSupport]
         [HttpOptions("/resources/requests/internal/{requestId}/second-opinions")]
         public async Task<IActionResult> CheckSecondOpinionAccess(Guid requestId)
         {
@@ -30,7 +31,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -38,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
@@ -75,7 +76,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -83,7 +84,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
@@ -121,7 +122,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 {
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        or.BeResourceOwnerForDepartment(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -129,7 +130,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        or.BeResourceOwnerForAnyDepartment();
                         or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                     or.HaveBasicRead(requestId);
@@ -148,7 +149,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return Ok(new ApiSecondOpinionResult(result, User.GetAzureUniqueIdOrThrow()));
         }
 
-
+        [EmulatedUserSupport]
         [HttpOptions("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}")]
         public async Task<IActionResult> CheckSecondOpinionAccess(Guid requestId, Guid secondOpinionId)
         {
@@ -273,6 +274,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return Ok(new ApiSecondOpinion(secondOpinion!, User.GetAzureUniqueIdOrThrow()));
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
         public async Task<ActionResult<ApiSecondOpinionResponse>> CheckPatchSecondOpinionResponse(Guid requestId, Guid secondOpinionId, Guid responseId)
         {
@@ -388,6 +390,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return NoContent();
         }
 
+        [EmulatedUserSupport]
         [HttpOptions("/persons/{personId}/second-opinions/")]
         [HttpOptions("/persons/{personId}/second-opinions/responses")]
         public async Task<IActionResult> CheckPersonalAccess(string personId)

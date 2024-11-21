@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,8 @@ using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -156,6 +159,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
     public static class ApiPersonProfileV3Extensions
     {
+        public static ApiPersonProfileV3 WithDelegatedManagerRole(this ApiPersonProfileV3 profile, string fullDepartment)
+        {
+            RolesClientMock.AddPersonRole(profile.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", fullDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = "Test project"
+            });
+
+            if (profile.Roles is null)
+                profile.Roles = new List<ApiPersonRoleV3>();
+
+            profile.Roles.Add(new ApiPersonRoleV3
+            {
+                Name = AccessRoles.ResourceOwner,
+                Scope = new ApiPersonRoleScopeV3
+                {
+                    Type = "OrgUnit",
+                    Value = fullDepartment
+                },
+                ActiveToUtc = DateTime.UtcNow.AddDays(1),
+                IsActive = true,
+            });
+
+            return profile;
+        }
+
         public static ApiPersonProfileV3 WithPosition(this ApiPersonProfileV3 profile, ApiPositionV2 position)
         {
             var personPositions = position.Instances

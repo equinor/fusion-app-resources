@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Fusion.Testing.Mocks.LineOrgService
 {
@@ -108,6 +109,36 @@ namespace Fusion.Testing.Mocks.LineOrgService
             return AddOrgUnit($"{sapId}", fullDepartment, name.GetShortName(), fullDepartment, fullDepartment.Split(' ').LastOrDefault());
         }
     
+        public static void AddOrgUnitManager(string fullDepartment, ApiPersonProfileV3 user)
+        {
+            var orgUnit = LineOrgServiceMock.AddOrgUnit(fullDepartment);
+            
+            // Add user to the management list for the org unit
+            if (orgUnit.Management is null)
+            {
+                orgUnit.Management = new ApiOrgUnitManagement()
+                {
+                    Persons = new System.Collections.Generic.List<ApiPerson>()
+                };
+            }
+
+            orgUnit.Management.Persons.Add(new ApiPerson
+            {
+                Name = user.Name,
+                AzureUniqueId = user.AzureUniqueId.Value,
+                FullDepartment = user.FullDepartment,
+                Department = user.Department,
+                Mail = user.Mail,
+                Upn = user.Mail,
+                JobTitle = user.JobTitle,
+                ManagerAzureUniqueId = user.ManagerAzureUniqueId,
+                AccountType = $"{user.AccountType}",
+                AccountClassification = $"{user.AccountClassification}",
+                MobilePhone = user.MobilePhone,
+                OfficeLocation = user.OfficeLocation,
+            });
+
+        }
     }
 
     public class FusionTestUserBuilder
