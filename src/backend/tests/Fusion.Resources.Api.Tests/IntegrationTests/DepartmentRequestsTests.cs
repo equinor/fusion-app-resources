@@ -5,14 +5,12 @@ using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
-using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
 using Fusion.Services.LineOrg.ApiModels;
@@ -44,14 +42,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public async Task InitializeAsync()
         {
-            user = fixture.AddProfile(FusionAccountType.Employee);
-            user.Department = TimelineDepartment;
-            user.FullDepartment = TimelineDepartment;
-
-            LineOrgServiceMock.AddTestUser()
-                .MergeWithProfile(user)
-                .AsResourceOwner()
-                .SaveProfile();
+            user = fixture.AddResourceOwner(TimelineDepartment);
 
             userOrgUnit = fixture.AddOrgUnit(user.FullDepartment);
 
@@ -569,16 +560,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 absence = absenceResp.Value;
             }
 
-            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwner.IsResourceOwner = true;
-            resourceOwner.FullDepartment = "TPD TST QWE";
-            resourceOwner.Department = "TPD TST QWE";
-
-            LineOrgServiceMock.AddTestUser()
-                .MergeWithProfile(resourceOwner)
-                .AsResourceOwner()
-                .WithDepartment("TPD TST QWE")
-                .SaveProfile();
+            var resourceOwner = fixture.AddResourceOwner("TPD TST QWE");
 
             using (var userScope = fixture.UserScope(resourceOwner))
             {
@@ -586,7 +568,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 var timelineEnd = new DateTime(2020, 03, 31);
 
                 var response = await Client.TestClientGetAsync<TestResponse>(
-                    $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                    $"/departments/{TimelineDepartment}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
                 );
 
                 var person = response.Value.value
@@ -609,15 +591,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetTimelineShouldNotIncludePositionsOutsideTimeframe()
         {
             const string department = "PDP BTAD AWQ";
-            fixture.EnsureDepartment(department);
+            fixture.AddOrgUnit(department);
 
             var project = new FusionTestProjectBuilder()
                 .WithPositions(10, 50)
                 .AddToMockService();
 
-            var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
-            foreach (var position in project.Positions) profile.WithPosition(position);
-            profile.SaveProfile();
+            var profile = fixture.AddProfile(s => {
+                s.WithFullDepartment(department);
+                s.WithPositions(project.Positions);
+            });
 
             using var scope = fixture.AdminScope();
             var timelineStart = new DateTime(2020, 03, 01);
@@ -717,15 +700,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetRequests_ShouldNotIncludeRequestsOutsideCurrentAllocations()
         {
             const string department = "PDP BTAD AWQ";
-            fixture.EnsureDepartment(department);
+            fixture.AddOrgUnit(department);
 
             var project = new FusionTestProjectBuilder()
                           .WithPositions(10, 50)
                           .AddToMockService();
 
-            var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
-            foreach (var position in project.Positions) profile.WithPosition(position);
-            profile.SaveProfile();
+            var profile = fixture.AddProfile(s => s.WithFullDepartment(department).WithPositions(project.Positions));
 
             using var scope = fixture.AdminScope();
 

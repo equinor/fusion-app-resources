@@ -1,8 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Api.Authorization.Requirements;
+using Fusion.Resources.Authorization.Requirements;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -36,14 +38,6 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
-       public static IAuthorizationRequirementRule GlobalRoleAccess(this IAuthorizationRequirementRule builder, params string[] roles)
-        {
-            return builder.AddRule(new GlobalRoleRequirement(roles));
-        }
-        public static IAuthorizationRequirementRule AllGlobalRoleAccess(this IAuthorizationRequirementRule builder, params string[] roles)
-        {
-            return builder.AddRule(new GlobalRoleRequirement(GlobalRoleRequirement.RoleRequirement.All, roles));
-        }
         public static IAuthorizationRequirementRule OrgChartPositionWriteAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId, Guid orgPositionId)
         {
             return builder.AddRule(OrgPositionAccessRequirement.OrgPositionWrite(orgProjectId, orgPositionId));
@@ -71,20 +65,16 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         /// <summary>
-        /// Indicates that the user is in any way or form a resource owner
+        /// Requires the user to be resource owner for any department
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IAuthorizationRequirementRule BeResourceOwner(this IAuthorizationRequirementRule builder)
+        public static IAuthorizationRequirementRule BeResourceOwnerForAnyDepartment(this IAuthorizationRequirementRule builder)
         {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(c => c.User.HasClaim(c => c.Type == FusionClaimsTypes.ResourceOwner))
-                .Build();
-
-            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
-
+            builder.AddRule(new BeResourceOwnerRequirement());
             return builder;
         }
+
 
         public static IAuthorizationRequirementRule HaveRole(this IAuthorizationRequirementRule builder, string role)
         {
@@ -101,7 +91,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // User has access if the parent department matches..
                     var resourceParent = path.ParentDeparment;
-                    var userDepartments = c.User.GetResponsibleForDepartments();
+                    var userDepartments = c.User.GetManagerForDepartments();
 
                     return userDepartments.Any(d => resourceParent.IsDepartment(new DepartmentPath(d).Parent()));
                 })
@@ -121,7 +111,7 @@ namespace Fusion.Resources.Api.Controllers
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c =>
                 {
-                    var userDepartments = c.User.GetResponsibleForDepartments()
+                    var userDepartments = c.User.GetManagerForDepartments()
                         .Select(d => new DepartmentPath(d).Parent());
 
                     return userDepartments.Any(d => path.IsDepartment(d));

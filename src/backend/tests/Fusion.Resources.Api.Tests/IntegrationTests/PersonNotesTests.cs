@@ -41,9 +41,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser.FullDepartment = "L1 L2 L3 L4";
             testUser.Department = "L2 L3 L4";
 
-            resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwner.FullDepartment = testUser.FullDepartment;
-            resourceOwner.IsResourceOwner = true;
+            resourceOwner = fixture.AddResourceOwner(testUser.FullDepartment);
         }
 
         [Fact]
@@ -80,9 +78,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task Create_ShouldBeUnauthorized_WhenResourceOwnerInOtherDepartment()
         {
-            resourceOwner.FullDepartment = "L1 L2 L3 L4A";
+            var otherDepartmentResourceOwner = fixture.AddResourceOwner("L1 L2 L3 L4A");
 
-            using var resOwnerScope = fixture.UserScope(resourceOwner);
+            using var resOwnerScope = fixture.UserScope(otherDepartmentResourceOwner);
             var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes", new
             {
                 title = $"Test {Guid.NewGuid()}",
@@ -112,8 +110,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task Delete_ShouldBeUnauthorizer_WhenResourceOwnerInOtherDepartment()
         {
-            resourceOwner.FullDepartment = "L1 L2 L3 L4A";
-            using var resOwnerScope = fixture.UserScope(resourceOwner);
+            var otherDepartmentResourceOwner = fixture.AddResourceOwner("L1 L2 L3 L4A");
+
+            using var resOwnerScope = fixture.UserScope(otherDepartmentResourceOwner);
 
             var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}");
             resp.Should().BeUnauthorized();
@@ -140,9 +139,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [InlineData("L1 L2 L3A L4")]
         public async Task Update_ShouldBeUnauthorized_WhenOtherResourceOwnerIn(string department)
         {
-            resourceOwner.FullDepartment = department;
 
-            using var resOwnerScope = fixture.UserScope(resourceOwner);
+            var otherDepartmentResourceOwner = fixture.AddResourceOwner(department);
+
+            using var resOwnerScope = fixture.UserScope(otherDepartmentResourceOwner);
             var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}", new
             {
                 title = $"Updated title {Guid.NewGuid()}",
@@ -191,9 +191,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var privateNote = await CreateNoteAsAdminAsync(client, isShared: true);
 
             // Update the department for the resource owner
-            resourceOwner.FullDepartment = departmentPath;
+            var otherDepartmentResourceOwner = fixture.AddResourceOwner(departmentPath);
 
-            using var resOwnerScope = fixture.UserScope(resourceOwner);
+            using var resOwnerScope = fixture.UserScope(otherDepartmentResourceOwner);            
 
             var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes", new[] { new { id = Guid.Empty } });
 

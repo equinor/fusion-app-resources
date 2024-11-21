@@ -133,7 +133,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task PutMatrix_ShouldSetResponsible_WhenSettingDepartment()
         {
-            const string department = "PDP PRD FE ANE ANE5";
+            const string department = "PDP PRD FEF ANE ANE5";
 
             var resourceOwner = fixture.AddResourceOwner(department);
 
@@ -143,7 +143,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 LocationId = Guid.NewGuid(),
                 Discipline = "WallaWallaUpdated",
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
-                Sector = "PRD FE ANE",
+                Sector = "PRD FEF ANE",
                 Unit = department,
             };
 
