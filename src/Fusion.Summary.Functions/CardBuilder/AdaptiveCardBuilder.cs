@@ -24,7 +24,7 @@ public class AdaptiveCardBuilder
         return this;
     }
 
-    public AdaptiveCardBuilder AddTextRow(string valueText, string headerText, string customText = "")
+    public AdaptiveCardBuilder AddTextRow(string valueText, string headerText, string customText = "", GoToAction? goToAction = null)
     {
         var container = new AdaptiveContainer()
         {
@@ -47,12 +47,25 @@ public class AdaptiveCardBuilder
             }
         };
 
+        if (goToAction != null)
+        {
+            var actionSet = new AdaptiveActionSet();
+            var action = new AdaptiveOpenUrlAction()
+            {
+                Title = goToAction.Title,
+                Url = new Uri(goToAction.Url)
+            };
+
+            actionSet.Actions.Add(action);
+            container.Items.Add(actionSet);
+        }
+
         _adaptiveCard.Body.Add(container);
         return this;
     }
 
 
-    public AdaptiveCardBuilder AddGrid(string headerText, IEnumerable<GridColumn> columns, GoToAction? goToAction = null)
+    public AdaptiveCardBuilder AddGrid(string headerText, string subtitleText, IEnumerable<GridColumn> columns, GoToAction? goToAction = null)
     {
         var listContainer = new AdaptiveContainer
         {
@@ -65,6 +78,13 @@ public class AdaptiveCardBuilder
             Text = headerText,
             Wrap = true,
             Size = AdaptiveTextSize.Large,
+            HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+        };
+
+        var subtitle = new AdaptiveTextBlock
+        {
+            Text = subtitleText,
+            Wrap = true,
             HorizontalAlignment = AdaptiveHorizontalAlignment.Center
         };
 
@@ -82,7 +102,8 @@ public class AdaptiveCardBuilder
                     Text = gridCell.Value,
                     Wrap = true,
                     HorizontalAlignment = gridCell.Alignment,
-                    IsSubtle = gridCell.IsHeader
+                    IsSubtle = gridCell.IsHeader,
+                    Id = gridCell.IsHeader ? "isHeader" : "isCell"
                 };
 
                 rows.Add(cell);
@@ -98,6 +119,7 @@ public class AdaptiveCardBuilder
         }
 
         listContainer.Items.Add(header);
+        listContainer.Items.Add(subtitle);
         listContainer.Items.Add(grid);
 
         // If no data is present, add a "None" text

@@ -147,7 +147,7 @@ public class WeeklyTaskOwnerReportSender
 
                 taskOwnerReports.Add(report);
             }
-            catch (SummaryApiError e)
+            catch (Exception e)
             {
                 logger.LogError(e, "Failed to get task owner report for project {Project}", project.ToJson());
             }
@@ -230,8 +230,13 @@ public class WeeklyTaskOwnerReportSender
 
         var card = new AdaptiveCardBuilder()
             .AddHeading($"**Weekly summary - {project.Name}**")
-            .AddTextRow(report.ActionsAwaitingTaskOwnerAction.ToString(), "Actions awaiting task owners")
-            .AddGrid("Admin access expiring in less than 3 months", new List<GridColumn>()
+            .AddTextRow(report.ActionsAwaitingTaskOwnerAction.ToString(), "Actions awaiting task owners",
+                goToAction: new GoToAction()
+                {
+                    Title = "Go to open requests",
+                    Url = $"{fusionUri}/apps/org-admin/{contextId}/open-requests?filter=awaiting-task-owner"
+                })
+            .AddGrid("Admin access expiring in less than 3 months", "(Consider extending the access in Access control management)", new List<GridColumn>()
             {
                 new()
                 {
@@ -255,10 +260,10 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to access management",
+                Title = "Go to access control management",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/access-control"
             })
-            .AddGrid("Position allocations expiring next 3 months", new List<GridColumn>()
+            .AddGrid("Allocations expiring next 3 months", "(Contact the resource owner if there is a need to extend the allocation)", new List<GridColumn>()
             {
                 new()
                 {
@@ -285,7 +290,7 @@ public class WeeklyTaskOwnerReportSender
                 Title = "Go to position overview",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
             })
-            .AddGrid("TBN positions with start date in less than 3 months", new List<GridColumn>()
+            .AddGrid("TBN positions with start date next 3 months", "(Please create a resource request or update the position start-date)", new List<GridColumn>()
             {
                 new()
                 {
@@ -310,7 +315,7 @@ public class WeeklyTaskOwnerReportSender
             }, new GoToAction()
             {
                 Title = "Go to position overview",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
+                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=tbn-pos-3m"
             })
             .Build();
 
@@ -321,6 +326,8 @@ public class WeeklyTaskOwnerReportSender
         // If for some reason the context id is not found, we will not be able to create the links
         if (project.ContextProjectId != null)
             TransformActionButtonsToLinks(html);
+
+        ReplaceColumnSetsWithTables(html);
 
         return new SendEmailWithTemplateRequest()
         {
@@ -333,19 +340,129 @@ public class WeeklyTaskOwnerReportSender
         };
     }
 
-    private static void TransformActionButtonsToLinks(HtmlTag htmlTag)
+    private static void TransformActionButtonsToLinks(HtmlTag htmlTag, HtmlTag? parent = null)
     {
         if (htmlTag.Classes.Contains("ac-action-openUrl") && htmlTag.Attributes.Any(a => a.Key == "data-ac-url"))
         {
             var url = htmlTag.Attributes.First(a => a.Key == "data-ac-url").Value;
             htmlTag.Element = "a";
             htmlTag.Attributes.Add("href", url);
+            htmlTag.Styles.Add("text-align", "center");
+
+            var childDivText = htmlTag.Children.FirstOrDefault(c => c.Element == "div");
+
+            if (childDivText != null)
+            {
+                htmlTag.Text = childDivText.Text;
+                htmlTag.Children.Remove(childDivText);
+            }
+
+            // Needed because of classic outlook rendering...
+            if (parent != null)
+            {
+                parent.Styles.Add("text-align", "center");
+            }
+
+
             return;
         }
 
         foreach (var child in htmlTag.Children)
         {
-            TransformActionButtonsToLinks(child);
+            TransformActionButtonsToLinks(child, htmlTag);
+        }
+    }
+
+    /// <summary>
+    ///     Default column html generated from the adaptive card renderer is too advanced for classic outlook rendering.
+    ///     This replaces the advanced table with a simple html table element. This is hardcoded to the specific structure of
+    ///     the adaptive card and two columns.
+    /// </summary>
+    private static void ReplaceColumnSetsWithTables(HtmlTag reportHtml)
+    {
+        var columnsSets = RecursiveGetChildren(reportHtml).Where(c => c.Classes.Contains("ac-columnset")).ToArray();
+
+
+        foreach (var columnsSet in columnsSets)
+        {
+            var headers = RecursiveGetChildren(columnsSet).Where(c => c.Attributes.Any(a => a.Key == "name" && a.Value == "isHeader"))
+                .Select(c => c.Children.First().Children.First().Text)
+                .ToList();
+
+            var cells = RecursiveGetChildren(columnsSet).Where(c => c.Attributes.Any(a => a.Key == "name" && a.Value == "isCell"));
+            var cellValues = cells.Select(c => c.Children.First().Children.First().Text).ToList();
+
+
+            var namesList = cellValues.Slice(0, cellValues.Count / 2);
+            var dateList = cellValues.Slice(cellValues.Count / 2, cellValues.Count / 2);
+
+
+            var table = new HtmlTag("table")
+            {
+                Styles = new Dictionary<string, string>
+                {
+                    { "width", "800px" },
+                    { "text-align", "left" },
+                    { "margin", "auto" }
+                }
+            };
+
+            var headerRow = new HtmlTag("tr");
+            foreach (var header in headers)
+            {
+                headerRow.Children.Add(new HtmlTag("th")
+                {
+                    Text = header,
+                    Attributes = new Dictionary<string, string>()
+                    {
+                        { "align", "left" }
+                    },
+                    Styles = new Dictionary<string, string>()
+                    {
+                        { "text-align", "left" }
+                    }
+                });
+            }
+
+            table.Children.Add(headerRow);
+
+            for (var i = 0; i < cellValues.Count / 2; i++)
+            {
+                var row = new HtmlTag("tr");
+
+                row.Children.Add(new HtmlTag("td")
+                {
+                    Text = namesList[i],
+                    Styles =
+                    {
+                        { "width", "80%" }
+                    }
+                });
+                row.Children.Add(new HtmlTag("td") { Text = dateList[i] });
+
+                table.Children.Add(row);
+            }
+
+            var parent = RecursiveGetChildren(reportHtml).First(c => c.Children.Contains(columnsSet));
+            var columnIndex = parent.Children.IndexOf(columnsSet);
+
+            parent.Children.RemoveAt(columnIndex);
+            var tableWrapper = new HtmlTag("div");
+            tableWrapper.Children.Add(table);
+            parent.Children.Insert(columnIndex, tableWrapper);
+        }
+    }
+
+    private static IEnumerable<HtmlTag> RecursiveGetChildren(HtmlTag htmlTag)
+    {
+        foreach (var child in htmlTag.Children)
+        {
+            yield return child;
+
+            foreach (var grandChild in RecursiveGetChildren(child))
+            {
+                yield return grandChild;
+            }
         }
     }
 
