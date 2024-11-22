@@ -28,4 +28,10 @@ public class OrgClient : IOrgClient
         var url = ODataQuery.ApplyQueryString("/projects", query);
         return orgClient.GetAsJsonAsync<List<ApiProjectV2>>(url, cancellationToken: cancellationToken);
     }
+
+    public Task<ICollection<ApiPositionV2>> GetProjectPositions(string projectId, CancellationToken cancellationToken = default)
+    {
+        var url = $"/projects/{projectId}/positions";
+        return orgClient.GetAsJsonAsync<ICollection<ApiPositionV2>>(url, cancellationToken);
+    }
 }

@@ -29,6 +29,16 @@ public interface ISummaryApiClient
 
     /// <exception cref="SummaryApiError" />
     public Task<ApiProject> PutProjectAsync(ApiProject project, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// When putting a weekly task owner report, it will replace the existing report for the given period based on the project id.
+    /// If the report does not exist, it will be created. Duration should be from Monday to Monday.
+    /// <para>
+    ///     The key is the combination of the project id, period start and period end.
+    /// </para>
+    /// </summary>
+    /// <exception cref="SummaryApiError"></exception>
+    public Task PutWeeklyTaskOwnerReportAsync(Guid projectId, ApiWeeklyTaskOwnerReport report, CancellationToken cancellationToken = default);
 }
 
 #region Models
@@ -49,7 +59,6 @@ public class ApiResourceOwnerDepartment
     public Guid[] ResourceOwnersAzureUniqueId { get; init; } = null!;
 
     public Guid[] DelegateResourceOwnersAzureUniqueId { get; init; } = null!;
-
 }
 
 public record ApiCollection<T>(ICollection<T> Items);
@@ -101,6 +110,45 @@ public class ApiProject
     public Guid? DirectorAzureUniqueId { get; set; }
 
     public Guid[] AssignedAdminsAzureUniqueId { get; set; } = [];
+}
+
+public class ApiWeeklyTaskOwnerReport
+{
+    public required Guid Id { get; set; }
+    public required Guid ProjectId { get; set; }
+    public required DateTime PeriodStart { get; set; }
+    public required DateTime PeriodEnd { get; set; }
+
+    public required int ActionsAwaitingTaskOwnerAction { get; set; }
+    public required ApiAdminAccessExpiring[] AdminAccessExpiringInLessThanThreeMonths { get; set; }
+    public required ApiPositionAllocationEnding[] PositionAllocationsEndingInNextThreeMonths { get; set; }
+    public required ApiTBNPositionStartingSoon[] TBNPositionsStartingInLessThanThreeMonths { get; set; }
+}
+
+public class ApiAdminAccessExpiring
+{
+    public required Guid AzureUniqueId { get; set; }
+    public required string FullName { get; set; }
+    public required DateTime Expires { get; set; }
+}
+
+public class ApiPositionAllocationEnding
+{
+    public required string PositionExternalId { get; set; }
+
+    public required string PositionName { get; set; }
+
+    public required string PositionNameDetailed { get; set; }
+
+    public required DateTime PositionAppliesTo { get; set; }
+}
+
+public class ApiTBNPositionStartingSoon
+{
+    public required string PositionExternalId { get; set; }
+    public required string PositionName { get; set; }
+    public required string PositionNameDetailed { get; set; }
+    public required DateTime PositionAppliesFrom { get; set; }
 }
 
 #endregion

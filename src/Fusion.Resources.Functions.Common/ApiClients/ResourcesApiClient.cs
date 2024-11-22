@@ -43,7 +43,7 @@ namespace Fusion.Resources.Functions.Common.ApiClients
 
                 return response.Value.ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.LogError($"Error getting requests for department '{departmentIdentifier}'", ex);
 
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Functions.Common.ApiClients
             try
             {
                 var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
-           $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
+                    $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
 
                 return response.Value.ToList();
             }
@@ -97,20 +97,28 @@ namespace Fusion.Resources.Functions.Common.ApiClients
         }
 
         public async Task<IEnumerable<DelegatedresponsibleResult>> GetDelegatedResponsibleForDepartment(string departmentIdentifier)
-        {            
+        {
             var response = await resourcesClient.GetAsJsonAsync<List<DelegatedresponsibleResult>>($"departments/{departmentIdentifier}/delegated-resource-owners");
 
             return response;
         }
 
+        public async Task<ICollection<ResourceAllocationRequest>> GetActiveRequestsForProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
+        {
+            var response = await resourcesClient
+                .GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>($"projects/{projectId}/resources/requests?$Filter=state neq 'completed'&$top={int.MaxValue}", cancellationToken: cancellationToken);
+
+            return response.Value;
+        }
+
         internal class InternalCollection<T>
         {
-            public InternalCollection(IEnumerable<T> items)
+            public InternalCollection(ICollection<T> items)
             {
                 Value = items;
             }
 
-            public IEnumerable<T> Value { get; set; }
+            public ICollection<T> Value { get; set; }
         }
     }
 }
