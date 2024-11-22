@@ -9,6 +9,7 @@ public interface IOrgClient
     Task<ApiChangeLog> GetChangeLog(string projectId, DateTime timestamp);
 
     Task<List<ApiProjectV2>> GetProjectsAsync(ODataQuery? query = null, CancellationToken cancellationToken = default);
+    Task<ICollection<ApiPositionV2>> GetProjectPositions(string projectId, CancellationToken cancellationToken = default);
 }
 
 #region model

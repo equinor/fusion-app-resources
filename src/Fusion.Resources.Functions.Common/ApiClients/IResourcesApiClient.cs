@@ -17,6 +17,8 @@ namespace Fusion.Resources.Functions.Common.ApiClients
         Task<IEnumerable<ApiPersonAbsence>> GetLeaveForPersonnel(string personId);
         Task<IEnumerable<DelegatedresponsibleResult>> GetDelegatedResponsibleForDepartment(string departmentIdentifier);
 
+        Task<ICollection<ResourceAllocationRequest>> GetActiveRequestsForProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+
         #region Models
 
         public class ResourceAllocationRequest

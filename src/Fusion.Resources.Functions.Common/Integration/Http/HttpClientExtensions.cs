@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Functions.Common.Integration.Errors;
+﻿using System.Text;
+using Fusion.Resources.Functions.Common.Integration.Errors;
 using Newtonsoft.Json;
 
 namespace Fusion.Resources.Functions.Common.Integration.Http
@@ -17,6 +18,22 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             return deserialized;
         }
 
+        public static async Task<TResponse> PostAsJsonAsync<TResponse>(this HttpClient client, string url, object data, CancellationToken cancellationToken = default)
+        {
+            var json = JsonConvert.SerializeObject(data);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(url, content, cancellationToken);
+
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                throw new ApiError(response.RequestMessage!.RequestUri!.ToString(), response.StatusCode, body, "Response from API call indicates error");
+
+            TResponse deserialized = JsonConvert.DeserializeObject<TResponse>(body);
+            return deserialized;
+        }
+
         public static async Task<IEnumerable<string>> OptionsAsync(this HttpClient client, string url, CancellationToken cancellationToken = default)
         {
             var message = new HttpRequestMessage(HttpMethod.Options, url);
@@ -26,6 +43,5 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
 
             return allowHeaders;
         }
-
     }
 }
