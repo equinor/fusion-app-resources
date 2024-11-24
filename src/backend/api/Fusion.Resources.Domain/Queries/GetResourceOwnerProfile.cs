@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain.Models;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -47,14 +49,15 @@ namespace Fusion.Resources.Domain.Queries
 
             public async Task<QueryResourceOwnerProfile?> Handle(GetResourceOwnerProfile request, CancellationToken cancellationToken)
             {
-                var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
+                var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
                 if (user is null) return null;
 
-                var sector = await ResolveSector(user.FullDepartment);
+                var userIsManagerFor = await GetUserManagerForAsync(user);
+                var sector = await ResolveSector(user, userIsManagerFor);
 
                 // Resolve departments with responsibility
-                var departmentsWithResponsibility = await ResolveDepartmentsWithResponsibilityAsync(user);
+                var departmentsWithResponsibility = await ResolveDepartmentsWithResponsibilityAsync(user, userIsManagerFor);
 
                 // Determine if the user is a manager in the department he/she belongs to.
                 var isDepartmentManager = departmentsWithResponsibility.Any(r => r == user.FullDepartment);
@@ -83,30 +86,37 @@ namespace Fusion.Resources.Domain.Queries
                 return resourceOwnerProfile;
             }
 
+            private async Task<List<string>> GetUserManagerForAsync(FusionFullPersonProfile user)
+            {
+                var orgUnits = new List<string>();
+
+                var managerRoles = (user.Roles ?? new List<FusionRole>())
+                    .Where(x => string.Equals(x.Name, "Fusion.LineOrg.Manager", StringComparison.OrdinalIgnoreCase))
+                    .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
+                    .Select(x => x.Scope?.Value!)
+                    .ToList();
+
+                foreach (var orgUnitId in managerRoles)
+                {
+                    var orgUnit = await mediator.Send(new ResolveLineOrgUnit(orgUnitId));
+                    if (orgUnit?.FullDepartment != null)
+                    {
+                        orgUnits.Add(orgUnit.FullDepartment);
+                    }
+                }
+
+                return orgUnits;
+            }
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
             {
                 // Get sectors the user have responsibility in, to find all relevant departments
                 var relevantSectors = new List<string>();
                 foreach (var department in departmentsWithResponsibility)
                 {
-                    var resolvedSector = await ResolveSector(department);
+                    var resolvedSector = GetSectorForDepartment(department);
                     if (resolvedSector != null)
                     {
                         relevantSectors.Add(resolvedSector);
-                    }
-                }
-
-                // If the sector does not exist, the person might be higher up.
-                if (sector is null && isDepartmentManager)
-                {
-                    var downstreamSectors = await ResolveDownstreamSectors(fullDepartment);
-                    foreach (var department in downstreamSectors)
-                    {
-                        var resolvedSector = await ResolveSector(department);
-                        if (resolvedSector != null)
-                        {
-                            relevantSectors.Add(resolvedSector);
-                        }
                     }
                 }
 
@@ -115,15 +125,19 @@ namespace Fusion.Resources.Domain.Queries
                     .ToList();
             }
 
-            private async Task<List<string>> ResolveDepartmentsWithResponsibilityAsync(FusionPersonProfile user)
+            private string? GetSectorForDepartment(string department)
             {
-                var isDepartmentManager = user.IsResourceOwner;
+                var path = new DepartmentPath(department);
+                var sector = (path.Level > 1) ? path.Parent() : null;
+                return sector;
+            }
 
+            private async Task<List<string>> ResolveDepartmentsWithResponsibilityAsync(FusionFullPersonProfile user, List<string> userIsManagerFor)
+            {
                 var departmentsWithResponsibility = new List<string>();
 
                 // Add the current department if the user is resource owner in the department.
-                if (isDepartmentManager && user.FullDepartment != null)
-                    departmentsWithResponsibility.Add(user.FullDepartment);
+                departmentsWithResponsibility.AddRange(userIsManagerFor);
 
                 // Add all departments the user has been delegated responsibility for.
                 var delegatedResponsibilities = db.DelegatedDepartmentResponsibles
@@ -146,30 +160,24 @@ namespace Fusion.Resources.Domain.Queries
                 return departmentsWithResponsibility.Distinct().ToList();
             }
 
-            private async Task<string?> ResolveSector(string? department)
+            private async Task<string?> ResolveSector(FusionFullPersonProfile profile, List<string> userIsManagerFor)
             {
-                if (string.IsNullOrEmpty(department))
+                if (profile.IsResourceOwner)
+                    return profile.FullDepartment;
+
+                if (string.IsNullOrEmpty(profile.FullDepartment))
                     return null;
 
-                var request = new GetDepartmentSector(department);
-                return await mediator.Send(request);
+                return await mediator.Send(new GetDepartmentSector(profile.FullDepartment));
             }
+
+
 
             private async Task<IEnumerable<string>> ResolveSectorDepartments(string sector)
             {
                 var departments = await mediator.Send(new GetDepartments().InSector(sector));
                 return departments
                     .Select(dpt => dpt.FullDepartment);
-            }
-
-            private async Task<IEnumerable<string>> ResolveDownstreamSectors(string? department)
-            {
-                if (department is null)
-                    return Array.Empty<string>();
-
-                var departments = await mediator.Send(new GetDepartments().StartsWith(department));
-                return departments
-                    .Select(dpt => dpt.SectorId!).Distinct();
             }
         }
     }
