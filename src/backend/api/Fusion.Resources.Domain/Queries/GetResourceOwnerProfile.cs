@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain.Models;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -62,7 +60,7 @@ namespace Fusion.Resources.Domain.Queries
                 // Determine if the user is a manager in the department he/she belongs to.
                 var isDepartmentManager = departmentsWithResponsibility.Any(r => r == user.FullDepartment);
 
-                var relevantSectors = await ResolveRelevantSectorsAsync(user.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
+                var relevantSectors = ResolveRelevantSectors(departmentsWithResponsibility);
 
                 var relevantDepartments = new List<string>();
                 foreach (var relevantSector in relevantSectors)
@@ -107,7 +105,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 return orgUnits;
             }
-            private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
+            private List<string> ResolveRelevantSectors(IEnumerable<string> departmentsWithResponsibility)
             {
                 // Get sectors the user have responsibility in, to find all relevant departments
                 var relevantSectors = new List<string>();
