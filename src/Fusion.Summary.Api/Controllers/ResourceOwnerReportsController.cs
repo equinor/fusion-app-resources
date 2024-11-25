@@ -21,7 +21,7 @@ public class ResourceOwnerReportsController : BaseController
 {
     [HttpGet("resource-owners-summary-reports/{sapDepartmentId}/weekly")]
     [MapToApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ODataFilter(nameof(ApiWeeklySummaryReport.Period))]
