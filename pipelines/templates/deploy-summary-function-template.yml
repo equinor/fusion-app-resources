@@ -37,12 +37,28 @@ steps:
       # Generate the app settings      
       #
       # Sett correct resources URI based on environment
-      $resourcesFunctionUri =  "https://resources-api.$environment.fusion-dev.net/"
-      $summaryFunctionUri =  "https://summary-api.$environment.fusion-dev.net/"
-
+      
       if ($environment -eq "fprd") {
-          $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"
-          $summaryFunctionUri = "https://fap-summary-api-fprd.azurewebsites.net/"
+          $summary = "https://fra-summary.api.fusion.equinor.com"
+          $portal = "https://fusion.equinor.com"
+          $lineorg = "https://lineorg.api.fusion.equinor.com"
+          $org = "https://org.api.fusion.equinor.com"
+          $people = "https://people.api.fusion.equinor.com"
+          $resources = "https://fra-resources.api.fusion.equinor.com"
+          $notifications = "https://notification.api.fusion.equinor.com"
+          $context =  "https://context.api.fusion.equinor.com"
+          $roles =  "https://roles.api.fusion.equinor.com""
+      }
+      else {
+         $summary = "https://fra-summary.$environment.api.fusion-dev.net"
+         $lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
+         $org = "https://org.$fusionEnvironment.api.fusion-dev.net"
+         $people = "https://people.$fusionEnvironment.api.fusion-dev.net"
+         $resources = "https://fra-resources.$environment.api.fusion-dev.net"
+         $notifications = "https://notification.$fusionEnvironment.api.fusion-dev.net"
+         $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
+         $portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
+         $roles = "https://roles.$fusionEnvironment.api.fusion-dev.net"
       }
 
       $settings = @{
@@ -54,15 +70,15 @@ steps:
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
           }
           endpoints = @{
-              lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
-              org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
-              people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
-              resources = "$resourcesFunctionUri"
-              summary = "$summaryFunctionUri"
-              notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
-              context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
-              portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
-              roles = "https://fusion-s-roles-$fusionEnvironment.azurewebsites.net"
+              lineorg = $lineorg
+              org = $org
+              people = $people
+              resources = $resources
+              notifications = $notifications
+              context =  $context
+              portal = $portal
+              summary = $summary
+              roles = $roles
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
