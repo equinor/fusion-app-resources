@@ -47,7 +47,7 @@ steps:
           $resources = "https://fra-resources.api.fusion.equinor.com"
           $notifications = "https://notification.api.fusion.equinor.com"
           $context =  "https://context.api.fusion.equinor.com"
-          $roles =  "https://roles.api.fusion.equinor.com""
+          $roles =  "https://roles.api.fusion.equinor.com"
       }
       else {
          $summary = "https://fra-summary.$environment.api.fusion-dev.net"
