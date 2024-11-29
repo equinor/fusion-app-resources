@@ -65,8 +65,9 @@ public class AdaptiveCardBuilder
     }
 
 
-    public AdaptiveCardBuilder AddGrid(string headerText, string subtitleText, IEnumerable<GridColumn> columns, GoToAction? goToAction = null)
+    public AdaptiveCardBuilder AddGrid(string headerText, string subtitleText, IEnumerable<GridColumn> columnsEnumerable, GoToAction? goToAction = null)
     {
+        var columns = columnsEnumerable.ToList();
         var listContainer = new AdaptiveContainer
         {
             Separator = true
@@ -118,12 +119,40 @@ public class AdaptiveCardBuilder
             grid.Columns.Add(gridColumn);
         }
 
+        // Add empty row so that things are aligned correctly
+        if (columns.SelectMany(c => c.Cells).All(c => c.IsHeader))
+        {
+            var rows = new List<AdaptiveElement>
+            {
+                new AdaptiveTextBlock
+                {
+                    Text = "-",
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Left,
+                    Id = "isCell"
+                },
+                new AdaptiveTextBlock
+                {
+                    Text = "-",
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Right,
+                    Id = "isCell"
+                }
+            };
+
+            grid.Columns.Add(new AdaptiveColumn
+            {
+                Width = AdaptiveColumnWidth.Auto,
+                Items = rows
+            });
+        }
+
         listContainer.Items.Add(header);
         listContainer.Items.Add(subtitle);
         listContainer.Items.Add(grid);
 
         // If no data is present, add a "None" text
-        if (columns.SelectMany(c => c.Cells).All(c => c.IsHeader))
+        if (columns.SelectMany(c => c.Cells).All(c => c.IsHeader || string.IsNullOrEmpty(c.Value)))
         {
             listContainer.Items.Add(new AdaptiveTextBlock
             {
