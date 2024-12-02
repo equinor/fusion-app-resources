@@ -24,7 +24,7 @@ public class AdaptiveCardBuilder
         return this;
     }
 
-    public AdaptiveCardBuilder AddTextRow(string valueText, string headerText, string customText = "")
+    public AdaptiveCardBuilder AddTextRow(string valueText, string headerText, string customText = "", GoToAction? goToAction = null)
     {
         var container = new AdaptiveContainer()
         {
@@ -47,9 +47,138 @@ public class AdaptiveCardBuilder
             }
         };
 
+        if (goToAction != null)
+        {
+            var actionSet = new AdaptiveActionSet();
+            var action = new AdaptiveOpenUrlAction()
+            {
+                Title = goToAction.Title,
+                Url = new Uri(goToAction.Url)
+            };
+
+            actionSet.Actions.Add(action);
+            container.Items.Add(actionSet);
+        }
+
         _adaptiveCard.Body.Add(container);
         return this;
     }
+
+
+    public AdaptiveCardBuilder AddGrid(string headerText, string subtitleText, IEnumerable<GridColumn> columnsEnumerable, GoToAction? goToAction = null)
+    {
+        var columns = columnsEnumerable.ToList();
+        var listContainer = new AdaptiveContainer
+        {
+            Separator = true
+        };
+
+        var header = new AdaptiveTextBlock
+        {
+            Weight = AdaptiveTextWeight.Bolder,
+            Text = headerText,
+            Wrap = true,
+            Size = AdaptiveTextSize.Large,
+            HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+        };
+
+        var subtitle = new AdaptiveTextBlock
+        {
+            Text = subtitleText,
+            Wrap = true,
+            HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+        };
+
+
+        var grid = new AdaptiveColumnSet();
+
+        foreach (var column in columns)
+        {
+            var rows = new List<AdaptiveElement>();
+
+            foreach (var gridCell in column.Cells)
+            {
+                var cell = new AdaptiveTextBlock
+                {
+                    Text = gridCell.Value,
+                    Wrap = true,
+                    HorizontalAlignment = gridCell.Alignment,
+                    IsSubtle = gridCell.IsHeader,
+                    Id = gridCell.IsHeader ? "isHeader" : "isCell"
+                };
+
+                rows.Add(cell);
+            }
+
+            var gridColumn = new AdaptiveColumn
+            {
+                Width = column.Width,
+                Items = rows
+            };
+
+            grid.Columns.Add(gridColumn);
+        }
+
+        // Add empty row so that things are aligned correctly
+        if (columns.SelectMany(c => c.Cells).All(c => c.IsHeader))
+        {
+            var rows = new List<AdaptiveElement>
+            {
+                new AdaptiveTextBlock
+                {
+                    Text = "-",
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Left,
+                    Id = "isCell"
+                },
+                new AdaptiveTextBlock
+                {
+                    Text = "-",
+                    Wrap = true,
+                    HorizontalAlignment = AdaptiveHorizontalAlignment.Right,
+                    Id = "isCell"
+                }
+            };
+
+            grid.Columns.Add(new AdaptiveColumn
+            {
+                Width = AdaptiveColumnWidth.Auto,
+                Items = rows
+            });
+        }
+
+        listContainer.Items.Add(header);
+        listContainer.Items.Add(subtitle);
+        listContainer.Items.Add(grid);
+
+        // If no data is present, add a "None" text
+        if (columns.SelectMany(c => c.Cells).All(c => c.IsHeader || string.IsNullOrEmpty(c.Value)))
+        {
+            listContainer.Items.Add(new AdaptiveTextBlock
+            {
+                Text = "None",
+                Wrap = true,
+                HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+            });
+        }
+
+        if (goToAction != null)
+        {
+            var actionSet = new AdaptiveActionSet();
+            var action = new AdaptiveOpenUrlAction()
+            {
+                Title = goToAction.Title,
+                Url = new Uri(goToAction.Url)
+            };
+
+            actionSet.Actions.Add(action);
+            listContainer.Items.Add(actionSet);
+        }
+
+        _adaptiveCard.Body.Add(listContainer);
+        return this;
+    }
+
 
     public AdaptiveCardBuilder AddListContainer(string headerText,
         List<List<ListObject>> objectLists)
@@ -136,4 +265,29 @@ public class AdaptiveCardBuilder
         public string Value { get; set; }
         public AdaptiveHorizontalAlignment Alignment { get; set; }
     }
+}
+
+public class GridColumn
+{
+    public ICollection<GridCell> Cells { get; set; }
+    public string Width { get; set; } = AdaptiveColumnWidth.Auto;
+}
+
+public class GridCell
+{
+    public GridCell(bool isHeader, string value)
+    {
+        IsHeader = isHeader;
+        Value = value;
+    }
+
+    public bool IsHeader { get; set; }
+    public string Value { get; set; }
+    public AdaptiveHorizontalAlignment Alignment { get; set; }
+}
+
+public class GoToAction
+{
+    public string Title { get; set; }
+    public string Url { get; set; }
 }

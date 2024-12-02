@@ -61,6 +61,12 @@ namespace Fusion.Resources.Functions.Common.Configuration
             builder.AddRolesClient();
             services.AddScoped<IRolesApiClient, RolesApiClient>();
 
+            builder.AddMailClient();
+            services.AddScoped<IMailApiClient, MailApiClient>();
+
+            builder.AddContextClient();
+            services.AddScoped<IContextApiClient, ContextApiClient>();
+
             return services;
         }
     }

@@ -48,6 +48,7 @@ steps:
           $notifications = "https://notification.api.fusion.equinor.com"
           $context =  "https://context.api.fusion.equinor.com"
           $roles =  "https://roles.api.fusion.equinor.com"
+          $mail = "https://mail.api.fusion.equinor.com"
       }
       else {
          $summary = "https://fra-summary.$environment.api.fusion-dev.net"
@@ -59,6 +60,7 @@ steps:
          $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
          $portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
          $roles = "https://roles.$fusionEnvironment.api.fusion-dev.net"
+         $mail = "https://mail.$fusionEnvironment.api.fusion-dev.net"
       }
 
       $settings = @{
@@ -79,6 +81,7 @@ steps:
               portal = $portal
               summary = $summary
               roles = $roles
+              mail = $mail
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
