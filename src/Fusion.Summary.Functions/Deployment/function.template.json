@@ -167,6 +167,10 @@
               "value": "[parameters('settings').endpoints.roles]"
             },
             {
+              "name": "Endpoints_mail",
+              "value": "[parameters('settings').endpoints.mail]"
+            },
+            {
               "name": "Endpoints_Resources_Fusion",
               "value": "[parameters('settings').resources.fusion]"
             },
