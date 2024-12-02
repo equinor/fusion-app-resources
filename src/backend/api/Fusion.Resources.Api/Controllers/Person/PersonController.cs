@@ -15,6 +15,7 @@ using Fusion.Integration.LineOrg;
 using Fusion.AspNetCore.OData;
 using Microsoft.VisualBasic;
 using NodaTime.TimeZones;
+using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -327,10 +328,13 @@ namespace Fusion.Resources.Api.Controllers
             var autoApproval = await DispatchAsync(new Domain.Queries.GetPersonAutoApprovalStatus(user.azureId));
             var manager = await DispatchAsync(new Domain.Queries.GetResourceOwner(user.azureId));
 
+            var orgUnit = await DispatchAsync(new ResolveLineOrgUnit(user.fullDepartment));
+
             return new ApiPersonAllocationRequestStatus
             {
                 AutoApproval = autoApproval.GetValueOrDefault(false),
-                Manager = manager is not null ? new ApiPerson(manager) : null
+                Manager = manager is not null ? new ApiPerson(manager) : null,
+                RequestOrgUnit = orgUnit
             };
         }
 
