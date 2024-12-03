@@ -20,6 +20,7 @@
     "Endpoints_context": "https://context.ci.api.fusion-dev.net/",
     "Endpoints_notifications": "https://notification.ci.api.fusion-dev.net/",
     "Endpoints_roles": "https://roles.ci.api.fusion-dev.net",
+    "Endpoints_mail": "https://mail.ci.api.fusion-dev.net",
     "Endpoints_Resources_Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
   }
 }

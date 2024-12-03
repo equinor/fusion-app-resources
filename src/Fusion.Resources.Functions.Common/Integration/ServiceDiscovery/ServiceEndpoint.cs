@@ -12,5 +12,6 @@
         public static ServiceEndpoint Context = new ServiceEndpoint { Key = "context" };
         public static ServiceEndpoint LineOrg = new ServiceEndpoint { Key = "lineorg" };
         public static ServiceEndpoint Roles = new ServiceEndpoint { Key = "roles" };
+        public static ServiceEndpoint Mail = new ServiceEndpoint { Key = "mail" };
     }
 }

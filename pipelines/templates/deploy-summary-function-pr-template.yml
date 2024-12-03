@@ -59,6 +59,7 @@ steps:
                 resources = "https://fra-resources-$pullRequestNumber.pr.api.fusion-dev.net"
                 summary = "https://fra-summary-$pullRequestNumber.pr.api.fusion-dev.net"
                 roles = "https://roles.$fusionEnvironment.api.fusion-dev.net"
+                mail = "https://mail.$fusionEnvironment.api.fusion-dev.net"
             }
             resources = @{
                 fusion = "${{ parameters.fusionResource }}"

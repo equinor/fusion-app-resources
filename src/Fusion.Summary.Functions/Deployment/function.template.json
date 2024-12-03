@@ -21,7 +21,8 @@
           "resources": "[concat('https://fra-resources.', parameters('env-name'), '.api.fusion-dev.net')]",
           "notifications": "https://notification.ci.api.fusion-dev.net",
           "context": "https://context.ci.api.fusion-dev.net",
-          "portal": "https://fusion.ci.fusion-dev.net"
+          "portal": "https://fusion.ci.fusion-dev.net",
+          "mail": "https://mail.ci.api.fusion-dev.net"
         },
         "resources": {
           "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
@@ -164,6 +165,10 @@
             {
               "name": "Endpoints_roles",
               "value": "[parameters('settings').endpoints.roles]"
+            },
+            {
+              "name": "Endpoints_mail",
+              "value": "[parameters('settings').endpoints.mail]"
             },
             {
               "name": "Endpoints_Resources_Fusion",

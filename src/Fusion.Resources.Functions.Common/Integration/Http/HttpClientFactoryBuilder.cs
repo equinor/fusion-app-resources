@@ -113,10 +113,38 @@ namespace Fusion.Resources.Functions.Common.Integration.Http
             services.AddTransient<RolesHttpHandler>();
             services.AddHttpClient(HttpClientNames.Application.Roles, client =>
                 {
-                    client.BaseAddress = new Uri("https://fusion-notifications");
+                    client.BaseAddress = new Uri("https://fusion-roles");
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 })
                 .AddHttpMessageHandler<RolesHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
+        public HttpClientFactoryBuilder AddMailClient()
+        {
+            services.AddTransient<MailHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Mail, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-mail");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<MailHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
+        public HttpClientFactoryBuilder AddContextClient()
+        {
+            services.AddTransient<ContextHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Context, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-context");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<ContextHttpHandler>()
                 .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
 
             return this;
