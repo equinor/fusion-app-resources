@@ -288,7 +288,7 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to position overview",
+                Title = "Go to positions listing view",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
             })
             .AddGrid("TBN positions with start date next 3 months", "(Please create a resource request or update the position start-date)", new List<GridColumn>()
@@ -315,7 +315,7 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to position overview",
+                Title = "Go to positions listing view",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=tbn-pos-3m"
             })
             .Build();
