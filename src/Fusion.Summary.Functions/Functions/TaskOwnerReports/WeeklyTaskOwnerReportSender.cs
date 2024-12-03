@@ -289,7 +289,7 @@ public class WeeklyTaskOwnerReportSender
             }, new GoToAction()
             {
                 Title = "Go to positions listing view",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
+                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=allocations-exp-3m"
             })
             .AddGrid("TBN positions with start date next 3 months", "(Please create a resource request or update the position start-date)", new List<GridColumn>()
             {
