@@ -127,7 +127,7 @@ metadata:
     fusion-health/application: 'Fusion Summary'
     fusion-health/url: /_health/ready
 spec:
-  ingressClassName: ingress-nginx-fusiondev
+  ingressClassName: nginx
   tls:
   - hosts:
     - fra-summary-{{prNumber}}.pr.api.fusion-dev.net
