@@ -1,4 +1,3 @@
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -14,17 +13,17 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-  - hosts:
-    - fra-summary.{{ENVNAME}}.api.fusion-dev.net
-    secretName: wildcard-tls-cert
+    - hosts:
+        - fra-summary.{{ENVNAME}}.api.fusion-dev.net
+      secretName: wildcard-tls-cert
   rules:
     - host: fra-summary.{{ENVNAME}}.api.fusion-dev.net
       http:
         paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: summary-api
-              port:
-                number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: summary-api
+                port:
+                  number: 80

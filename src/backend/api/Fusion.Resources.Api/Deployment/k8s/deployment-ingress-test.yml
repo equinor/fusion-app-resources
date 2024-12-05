@@ -13,17 +13,17 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-  - hosts:
-    - fra-resources.{{ENVNAME}}.api.fusion-dev.net
-    secretName: wildcard-tls-cert
+    - hosts:
+        - fra-resources.{{ENVNAME}}.api.fusion-dev.net
+      secretName: wildcard-tls-cert
   rules:
     - host: fra-resources.{{ENVNAME}}.api.fusion-dev.net
       http:
         paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: resources-api
-              port:
-                number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: resources-api
+                port:
+                  number: 80
