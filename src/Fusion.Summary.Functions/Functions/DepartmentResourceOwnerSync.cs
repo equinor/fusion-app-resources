@@ -94,7 +94,7 @@ public class DepartmentResourceOwnerSync
             MaxDegreeOfParallelism = threadCount
         };
 
-        Parallel.ForEach(departments, parallelOptions, async orgUnit =>
+        await Parallel.ForEachAsync(departments, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, async (orgUnit, cancellationToken) =>
         {
             var resourceOwners = orgUnit.Management.Persons
                 .Select(p => Guid.Parse(p.AzureUniqueId))
@@ -131,38 +131,33 @@ public class DepartmentResourceOwnerSync
 
         logger.LogInformation("Syncing departments {Departments}", JsonConvert.SerializeObject(enqueueTimeForDepartmentMapping, Formatting.Indented));
 
-        await Task.Run(() =>
+        await Parallel.ForEachAsync(apiDepartments, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, async (department, cancellationToken) =>
         {
-            Parallel.ForEach(apiDepartments, parallelOptions, department =>
+            try
             {
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        // TODO: Do one batch update instead of individual updates
-                        // Update the database
-                        await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogCritical(e, "Failed to PUT department {Department}",
-                            JsonConvert.SerializeObject(department, Formatting.Indented));
-                        return;
-                    }
+                // TODO: Do one batch update instead of individual updates
+                // Update the database
+                await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Failed to PUT department {Department}",
+                    JsonConvert.SerializeObject(department, Formatting.Indented));
+                return;
+            }
 
-                    try
-                    {
-                        // Send queue message
-                        await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogCritical(e, "Failed to send department to queue {Department}",
-                            JsonConvert.SerializeObject(department, Formatting.Indented));
-                    }
-                }).Wait();
-            });
+            try
+            {
+                // Send queue message
+                await SendDepartmentToQueue(sender, department, enqueueTimeForDepartmentMapping[department]);
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Failed to send department to queue {Department}",
+                    JsonConvert.SerializeObject(department, Formatting.Indented));
+            }
         });
+
 
         logger.LogInformation("weekly-department-recipients-sync completed");
     }
