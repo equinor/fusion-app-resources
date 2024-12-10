@@ -5,23 +5,14 @@
   },
   {
     "environment": "ci",
-    "disabledFunctions": [
-      "scheduled-report-content-Builder-function",
-      "scheduled-report-timer-trigger-function"
-    ]
+    "disabledFunctions": []
   },
   {
     "environment": "fqa",
-    "disabledFunctions": [
-      "scheduled-report-content-Builder-function",
-      "scheduled-report-timer-trigger-function"
-    ]
+    "disabledFunctions": []
   },
   {
     "environment": "fprd",
-    "disabledFunctions": [
-      "scheduled-report-content-Builder-function",
-      "scheduled-report-timer-trigger-function"
-    ]
+    "disabledFunctions": []
   }
 ]
