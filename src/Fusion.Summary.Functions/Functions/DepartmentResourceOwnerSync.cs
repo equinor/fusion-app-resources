@@ -84,11 +84,12 @@ public class DepartmentResourceOwnerSync
         if (_departmentFilter.Length != 0)
             departments = departments.Where(d => _departmentFilter.Any(df => d.FullDepartment!.Contains(df)));
 
-        logger.LogInformation("Found departments {Departments}", JsonConvert.SerializeObject(departments, Formatting.Indented));
-
         var apiDepartments = new List<ApiResourceOwnerDepartment>();
 
-        foreach (var orgUnit in departments)
+        // Set up parallelism
+        var threadCount = 2;
+
+        await Parallel.ForEachAsync(departments, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, async (orgUnit, cancellationToken) =>
         {
             var resourceOwners = orgUnit.Management.Persons
                 .Select(p => Guid.Parse(p.AzureUniqueId))
@@ -102,38 +103,42 @@ public class DepartmentResourceOwnerSync
                 .ToArray();
 
             var recipients = resourceOwners.Concat(delegatedResponsibles).ToArray();
+
             if (recipients.Length == 0)
             {
                 logger.LogInformation("Skipping department {Department} as it has no resource owners or delegated responsibles", orgUnit.FullDepartment);
-                continue;
+                return;
             }
 
-            apiDepartments.Add(new ApiResourceOwnerDepartment()
+            lock (apiDepartments)
             {
-                DepartmentSapId = orgUnit.SapId!,
-                FullDepartmentName = orgUnit.FullDepartment!,
-                ResourceOwnersAzureUniqueId = resourceOwners,
-                DelegateResourceOwnersAzureUniqueId = delegatedResponsibles
-            });
-        }
+                apiDepartments.Add(new ApiResourceOwnerDepartment()
+                {
+                    DepartmentSapId = orgUnit.SapId!,
+                    FullDepartmentName = orgUnit.FullDepartment!,
+                    ResourceOwnersAzureUniqueId = resourceOwners,
+                    DelegateResourceOwnersAzureUniqueId = delegatedResponsibles
+                });
+            }
+        });
 
         var enqueueTimeForDepartmentMapping = QueueTimeHelper.CalculateEnqueueTime(apiDepartments, _totalBatchTime, logger);
 
         logger.LogInformation("Syncing departments {Departments}", JsonConvert.SerializeObject(enqueueTimeForDepartmentMapping, Formatting.Indented));
 
-
-        foreach (var department in apiDepartments)
+        await Parallel.ForEachAsync(apiDepartments, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, async (department, cancellationToken) =>
         {
             try
             {
-                //TODO: Do one batch update instead of individual updates
+                // TODO: Do one batch update instead of individual updates
                 // Update the database
                 await summaryApiClient.PutDepartmentAsync(department, cancellationToken);
             }
             catch (Exception e)
             {
-                logger.LogCritical(e, "Failed to PUT department {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
-                continue;
+                logger.LogCritical(e, "Failed to PUT department {Department}",
+                    JsonConvert.SerializeObject(department, Formatting.Indented));
+                return;
             }
 
             try
@@ -143,9 +148,11 @@ public class DepartmentResourceOwnerSync
             }
             catch (Exception e)
             {
-                logger.LogCritical(e, "Failed to send department to queue {Department}", JsonConvert.SerializeObject(department, Formatting.Indented));
+                logger.LogCritical(e, "Failed to send department to queue {Department}",
+                    JsonConvert.SerializeObject(department, Formatting.Indented));
             }
-        }
+        });
+
 
         logger.LogInformation("weekly-department-recipients-sync completed");
     }
