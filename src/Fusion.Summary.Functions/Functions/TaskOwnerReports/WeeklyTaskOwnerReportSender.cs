@@ -28,6 +28,9 @@ public class WeeklyTaskOwnerReportSender
     private readonly bool sendingNotificationEnabled = true; // Default to true so that we don't accidentally disable sending notifications
     private readonly string fusionUri;
 
+    private const string IsSendingNotificationEnabledKey = "WeeklyTaskOwnerReport_IsSendingNotificationEnabled";
+    private const string FunctionName = "weekly-task-owner-report-sender";
+
     public WeeklyTaskOwnerReportSender(ILogger<WeeklyTaskOwnerReportSender> logger, IConfiguration configuration, ISummaryApiClient summaryApiClient, IMailApiClient mailApiClient, IPeopleApiClient peopleApiClient, IContextApiClient contextApiClient)
     {
         this.logger = logger;
@@ -39,13 +42,11 @@ public class WeeklyTaskOwnerReportSender
         fusionUri = (configuration["Endpoints_portal"] ?? "https://fusion.equinor.com/").TrimEnd('/');
 
         // Need to explicitly add the configuration key to the app settings to disable sending of notifications
-        if (int.TryParse(configuration["isSendingNotificationEnabled"], out var enabled))
+        if (int.TryParse(configuration[IsSendingNotificationEnabledKey], out var enabled))
             sendingNotificationEnabled = enabled == 1;
-        else if (bool.TryParse(configuration["isSendingNotificationEnabled"], out var enabledBool))
+        else if (bool.TryParse(configuration[IsSendingNotificationEnabledKey], out var enabledBool))
             sendingNotificationEnabled = enabledBool;
     }
-
-    private const string FunctionName = "weekly-task-owner-report-sender";
 
     [FunctionName(FunctionName)]
     public async Task RunAsync([TimerTrigger("0 0 5 * * MON", RunOnStartup = false)] TimerInfo timerInfo, CancellationToken cancellationToken = default)
@@ -287,8 +288,8 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to position overview",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view"
+                Title = "Go to positions listing view",
+                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=allocations-exp-3m"
             })
             .AddGrid("TBN positions with start date next 3 months", "(Please create a resource request or update the position start-date)", new List<GridColumn>()
             {
@@ -314,7 +315,7 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to position overview",
+                Title = "Go to positions listing view",
                 Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=tbn-pos-3m"
             })
             .Build();
