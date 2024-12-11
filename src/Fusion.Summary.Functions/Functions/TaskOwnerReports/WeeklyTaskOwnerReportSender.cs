@@ -315,8 +315,8 @@ public class WeeklyTaskOwnerReportSender
                 }
             }, new GoToAction()
             {
-                Title = "Go to positions listing view",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=tbn-pos-3m"
+                Title = "Go to positions timeline view",
+                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/timeline-view?filter=tbn-pos-3m"
             })
             .Build();
 
