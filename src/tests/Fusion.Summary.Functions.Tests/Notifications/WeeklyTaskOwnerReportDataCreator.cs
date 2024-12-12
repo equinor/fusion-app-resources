@@ -153,17 +153,18 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         AddPosition(manySmallInstancesWithoutFutureInstance, shouldBeIncludedInReportList: true, instanceSelector: i => i.ExternalId == "1");
 
 
-        var endingPosition = new PositionBuilder()
-            .WithInstance(Past, now.AddMonths(2))
-            .Build();
-        AddPosition(endingPosition, shouldBeIncludedInReportList: true);
-
-
         var nonEndingPosition = new PositionBuilder()
             .WithInstance(Past, now.AddMonths(2), person: personA)
             .AddNextInstance(TimeSpan.FromDays(31), person: personB)
             .Build();
         AddPosition(nonEndingPosition);
+
+        var nonActivePositionWithPastAllocationAndFutureTBN = new PositionBuilder()
+            .WithInstance(now.AddDays(-3), now.AddDays(-2), person: personA)
+            .AddNextInstance(now.AddDays(80), now.AddDays(120))
+            .Build();
+
+        AddPosition(nonActivePositionWithPastAllocationAndFutureTBN);
 
         if (shouldBeIncludedInReport.Distinct().Count() != shouldBeIncludedInReport.Count)
             throw new InvalidOperationException($"Test setup error: Duplicate position names in {nameof(shouldBeIncludedInReport)}");
