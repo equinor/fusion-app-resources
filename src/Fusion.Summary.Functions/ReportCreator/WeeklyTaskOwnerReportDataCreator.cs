@@ -13,8 +13,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
     // Logic taken/inspired from the frontend
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/a9330b2aa8d104e51536692a72334252d5e474e1/apps/org-admin/src/pages/ProjectPage/components/ChartComponent/components/utils.ts#L28
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/pages/EditPositionsPage/pages/TimelineViewPage/components/TimelineFilter/selectors/positionSelector.ts#L14
-    public static List<TBNPosition> GetTBNPositionsStartingWithinThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions,
-        ICollection<IResourcesApiClient.ResourceAllocationRequest> requests)
+    public static List<TBNPosition> GetTBNPositionsStartingWithinThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions)
     {
         var nowDate = NowDate;
         var expiringDate = nowDate.AddMonths(3);
@@ -29,14 +28,10 @@ public abstract class WeeklyTaskOwnerReportDataCreator
             var expiringInstance = position.Instances
                 .OrderBy(i => i.AppliesFrom)
                 .Where(i => i.AppliesFrom < expiringDate) // hasDueWithinThreeMonths
-                .FirstOrDefault(i => i.AppliesTo >= nowDate); // !isInstancePast
+                .Where(i => i.AssignedPerson is null) // TBN instance
+                .FirstOrDefault(i => nowDate <= i.AppliesTo);
 
             if (expiringInstance is null)
-                continue;
-
-            var hasPersonAssigned = expiringInstance.AssignedPerson is not null;
-
-            if (hasPersonAssigned)
                 continue;
 
             tbnPositions.Add(new TBNPosition(position, expiringInstance.AppliesFrom));
