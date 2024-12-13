@@ -49,21 +49,6 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
     public static List<ExpiringPosition> GetPositionAllocationsEndingNextThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions)
     {
-        /*
-         * Remember that it's the position*Allocation* that is expiring, not the position itself.
-         * So a position allocation can be considered expiring if:
-         * 1. The position is active with an assigned person, and the next split within the next 3 months does not have a person assigned
-         *      - We want to notify task owners that an upcoming split is missing an allocation and that they should assign someone
-         *
-         * 2. The last split is expiring within the next 3 months.
-         *    There can be more splits after this but if they're not starting (appliesFrom) within the next 3 months (from NowDate), we consider the position expiring.
-         *    Once the later split comes within the 3-month window, the position will fall under TBNPositionsStartingWithinThreeMonths
-         *      - We want to notify task owners that the position is expiring
-         *
-         * Note: If there is a gap between two splits and the gap/time-period is fully within the 3-month window,
-         * then we DO NOT consider the position expiring. This is also an unusual case.
-         */
-
         var nowDate = NowDate;
         var expiringDate = nowDate.AddMonths(3);
 
@@ -71,79 +56,112 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
         foreach (var position in allProjectPositions)
         {
+            position.Instances = position.Instances.OrderBy(i => i.AppliesFrom).ToList();
             if (position.Instances.Count == 0) // No instances, skip
                 continue;
 
-            var activeInstance = position.Instances.FirstOrDefault(i => i.AppliesFrom <= nowDate && i.AppliesTo >= nowDate && i.AssignedPerson is not null);
+            var instancesWithinPeriod = FindInstancesWithinPeriod(position, new DateTimeRange() { Start = nowDate, Stop = expiringDate });
 
 
-            // Find future instances with a start date within the 3-month window that may or may not end within the 3-month window
-            var futureInstances = position.Instances
-                .Where(i => i.AppliesFrom >= nowDate && i.AppliesFrom < expiringDate)
-                .OrderBy(i => i.AppliesFrom)
-                .ToList();
-
-            // Handle case where the position is not currently active
-            if (activeInstance is null)
+            if (instancesWithinPeriod.EndingWithinPeriod.Count == 0
+                && instancesWithinPeriod.ContainedWithinPeriod.Count == 0
+                && instancesWithinPeriod.StartingWithinPeriod.Any())
             {
-                if (futureInstances.Count == 0)
-                    continue; // This is a past position
-
-                var endingPositionAllocation = FindFirstTBNOrLastExpiringInstance(futureInstances);
-
-                if (endingPositionAllocation is null)
-                    // No TBN/expiring instances found within the 3-month window, could be an instance that starts within the 3-month window
-                    // But ends after the 3-month window
-                    continue;
-
-                // If the first TBN/expiring instance found is not the last instance, then there are more instances after it
-                var isEndingInstanceLast = futureInstances.Last() == endingPositionAllocation;
-
-                if ((isEndingInstanceLast || endingPositionAllocation.AssignedPerson is null) && endingPositionAllocation.AppliesTo < expiringDate)
-                    expiringPositions.Add(new ExpiringPosition(position, endingPositionAllocation.AppliesTo));
-
                 continue;
             }
 
-
-            // Handle case where the position is currently active
-
-            var isActiveInstanceExpiring = activeInstance.AppliesTo < expiringDate;
-
-            if (isActiveInstanceExpiring && futureInstances.Count == 0)
+            foreach (var instance in instancesWithinPeriod.Instances)
             {
-                expiringPositions.Add(new ExpiringPosition(position, activeInstance.AppliesTo));
-                continue;
+                if ((instancesWithinPeriod.ContainedWithinPeriod.Contains(instance) || instancesWithinPeriod.StartingWithinPeriod.Contains(instance))
+                    && instance.AssignedPerson is null)
+                {
+                    expiringPositions.Add(new ExpiringPosition(position, instance.AppliesTo));
+                    break;
+                }
+
+                if (instancesWithinPeriod.AnyInstancesAfter(instance) == false)
+                {
+                    expiringPositions.Add(new ExpiringPosition(position, instance.AppliesTo));
+                    break;
+                }
             }
-
-            if (isActiveInstanceExpiring)
-            {
-                var endingPositionAllocation = FindFirstTBNOrLastExpiringInstance(futureInstances);
-
-                if (endingPositionAllocation is not null)
-                    expiringPositions.Add(new ExpiringPosition(position, endingPositionAllocation.AppliesTo));
-            }
-
-            // The instance is active and not expiring, continue to next position
         }
 
 
         return expiringPositions;
     }
 
-    private static ApiPositionInstanceV2? FindFirstTBNOrLastExpiringInstance(IEnumerable<ApiPositionInstanceV2> futureOrderedInstances)
+    private static InstancesWithinPeriod FindInstancesWithinPeriod(ApiPositionV2 position, DateTimeRange period)
     {
-        ApiPositionInstanceV2? lastExpiringInstance = null;
-        foreach (var instance in futureOrderedInstances)
-        {
-            if (instance.AssignedPerson is null)
-                return instance; // We found a TBN instance
+        var instancesEndingWithinPeriod = position.Instances
+            .Where(i => period.Contains(i.AppliesTo) && !period.Contains(i.AppliesFrom))
+            .ToList();
 
-            if (instance.AppliesTo < NowDate.AddMonths(3))
-                lastExpiringInstance = instance; // We found an expiring instance
+        var instancesContainingPeriod = position.Instances
+            .Where(i => period.Contains(i.AppliesFrom) && period.Contains(i.AppliesTo))
+            .ToList();
+
+        var instancesStartingWithinPeriod = position.Instances
+            .Except(instancesContainingPeriod)
+            .Where(i => period.Contains(i.AppliesFrom) && !period.Contains(i.AppliesTo))
+            .ToList();
+
+        var instancesStartingAfterPeriod = position.Instances
+            .Where(i => i.AppliesFrom > period.Stop)
+            .ToList();
+
+        var lastInstance = instancesStartingAfterPeriod.LastOrDefault();
+
+
+        return new InstancesWithinPeriod()
+        {
+            EndingWithinPeriod = instancesEndingWithinPeriod,
+            ContainedWithinPeriod = instancesContainingPeriod,
+            StartingWithinPeriod = instancesStartingWithinPeriod,
+            LastInstance = lastInstance
+        };
+    }
+
+
+    private class InstancesWithinPeriod
+    {
+        public ApiPositionInstanceV2? LastInstance { get; set; }
+        public required List<ApiPositionInstanceV2> EndingWithinPeriod { get; set; }
+        public required List<ApiPositionInstanceV2> ContainedWithinPeriod { get; set; }
+        public required List<ApiPositionInstanceV2> StartingWithinPeriod { get; set; } // Starting within period and ending after period
+
+        public List<ApiPositionInstanceV2> Instances => EndingWithinPeriod.Concat(ContainedWithinPeriod).Concat(StartingWithinPeriod).Distinct().ToList();
+
+        public bool AnyInstancesAfter(ApiPositionInstanceV2 instance)
+        {
+            // In this case the instance outlasts the period and is outside of scope
+            if (StartingWithinPeriod.Contains(instance))
+                return true;
+
+            return Instances.Except([instance]).Any(i => i.AppliesFrom > instance.AppliesTo);
+        }
+    }
+
+
+    private class DateTimeRange
+    {
+        public DateTime Start { get; set; }
+        public DateTime Stop { get; set; }
+
+        public bool Overlaps(DateTimeRange other)
+        {
+            return Start < other.Stop && Stop > other.Start;
         }
 
-        return lastExpiringInstance;
+        public bool Contains(DateTime dateTime)
+        {
+            return Start <= dateTime && dateTime <= Stop;
+        }
+
+        public TimeSpan Duration()
+        {
+            return Stop - Start;
+        }
     }
 
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/utils.ts#L53

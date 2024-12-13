@@ -93,7 +93,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
 
         var futureInstanceThatIsAlsoExpiring = new PositionBuilder()
-            .WithInstance(now.AddDays(30), now.AddDays(30 * 2), person: personA)
+            .WithInstance(now.AddDays(30), now.AddDays(30 * 1.5), person: personA)
             .Build();
         testData.AddPosition(futureInstanceThatIsAlsoExpiring, shouldBeIncludedInReportList: true);
 
@@ -165,6 +165,16 @@ public class WeeklyTaskOwnerReportDataCreatorTests
 
         testData.AddPosition(nonActivePositionWithPastAllocationAndFutureTBN);
 
+
+        var testPos = new PositionBuilder()
+            .WithInstance(now.AddMonths(-6), now.AddMonths(1), person: personA)
+            .AddNextInstance(TimeSpan.FromDays(48), personA)
+            .AddNextInstance(TimeSpan.FromDays(90), personA)
+            .Build();
+
+        testData.AddPosition(testPos);
+
+
         var shouldBeIncludedInReport = testData.ShouldBeIncludedInReport;
         var positionsToTest = testData.PositionsToTest;
         var instanceToBeIncluded = testData.InstanceToBeIncluded;
@@ -192,7 +202,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         }
 
         // Check that there are no extra positions that should not be included
-        data.Should().HaveSameCount(shouldBeIncludedInReport, $"Exactly these positions should be included in the report, {string.Join(", ", shouldBeIncludedInReport)}, these should not be included {string.Join(", ", positionsToTest.Select(p => p.Name).Except(shouldBeIncludedInReport))}");
+        data.Should().HaveSameCount(shouldBeIncludedInReport, $"Exactly these positions should be included in the report: {string.Join(", ", shouldBeIncludedInReport)}. These should not be included: {string.Join(", ", data.Select(p => p.Position.Name).Where(p => !shouldBeIncludedInReport.Contains(p)))}");
     }
 
     [Fact]
@@ -278,7 +288,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         // Check that there are no extra positions that should not be included
         data.Should().HaveSameCount(testData.ShouldBeIncludedInReport,
             $"Exactly these positions should be included in the report, {string.Join(", ", testData.ShouldBeIncludedInReport)}," +
-            $" these should not be included {string.Join(", ", testData.PositionsToTest.Select(p => p.Name).Except(testData.ShouldBeIncludedInReport))}");
+            $" these should not be included {string.Join(", ", data.Select(p => p.Position.Name).Where(p => !testData.ShouldBeIncludedInReport.Contains(p)))}");
     }
 
 
