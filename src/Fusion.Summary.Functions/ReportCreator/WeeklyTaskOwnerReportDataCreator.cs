@@ -63,12 +63,13 @@ public abstract class WeeklyTaskOwnerReportDataCreator
             var instancesWithinPeriod = FindInstancesWithinPeriod(position, new DateTimeRange() { Start = nowDate, Stop = expiringDate });
 
 
-            if (instancesWithinPeriod.EndingWithinPeriod.Count == 0
-                && instancesWithinPeriod.ContainedWithinPeriod.Count == 0
-                && instancesWithinPeriod.StartingWithinPeriod.Any())
-            {
+            var anyAllocatedWithinPeriod = instancesWithinPeriod.EndingWithinPeriod
+                .Concat(instancesWithinPeriod.ContainedWithinPeriod)
+                .Any(i => i.AssignedPerson is not null);
+
+            if (!anyAllocatedWithinPeriod)
                 continue;
-            }
+
 
             foreach (var instance in instancesWithinPeriod.Instances)
             {
@@ -125,10 +126,17 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
     private class InstancesWithinPeriod
     {
+        /// Last instance starting after period (outside of scope)
         public ApiPositionInstanceV2? LastInstance { get; set; }
+
+        /// Starts outside of period and ends within period
         public required List<ApiPositionInstanceV2> EndingWithinPeriod { get; set; }
+
+        /// Starts and ends within period
         public required List<ApiPositionInstanceV2> ContainedWithinPeriod { get; set; }
-        public required List<ApiPositionInstanceV2> StartingWithinPeriod { get; set; } // Starting within period and ending after period
+
+        /// Starting within period and ending after period
+        public required List<ApiPositionInstanceV2> StartingWithinPeriod { get; set; }
 
         public List<ApiPositionInstanceV2> Instances => EndingWithinPeriod.Concat(ContainedWithinPeriod).Concat(StartingWithinPeriod).Distinct().ToList();
 
