@@ -149,6 +149,19 @@ public class AdaptiveCardBuilder
 
         listContainer.Items.Add(header);
         listContainer.Items.Add(subtitle);
+
+        if (goToAction != null)
+        {
+            var actionSet = new AdaptiveActionSet();
+            var action = new AdaptiveOpenUrlAction()
+            {
+                Title = goToAction.Title,
+                Url = new Uri(goToAction.Url)
+            };
+            actionSet.Actions.Add(action);
+            listContainer.Items.Add(actionSet);
+        }
+
         listContainer.Items.Add(grid);
 
         // If no data is present, add a "None" text
@@ -162,18 +175,6 @@ public class AdaptiveCardBuilder
             });
         }
 
-        if (goToAction != null)
-        {
-            var actionSet = new AdaptiveActionSet();
-            var action = new AdaptiveOpenUrlAction()
-            {
-                Title = goToAction.Title,
-                Url = new Uri(goToAction.Url)
-            };
-
-            actionSet.Actions.Add(action);
-            listContainer.Items.Add(actionSet);
-        }
 
         _adaptiveCard.Body.Add(listContainer);
         return this;
