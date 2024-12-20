@@ -27,6 +27,7 @@ public class WeeklyTaskOwnerReportSender
     private readonly AdaptiveCardRenderer cardHtmlRenderer;
     private readonly bool sendingNotificationEnabled = true; // Default to true so that we don't accidentally disable sending notifications
     private readonly string fusionUri;
+    private readonly string[]? filterToRecipients;
 
     private const string IsSendingNotificationEnabledKey = "WeeklyTaskOwnerReport_IsSendingNotificationEnabled";
     private const string FunctionName = "weekly-task-owner-report-sender";
@@ -46,6 +47,12 @@ public class WeeklyTaskOwnerReportSender
             sendingNotificationEnabled = enabled == 1;
         else if (bool.TryParse(configuration[IsSendingNotificationEnabledKey], out var enabledBool))
             sendingNotificationEnabled = enabledBool;
+
+        // For testing purposes, we can filter the recipients to only send to a specific set of people
+        filterToRecipients = configuration["WeeklyTaskOwnerReport_FilterToRecipientEmails"]?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(email => email.Contains('@'))
+            .ToArray();
     }
 
     [FunctionName(FunctionName)]
@@ -55,6 +62,9 @@ public class WeeklyTaskOwnerReportSender
 
         if (!sendingNotificationEnabled)
             logger.LogInformation("Sending of notifications is disabled");
+
+        if (filterToRecipients is { Length: > 0 })
+            logger.LogInformation("Filtering to recipients: {Recipients}", string.Join(',', filterToRecipients));
 
         var projects = await GetProjectsInformationAsync(cancellationToken);
 
@@ -172,6 +182,9 @@ public class WeeklyTaskOwnerReportSender
             {
                 // TODO: Email resolution should be done before the az func sender runs, and the resolved emails should be stored on the report/project
                 recipientEmails = await ResolveEmailsAsync(project.Recipients, cancellationToken);
+
+                if (filterToRecipients is { Length: > 0 })
+                    recipientEmails = recipientEmails.Intersect(filterToRecipients, StringComparer.OrdinalIgnoreCase).ToArray();
             }
             catch (Exception e)
             {
