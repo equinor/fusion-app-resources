@@ -65,7 +65,7 @@ public class AdaptiveCardBuilder
     }
 
 
-    public AdaptiveCardBuilder AddGrid(string headerText, string subtitleText, IEnumerable<GridColumn> columnsEnumerable, GoToAction? goToAction = null)
+    public AdaptiveCardBuilder AddGrid(string headerText, string subtitleText, IEnumerable<GridColumn> columnsEnumerable, GoToAction? goToAction = null, int? maxItems = 10)
     {
         var columns = columnsEnumerable.ToList();
         var listContainer = new AdaptiveContainer
@@ -91,13 +91,23 @@ public class AdaptiveCardBuilder
 
 
         var grid = new AdaptiveColumnSet();
+        var maxItemsReached = false;
+        var totalRows = columns.FirstOrDefault()?.Cells.Count(c => !c.IsHeader) ?? 0;
 
         foreach (var column in columns)
         {
+            maxItemsReached = false;
+            var cellCount = 0;
             var rows = new List<AdaptiveElement>();
 
             foreach (var gridCell in column.Cells)
             {
+                if (maxItems.HasValue && cellCount >= maxItems)
+                {
+                    maxItemsReached = true;
+                    break;
+                }
+
                 var cell = new AdaptiveTextBlock
                 {
                     Text = gridCell.Value,
@@ -108,6 +118,8 @@ public class AdaptiveCardBuilder
                 };
 
                 rows.Add(cell);
+                if (!gridCell.IsHeader)
+                    cellCount++;
             }
 
             var gridColumn = new AdaptiveColumn
@@ -170,6 +182,16 @@ public class AdaptiveCardBuilder
             listContainer.Items.Add(new AdaptiveTextBlock
             {
                 Text = "None",
+                Wrap = true,
+                HorizontalAlignment = AdaptiveHorizontalAlignment.Center
+            });
+        }
+
+        if (maxItemsReached && maxItems.HasValue)
+        {
+            listContainer.Items.Add(new AdaptiveTextBlock
+            {
+                Text = $"And {totalRows - maxItems} more...",
                 Wrap = true,
                 HorizontalAlignment = AdaptiveHorizontalAlignment.Center
             });
