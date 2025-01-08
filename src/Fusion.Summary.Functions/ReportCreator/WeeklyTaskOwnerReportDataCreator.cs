@@ -41,10 +41,12 @@ public abstract class WeeklyTaskOwnerReportDataCreator
     }
 
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/utils.ts#L86
-    private static bool IsSupportPosition(ApiPositionV2 position)
+    private static bool IsSupportPosition(ApiPositionV2? position)
     {
+        if (position is null || string.IsNullOrEmpty(position.BasePosition.Name))
+            return false;
         var supportNames = new[] { "support", "advisor", "assistance" };
-        return supportNames.Any(s => position.Name.Contains(s, StringComparison.OrdinalIgnoreCase));
+        return supportNames.Any(s => position.BasePosition.Name.Contains(s, StringComparison.OrdinalIgnoreCase));
     }
 
     public static List<ExpiringPosition> GetPositionAllocationsEndingNextThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions)
