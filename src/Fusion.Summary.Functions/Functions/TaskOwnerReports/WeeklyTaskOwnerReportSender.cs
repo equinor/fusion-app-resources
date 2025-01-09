@@ -276,7 +276,7 @@ public class WeeklyTaskOwnerReportSender
                 }, new GoToAction()
                 {
                     Title = "Go to access control management",
-                    Url = $"{fusionUri}/apps/org-admin/{contextId}/access-control"
+                    Url = $"{fusionUri}/apps/org-admin/{contextId}/access-control?filter=admins-exp-3m"
                 })
             .AddGrid($"Allocations expiring next 3 months",
                 "(Contact the resource owner if there is a need to extend the allocation)", new List<GridColumn>()
