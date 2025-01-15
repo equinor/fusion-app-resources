@@ -42,14 +42,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 setupBuilder.SetupAction?.Invoke(c);
 
-                c.CustomSchemaIds(type =>
-                {
-                    // To fix this swagger gen error
-                    // System.InvalidOperationException: Can't use schemaId "$ApiPerson" for type "$Fusion.Services.LineOrg.ApiModels.ApiPerson". The same schemaId is already used for type "$Fusion.Resources.Api.Controllers.ApiPerson"
-                    if (type == typeof(Fusion.Services.LineOrg.ApiModels.ApiPerson))
-                        return $"{nameof(Fusion.Services.LineOrg.ApiModels.ApiPerson)}_LingOrg";
-                    return type.ToString();
-                });
+                // To fix this swagger gen error
+                // System.InvalidOperationException: Can't use schemaId "$ApiPerson" for type "$Fusion.Services.LineOrg.ApiModels.ApiPerson". The same schemaId is already used for type "$Fusion.Resources.Api.Controllers.ApiPerson"
+                // TODO: This is a quick fix, makes the schema models have very long name, for example: Fusion.AspNetCore.Api.PatchProperty`1[Fusion.Resources.Api.Controllers.ApiPropertiesCollection]
+                c.CustomSchemaIds(type => type.ToString());
 
                 // Only add endpoints that belongs to the version spec
                 c.DocInclusionPredicate((version, desc) =>
