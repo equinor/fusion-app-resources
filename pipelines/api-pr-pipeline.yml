@@ -19,7 +19,7 @@ resources:
 
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
-    fusionAcr: 'crfsharedhostingall.azurecr.io'
+    fusionAcr: 'crfsharedhostingallsandbox.azurecr.io'
     imageRepo: fra/resouces-api-pr
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'FRA Automation Non-Prod'
@@ -38,7 +38,7 @@ stages:
       - task: Docker@2
         displayName: 'Build docker image'
         inputs:
-          containerRegistry: 'fusion-aks-cr'
+          containerRegistry: 'fusion-aks-cr-sandbox'
           repository: $(imageRepo)
           command: buildAndPush
           buildContext: ./src/backend
@@ -54,7 +54,7 @@ stages:
           arguments: |
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(prNumber)
+            --cache-from=type=registry,ref=crfsharedhostingallsandbox.azurecr.io/$(imageRepo):$(prNumber)
 
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
