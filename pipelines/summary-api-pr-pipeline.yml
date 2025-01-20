@@ -19,7 +19,7 @@ resources:
 
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
-    fusionAcr: 'crfsharedhostingall.azurecr.io'
+    fusionAcr: 'crfsharedhostingallsandbox.azurecr.io'
     imageRepo: fra/summary-api-pr
     imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'FRA Automation Non-Prod'
