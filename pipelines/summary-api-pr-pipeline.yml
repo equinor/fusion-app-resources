@@ -38,7 +38,7 @@ stages:
       - task: Docker@2
         displayName: 'Build docker image'
         inputs:
-          containerRegistry: 'fusion-aks-cr'
+          containerRegistry: 'fusion-aks-cr-sandbox'
           repository: $(imageRepo)
           command: buildAndPush
           buildContext: ./src
