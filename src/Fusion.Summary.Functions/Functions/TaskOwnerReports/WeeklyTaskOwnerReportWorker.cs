@@ -69,7 +69,7 @@ public class WeeklyTaskOwnerReportWorker
         var expiringAdmins = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
         var actionsAwaitingTaskOwner = WeeklyTaskOwnerReportDataCreator.GetActionsAwaitingTaskOwnerAsync(activeRequestsForProject);
         var expiringPositionAllocations = WeeklyTaskOwnerReportDataCreator.GetPositionAllocationsEndingNextThreeMonths(allProjectPositions);
-        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(allProjectPositions, activeRequestsForProject);
+        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(allProjectPositions);
 
         var lastMonday = now.GetPreviousWeeksMondayDate();
         var report = new ApiWeeklyTaskOwnerReport()
@@ -84,21 +84,21 @@ public class WeeklyTaskOwnerReportWorker
                 AzureUniqueId = ea.AzureUniqueId,
                 FullName = ea.FullName,
                 Expires = ea.ValidTo
-            }).ToArray(),
+            }).OrderBy(ea => ea.Expires).ToArray(),
             PositionAllocationsEndingInNextThreeMonths = expiringPositionAllocations.Select(ep => new ApiPositionAllocationEnding()
             {
                 PositionName = ep.Position.BasePosition.Name ?? string.Empty,
                 PositionNameDetailed = ep.Position.Name,
                 PositionExternalId = ep.Position.ExternalId ?? string.Empty,
                 PositionAppliesTo = ep.ExpiresAt
-            }).ToArray(),
+            }).OrderBy(ep => ep.PositionAppliesTo).ToArray(),
             TBNPositionsStartingInLessThanThreeMonths = tbnPositions.Select(tp => new ApiTBNPositionStartingSoon()
             {
                 PositionName = tp.Position.BasePosition.Name ?? string.Empty,
                 PositionNameDetailed = tp.Position.Name,
                 PositionExternalId = tp.Position.ExternalId ?? string.Empty,
                 PositionAppliesFrom = tp.StartsAt
-            }).ToArray()
+            }).OrderBy(tp => tp.PositionAppliesFrom).ToArray()
         };
 
 
