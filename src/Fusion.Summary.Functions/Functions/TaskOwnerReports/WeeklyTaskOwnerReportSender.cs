@@ -27,6 +27,7 @@ public class WeeklyTaskOwnerReportSender
     private readonly AdaptiveCardRenderer cardHtmlRenderer;
     private readonly bool sendingNotificationEnabled = true; // Default to true so that we don't accidentally disable sending notifications
     private readonly string fusionUri;
+    private readonly string[]? filterToRecipients;
 
     private const string IsSendingNotificationEnabledKey = "WeeklyTaskOwnerReport_IsSendingNotificationEnabled";
     private const string FunctionName = "weekly-task-owner-report-sender";
@@ -46,6 +47,12 @@ public class WeeklyTaskOwnerReportSender
             sendingNotificationEnabled = enabled == 1;
         else if (bool.TryParse(configuration[IsSendingNotificationEnabledKey], out var enabledBool))
             sendingNotificationEnabled = enabledBool;
+
+        // For testing purposes, we can filter the recipients to only send to a specific set of people
+        filterToRecipients = configuration["WeeklyTaskOwnerReport_FilterToRecipientEmails"]?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(email => email.Contains('@'))
+            .ToArray();
     }
 
     [FunctionName(FunctionName)]
@@ -55,6 +62,9 @@ public class WeeklyTaskOwnerReportSender
 
         if (!sendingNotificationEnabled)
             logger.LogInformation("Sending of notifications is disabled");
+
+        if (filterToRecipients is { Length: > 0 })
+            logger.LogInformation("Filtering to recipients: {Recipients}", string.Join(',', filterToRecipients));
 
         var projects = await GetProjectsInformationAsync(cancellationToken);
 
@@ -172,6 +182,9 @@ public class WeeklyTaskOwnerReportSender
             {
                 // TODO: Email resolution should be done before the az func sender runs, and the resolved emails should be stored on the report/project
                 recipientEmails = await ResolveEmailsAsync(project.Recipients, cancellationToken);
+
+                if (filterToRecipients is { Length: > 0 })
+                    recipientEmails = recipientEmails.Intersect(filterToRecipients, StringComparer.OrdinalIgnoreCase).ToArray();
             }
             catch (Exception e)
             {
@@ -237,87 +250,90 @@ public class WeeklyTaskOwnerReportSender
                     Title = "Go to open requests",
                     Url = $"{fusionUri}/apps/org-admin/{contextId}/open-requests?filter=awaiting-task-owner"
                 })
-            .AddGrid("Admin access expiring in less than 3 months", "(Consider extending the access in Access control management)", new List<GridColumn>()
-            {
-                new()
+            .AddGrid($"Admin access expiring in less than 3 months",
+                "(Consider extending the access in Access control management)", new List<GridColumn>()
                 {
-                    Width = AdaptiveColumnWidth.Stretch,
-                    Cells =
-                    [
-                        new GridCell(isHeader: true, value: "Name"),
-                        ..report.AdminAccessExpiringInLessThanThreeMonths.Select(a
-                            => new GridCell(isHeader: false, value: a.FullName))
-                    ]
-                },
-                new()
+                    new()
+                    {
+                        Width = AdaptiveColumnWidth.Stretch,
+                        Cells =
+                        [
+                            new GridCell(isHeader: true, value: "Name"),
+                            ..report.AdminAccessExpiringInLessThanThreeMonths.Select(a
+                                => new GridCell(isHeader: false, value: a.FullName))
+                        ]
+                    },
+                    new()
+                    {
+                        Width = AdaptiveColumnWidth.Auto,
+                        Cells =
+                        [
+                            new GridCell(isHeader: true, value: "Expires"),
+                            ..report.AdminAccessExpiringInLessThanThreeMonths.Select(a
+                                => new GridCell(isHeader: false, value: a.Expires.ToString("dd/MM/yyyy")))
+                        ]
+                    }
+                }, new GoToAction()
                 {
-                    Width = AdaptiveColumnWidth.Auto,
-                    Cells =
-                    [
-                        new GridCell(isHeader: true, value: "Expires"),
-                        ..report.AdminAccessExpiringInLessThanThreeMonths.Select(a
-                            => new GridCell(isHeader: false, value: a.Expires.ToString("dd/MM/yyyy")))
-                    ]
-                }
-            }, new GoToAction()
-            {
-                Title = "Go to access control management",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/access-control"
-            })
-            .AddGrid("Allocations expiring next 3 months", "(Contact the resource owner if there is a need to extend the allocation)", new List<GridColumn>()
-            {
-                new()
+                    Title = "Go to access control management",
+                    Url = $"{fusionUri}/apps/org-admin/{contextId}/access-control?filter=admins-exp-3m"
+                })
+            .AddGrid($"Allocations expiring next 3 months",
+                "(Contact the resource owner if there is a need to extend the allocation)", new List<GridColumn>()
                 {
-                    Width = AdaptiveColumnWidth.Stretch,
-                    Cells =
-                    [
-                        new GridCell(isHeader: true, value: "Position"),
-                        ..report.PositionAllocationsEndingInNextThreeMonths.Select(p
-                            => new GridCell(isHeader: false, value: $"{p.PositionExternalId} {p.PositionNameDetailed}"))
-                    ]
-                },
-                new()
+                    new()
+                    {
+                        Width = AdaptiveColumnWidth.Stretch,
+                        Cells =
+                        [
+                            new GridCell(isHeader: true, value: "Position"),
+                            ..report.PositionAllocationsEndingInNextThreeMonths.Select(p
+                                => new GridCell(isHeader: false, value: $"{p.PositionExternalId} {p.PositionNameDetailed}"))
+                        ]
+                    },
+                    new()
+                    {
+                        Width = AdaptiveColumnWidth.Auto,
+                        Cells =
+                        [
+                            new GridCell(isHeader: true, value: "End date"),
+                            ..report.PositionAllocationsEndingInNextThreeMonths.Select(p
+                                => new GridCell(isHeader: false, value: p.PositionAppliesTo.ToString("dd/MM/yyyy")))
+                        ]
+                    }
+                }, new GoToAction()
                 {
-                    Width = AdaptiveColumnWidth.Auto,
-                    Cells =
-                    [
-                        new GridCell(isHeader: true, value: "End date"),
-                        ..report.PositionAllocationsEndingInNextThreeMonths.Select(p
-                            => new GridCell(isHeader: false, value: p.PositionAppliesTo.ToString("dd/MM/yyyy")))
-                    ]
-                }
-            }, new GoToAction()
-            {
-                Title = "Go to positions listing view",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=allocations-exp-3m"
-            })
-            .AddGrid("TBN positions with start date next 3 months", "(Please create a resource request or update the position start-date)", new List<GridColumn>()
-            {
-                new()
+                    Title = "Go to positions listing view",
+                    Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=allocations-exp-3m"
+                })
+            .AddGrid($"TBN positions with start date next 3 months",
+                "(Please create a resource request or update the position start-date)", new List<GridColumn>()
                 {
-                    Width = AdaptiveColumnWidth.Stretch,
-                    Cells =
-                    [
-                        new GridCell(isHeader: true, value: "Position"),
-                        ..report.TBNPositionsStartingInLessThanThreeMonths.Select(p
-                            => new GridCell(isHeader: false, value: $"{p.PositionExternalId} {p.PositionNameDetailed}"))
-                    ]
-                },
-                new()
+                    new()
+                    {
+                        Width = AdaptiveColumnWidth.Stretch,
+                        Cells =
+                        [
+                            new GridCell(isHeader: true, value: "Position"),
+                            ..report.TBNPositionsStartingInLessThanThreeMonths.Select(p
+                                => new GridCell(isHeader: false, value: $"{p.PositionExternalId} {p.PositionNameDetailed}"))
+                        ]
+                    },
+                    new()
+                    {
+                        Width = AdaptiveColumnWidth.Auto,
+                        Cells =
+                        [
+                            new GridCell(isHeader: true, value: "Start date"),
+                            ..report.TBNPositionsStartingInLessThanThreeMonths.Select(p
+                                => new GridCell(isHeader: false, value: p.PositionAppliesFrom.ToString("dd/MM/yyyy")))
+                        ]
+                    }
+                }, new GoToAction()
                 {
-                    Width = AdaptiveColumnWidth.Auto,
-                    Cells =
-                    [
-                        new GridCell(isHeader: true, value: "Start date"),
-                        ..report.TBNPositionsStartingInLessThanThreeMonths.Select(p
-                            => new GridCell(isHeader: false, value: p.PositionAppliesFrom.ToString("dd/MM/yyyy")))
-                    ]
-                }
-            }, new GoToAction()
-            {
-                Title = "Go to positions listing view",
-                Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/listing-view?filter=tbn-pos-3m"
-            })
+                    Title = "Go to positions timeline view",
+                    Url = $"{fusionUri}/apps/org-admin/{contextId}/edit-positions/timeline-view?filter=tbn-pos-3m"
+                })
             .Build();
 
         var subject = $"Weekly summary - {project.Name}";
