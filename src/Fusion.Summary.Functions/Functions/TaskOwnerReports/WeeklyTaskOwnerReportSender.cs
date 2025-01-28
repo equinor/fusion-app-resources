@@ -167,9 +167,9 @@ public class WeeklyTaskOwnerReportSender
         return taskOwnerReports.ToArray();
     }
 
-    private async Task<List<SendEmailWithTemplateRequest>> CreateMailRequestsAsync(IEnumerable<Project> projects, ICollection<ApiWeeklyTaskOwnerReport> taskOwnerReports, CancellationToken cancellationToken)
+    private async Task<List<SummaryReportRequest>> CreateMailRequestsAsync(IEnumerable<Project> projects, ICollection<ApiWeeklyTaskOwnerReport> taskOwnerReports, CancellationToken cancellationToken)
     {
-        var requests = new List<SendEmailWithTemplateRequest>();
+        var requests = new List<SummaryReportRequest>();
 
         foreach (var project in projects)
         {
@@ -195,7 +195,12 @@ public class WeeklyTaskOwnerReportSender
 
             try
             {
-                requests.Add(CreateReportMail(recipientEmails, project, report));
+                var emailRequest = CreateReportMail(recipientEmails, project, report);
+                requests.Add(new SummaryReportRequest()
+                {
+                    Email = emailRequest,
+                    ProjectName = project.Name
+                });
             }
             catch (Exception e)
             {
@@ -206,20 +211,23 @@ public class WeeklyTaskOwnerReportSender
         return requests;
     }
 
-    private async Task SendTaskOwnerReportsAsync(IEnumerable<SendEmailWithTemplateRequest> emailReportRequests)
+    private async Task SendTaskOwnerReportsAsync(IEnumerable<SummaryReportRequest> summaryReports)
     {
-        foreach (var request in emailReportRequests)
+        foreach (var report in summaryReports)
         {
             try
             {
                 if (sendingNotificationEnabled)
-                    await mailApiClient.SendEmailWithTemplateAsync(request);
+                {
+                    logger.LogInformation("Sending task owner summary mail for project '{ProjectName}' to {Recipients}", report.ProjectName, string.Join(',', report.Email.Recipients));
+                    await mailApiClient.SendEmailWithTemplateAsync(report.Email);
+                }
                 else
-                    logger.LogInformation("Sending of notifications is disabled. Skipping sending mail to {Recipients}", string.Join(',', request.Recipients));
+                    logger.LogInformation("Sending of notifications is disabled. Skipping sending mail for project '{ProjectName}'  to {Recipients}", report.ProjectName, string.Join(',', report.Email.Recipients));
             }
             catch (ApiError e)
             {
-                logger.LogError(e, "Failed to send task owner report mail. Request: {Request}", request.ToJson());
+                logger.LogError(e, "Failed to send task owner report mail. Request: {Request}", report.ToJson());
             }
         }
     }
@@ -481,6 +489,12 @@ public class WeeklyTaskOwnerReportSender
                 yield return grandChild;
             }
         }
+    }
+
+    private class SummaryReportRequest
+    {
+        public required SendEmailWithTemplateRequest Email { get; set; }
+        public required string ProjectName { get; set; }
     }
 
 
