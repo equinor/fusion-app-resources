@@ -223,7 +223,7 @@ public class WeeklyTaskOwnerReportSender
                     await mailApiClient.SendEmailWithTemplateAsync(report.Email);
                 }
                 else
-                    logger.LogInformation("Sending of notifications is disabled. Skipping sending mail to {Recipients}", string.Join(',', report.Email.Recipients));
+                    logger.LogInformation("Sending of notifications is disabled. Skipping sending mail for project '{ProjectName}'  to {Recipients}", report.ProjectName, string.Join(',', report.Email.Recipients));
             }
             catch (ApiError e)
             {
