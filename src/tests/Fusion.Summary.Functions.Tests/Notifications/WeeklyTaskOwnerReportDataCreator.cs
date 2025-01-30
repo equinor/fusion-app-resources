@@ -248,6 +248,26 @@ public class WeeklyTaskOwnerReportDataCreatorTests
                 .Build();
         testData.AddPosition(nonActiveWithinThreeMonths, shouldBeIncludedInReportList: true, instanceSelector: i => i.AssignedPerson is null);
 
+        var nonActiveWithinThreeMonthsNoPersonButHasRequest =
+            new PositionBuilder()
+                .WithInstance(now.AddMonths(2), now.AddMonths(3))
+                .Build();
+        testData.AddPosition(nonActiveWithinThreeMonthsNoPersonButHasRequest, shouldBeIncludedInReportList: false);
+
+        var instance = nonActiveWithinThreeMonthsNoPersonButHasRequest.Instances.First();
+        var request = new IResourcesApiClient.ResourceAllocationRequest()
+        {
+            Id = Guid.NewGuid(),
+            OrgPosition = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasRequest.Id
+            },
+            OrgPositionInstance = new()
+            {
+                Id = instance.Id
+            }
+        };
+
 
         var nonActiveOutsideThreeMonths =
             new PositionBuilder()
@@ -271,7 +291,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         testData.AddPosition(pastPositionWithPerson);
 
 
-        var data = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(testData.PositionsToTest);
+        var data = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(testData.PositionsToTest, [request]);
 
         data.Should().OnlyHaveUniqueItems();
         foreach (var positionName in testData.ShouldBeIncludedInReport)
