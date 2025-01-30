@@ -254,7 +254,6 @@ public class WeeklyTaskOwnerReportDataCreatorTests
                 .Build();
         testData.AddPosition(nonActiveWithinThreeMonthsNoPersonButHasRequest, shouldBeIncludedInReportList: false);
 
-        var instance = nonActiveWithinThreeMonthsNoPersonButHasRequest.Instances.First();
         var request = new IResourcesApiClient.ResourceAllocationRequest()
         {
             Id = Guid.NewGuid(),
@@ -264,8 +263,29 @@ public class WeeklyTaskOwnerReportDataCreatorTests
             },
             OrgPositionInstance = new()
             {
-                Id = instance.Id
-            }
+                Id = nonActiveWithinThreeMonthsNoPersonButHasRequest.Instances.First().Id
+            },
+            IsDraft = false,
+        };
+
+        var nonActiveWithinThreeMonthsNoPersonButHasDraftRequest =
+            new PositionBuilder()
+                .WithInstance(now.AddMonths(2), now.AddMonths(3))
+                .Build();
+        testData.AddPosition(nonActiveWithinThreeMonthsNoPersonButHasDraftRequest, shouldBeIncludedInReportList: true);
+
+        var draftRequest = new IResourcesApiClient.ResourceAllocationRequest()
+        {
+            Id = Guid.NewGuid(),
+            OrgPosition = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasDraftRequest.Id
+            },
+            OrgPositionInstance = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasDraftRequest.Id
+            },
+            IsDraft = true
         };
 
 
@@ -291,7 +311,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         testData.AddPosition(pastPositionWithPerson);
 
 
-        var data = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(testData.PositionsToTest, [request]);
+        var data = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(testData.PositionsToTest, [request, draftRequest]);
 
         data.Should().OnlyHaveUniqueItems();
         foreach (var positionName in testData.ShouldBeIncludedInReport)

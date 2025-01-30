@@ -45,7 +45,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
     {
         var instanceRequest = activeRequests.FirstOrDefault(r => r.OrgPositionInstance?.Id == instance.Id);
 
-        return instanceRequest is not null && !string.Equals(instanceRequest.State, "Completed", StringComparison.OrdinalIgnoreCase);
+        return instanceRequest is not null && !string.Equals(instanceRequest.State, "Completed", StringComparison.OrdinalIgnoreCase) && !instanceRequest.IsDraft;
     }
 
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/utils.ts#L86
