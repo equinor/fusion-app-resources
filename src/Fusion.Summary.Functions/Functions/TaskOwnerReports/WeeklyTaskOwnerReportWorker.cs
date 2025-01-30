@@ -69,7 +69,7 @@ public class WeeklyTaskOwnerReportWorker
         var expiringAdmins = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
         var actionsAwaitingTaskOwner = WeeklyTaskOwnerReportDataCreator.GetActionsAwaitingTaskOwnerAsync(activeRequestsForProject);
         var expiringPositionAllocations = WeeklyTaskOwnerReportDataCreator.GetPositionAllocationsEndingNextThreeMonths(allProjectPositions);
-        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(allProjectPositions);
+        var tbnPositions = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(allProjectPositions, activeRequestsForProject);
 
         var lastMonday = now.GetPreviousWeeksMondayDate();
         var report = new ApiWeeklyTaskOwnerReport()
