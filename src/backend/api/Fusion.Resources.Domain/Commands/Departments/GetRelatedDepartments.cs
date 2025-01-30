@@ -9,12 +9,14 @@ namespace Fusion.Resources.Domain
 {
     public class GetRelatedDepartments : IRequest<QueryRelatedDepartments?>
     {
-        public GetRelatedDepartments(string department)
+        public GetRelatedDepartments(string department, bool isDepartmentManager = false)
         {
             Department = department;
+            IsDepartmentManager = isDepartmentManager;
         }
 
         public string Department { get; }
+        public bool IsDepartmentManager { get; }
 
         public class Handler : IRequestHandler<GetRelatedDepartments, QueryRelatedDepartments?>
         {
@@ -28,17 +30,17 @@ namespace Fusion.Resources.Domain
             }
 
             public async Task<QueryRelatedDepartments?> Handle(GetRelatedDepartments request, CancellationToken cancellationToken)
-                => await TryGetRelevantDepartmentsAsync(request.Department);
+                => await TryGetRelevantDepartmentsAsync(request.Department, request.IsDepartmentManager);
 
 
-            private async Task<QueryRelatedDepartments?> TryGetRelevantDepartmentsAsync(string? fullDepartment)
+            private async Task<QueryRelatedDepartments?> TryGetRelevantDepartmentsAsync(string? fullDepartment, bool isDepartmentManager)
             {
                 if (fullDepartment is null)
                     return null;
 
                 try
                 {
-                    return await ResolveRelevantDepartmentsAsync(fullDepartment);
+                    return await ResolveRelevantDepartmentsAsync(fullDepartment, isDepartmentManager);
 
                 }
                 catch (Exception ex)
@@ -49,7 +51,7 @@ namespace Fusion.Resources.Domain
                 }
             }
 
-            private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
+            private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath, bool isDepartmentManager)
             {
                 var relevantDepartments = new QueryRelatedDepartments();
 
@@ -65,12 +67,12 @@ namespace Fusion.Resources.Domain
                 if (relevantDepartments.Children is null)
                     throw new NullReferenceException($"Child org unit should have been expanded and not be null for org unit {orgUnit?.FullDepartment}");
 
-                relevantDepartments.Children = orgUnit.Children!.Select(o => new QueryDepartment(o)).ToList(); 
+                relevantDepartments.Children = orgUnit.Children!.Select(o => new QueryDepartment(o)).ToList();
 
 
                 // Add siblings
 
-                if (orgUnit.Parent is not null)
+                if (orgUnit.Parent is not null && !isDepartmentManager)
                 {
                     var parentOrg = await lineOrg.ResolveOrgUnitAsync(orgUnit.Parent.SapId, a => a.ExpandChildren());
 
@@ -89,7 +91,7 @@ namespace Fusion.Resources.Domain
                 return relevantDepartments;
             }
 
-           
+
         }
     }
 }

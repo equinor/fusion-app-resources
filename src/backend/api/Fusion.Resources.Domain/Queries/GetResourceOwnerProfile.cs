@@ -70,7 +70,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 QueryRelatedDepartments? lineOrgDepartmentProfile = null;
                 if (!string.IsNullOrEmpty(user.FullDepartment))
-                    lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
+                    lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment, isDepartmentManager), cancellationToken);
                 else
                     logger.LogDebug("No department found for profile. Skipping related department check.");
 
