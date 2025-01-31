@@ -106,7 +106,7 @@ namespace Fusion.Resources.Functions.Common.ApiClients
         public async Task<ICollection<ResourceAllocationRequest>> GetActiveRequestsForProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
         {
             var response = await resourcesClient
-                .GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>($"projects/{projectId}/resources/requests?$Filter=state neq 'completed'&$top={int.MaxValue}", cancellationToken: cancellationToken);
+                .GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>($"projects/{projectId}/resources/requests?$expand=orgPositionInstance&$Filter=state neq 'completed'&$top={int.MaxValue}", cancellationToken: cancellationToken);
 
             return response.Value;
         }
