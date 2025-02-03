@@ -25,9 +25,9 @@ public class WeeklyTaskOwnerReportDataCreatorTests
     {
         var admins = new List<PersonAdmin>()
         {
-            new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(1))), // Is expiring
-            new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(50))), // Is expiring
-            new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(90))), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "1", now.Add(TimeSpan.FromDays(1))), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "2", now.Add(TimeSpan.FromDays(50))), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "3", now.AddMonths(3)), // Is expiring
             new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(120))), // Is not expiring
             new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(365))) // Is not expiring
         };
