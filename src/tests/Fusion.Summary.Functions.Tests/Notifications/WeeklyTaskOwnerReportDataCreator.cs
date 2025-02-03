@@ -23,18 +23,22 @@ public class WeeklyTaskOwnerReportDataCreatorTests
     [Fact]
     public void ActiveAdmins_AreConsideredExpiring_IfValidToIsLessThanThreeMonths()
     {
-        var admins = new List<PersonAdmin>()
+        var expiringAdmins = new List<PersonAdmin>()
         {
             new PersonAdmin(Guid.NewGuid(), "1", now.Add(TimeSpan.FromDays(1))), // Is expiring
             new PersonAdmin(Guid.NewGuid(), "2", now.Add(TimeSpan.FromDays(50))), // Is expiring
-            new PersonAdmin(Guid.NewGuid(), "3", now.AddMonths(3)), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "3", now.AddMonths(3).AddDays(-1)) // Is expiring
+        };
+        var nonExpiringAdmins = new List<PersonAdmin>()
+        {
+            new PersonAdmin(Guid.NewGuid(), "", now.AddMonths(3)), // Is not expiring
             new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(120))), // Is not expiring
             new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(365))) // Is not expiring
         };
 
-        var data = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
+        var data = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins([..expiringAdmins, ..nonExpiringAdmins]);
 
-        data.Should().HaveCount(3);
+        data.Should().HaveCount(expiringAdmins.Count).And.OnlyContain(admin => expiringAdmins.Select(ea => ea.FullName).Contains(admin.FullName));
     }
 
 

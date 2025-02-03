@@ -199,7 +199,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
     {
         var now = NowDate;
 
-        return activeAdmins.Where(a => a.ValidTo <= now.AddMonths(3)).ToList();
+        return activeAdmins.Where(a => a.ValidTo < now.AddMonths(3)).ToList();
     }
 }
 
