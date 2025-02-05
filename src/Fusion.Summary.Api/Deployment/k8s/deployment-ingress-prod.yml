@@ -4,7 +4,6 @@ metadata:
   name: summary-api-fusiondev-ingress
   annotations:
     kubernetes.io/tls-acme: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-fusiondev-issuer
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
     nginx.org/client-max-body-size: "50m"
@@ -15,7 +14,7 @@ spec:
   tls:
   - hosts:
     - fra-summary.api.fusion-dev.net
-    secretName: fra-summary.api.fusion-dev.net-tls
+    secretName: wildcard-fusiondev-tls-cert
   rules:
     - host: fra-summary.api.fusion-dev.net
       http:
@@ -45,7 +44,7 @@ spec:
   tls:
   - hosts:
     - fra-summary.api.fusion.equinor.com
-    secretName: wildcard-tls-cert
+    secretName: wildcard-equinor-tls-cert
   rules:
     - host: fra-summary.api.fusion.equinor.com
       http:

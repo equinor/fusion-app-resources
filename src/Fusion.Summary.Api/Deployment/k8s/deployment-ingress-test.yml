@@ -15,7 +15,7 @@ spec:
   tls:
     - hosts:
         - fra-summary.{{ENVNAME}}.api.fusion-dev.net
-      secretName: wildcard-tls-cert
+      secretName: wildcard-fusiondev-tls-cert
   rules:
     - host: fra-summary.{{ENVNAME}}.api.fusion-dev.net
       http:
