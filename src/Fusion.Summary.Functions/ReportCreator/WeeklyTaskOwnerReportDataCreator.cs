@@ -13,7 +13,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
     // Logic taken/inspired from the frontend
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/a9330b2aa8d104e51536692a72334252d5e474e1/apps/org-admin/src/pages/ProjectPage/components/ChartComponent/components/utils.ts#L28
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/pages/EditPositionsPage/pages/TimelineViewPage/components/TimelineFilter/selectors/positionSelector.ts#L14
-    public static List<TBNPosition> GetTBNPositionsStartingWithinThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions)
+    public static List<TBNPosition> GetTBNPositionsStartingWithinThreeMonths(IEnumerable<ApiPositionV2> allProjectPositions, ICollection<IResourcesApiClient.ResourceAllocationRequest> activeRequestsForProject)
     {
         var nowDate = NowDate;
         var expiringDate = nowDate.AddMonths(3);
@@ -29,6 +29,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
                 .OrderBy(i => i.AppliesFrom)
                 .Where(i => i.AppliesFrom < expiringDate) // hasDueWithinThreeMonths
                 .Where(i => i.AssignedPerson is null) // TBN instance
+                .Where(i => !HasActiveChangeRequest(i, activeRequestsForProject)) // No active change request
                 .FirstOrDefault(i => nowDate <= i.AppliesTo);
 
             if (expiringInstance is null)
@@ -38,6 +39,13 @@ public abstract class WeeklyTaskOwnerReportDataCreator
         }
 
         return tbnPositions;
+    }
+
+    private static bool HasActiveChangeRequest(ApiPositionInstanceV2 instance, IEnumerable<IResourcesApiClient.ResourceAllocationRequest> activeRequests)
+    {
+        var instanceRequest = activeRequests.FirstOrDefault(r => r.OrgPositionInstance?.Id == instance.Id);
+
+        return instanceRequest is not null && !string.Equals(instanceRequest.State, "Completed", StringComparison.OrdinalIgnoreCase) && !instanceRequest.IsDraft;
     }
 
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/utils.ts#L86
@@ -93,6 +101,8 @@ public abstract class WeeklyTaskOwnerReportDataCreator
 
         return expiringPositions;
     }
+
+    #region AllocationsExpiringHelpers
 
     private static InstancesWithinPeriod FindInstancesWithinPeriod(ApiPositionV2 position, DateTimeRange period)
     {
@@ -174,6 +184,9 @@ public abstract class WeeklyTaskOwnerReportDataCreator
         }
     }
 
+    #endregion
+
+
     // https://github.com/equinor/fusion-resource-allocation-apps/blob/0c8477f48021c594af20c0b1ba7b549b187e2e71/apps/org-admin/src/pages/ProjectPage/utils.ts#L53
     public static int GetActionsAwaitingTaskOwnerAsync(IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
     {
@@ -186,7 +199,7 @@ public abstract class WeeklyTaskOwnerReportDataCreator
     {
         var now = NowDate;
 
-        return activeAdmins.Where(a => a.ValidTo <= now.AddMonths(3)).ToList();
+        return activeAdmins.Where(a => a.ValidTo < now.AddMonths(3)).ToList();
     }
 }
 

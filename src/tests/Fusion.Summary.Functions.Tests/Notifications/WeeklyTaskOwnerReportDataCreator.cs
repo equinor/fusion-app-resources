@@ -23,18 +23,22 @@ public class WeeklyTaskOwnerReportDataCreatorTests
     [Fact]
     public void ActiveAdmins_AreConsideredExpiring_IfValidToIsLessThanThreeMonths()
     {
-        var admins = new List<PersonAdmin>()
+        var expiringAdmins = new List<PersonAdmin>()
         {
-            new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(1))), // Is expiring
-            new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(50))), // Is expiring
-            new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(90))), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "1", now.Add(TimeSpan.FromDays(1))), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "2", now.Add(TimeSpan.FromDays(50))), // Is expiring
+            new PersonAdmin(Guid.NewGuid(), "3", now.AddMonths(3).AddDays(-1)) // Is expiring
+        };
+        var nonExpiringAdmins = new List<PersonAdmin>()
+        {
+            new PersonAdmin(Guid.NewGuid(), "", now.AddMonths(3)), // Is not expiring
             new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(120))), // Is not expiring
             new PersonAdmin(Guid.NewGuid(), "", now.Add(TimeSpan.FromDays(365))) // Is not expiring
         };
 
-        var data = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins(admins);
+        var data = WeeklyTaskOwnerReportDataCreator.GetExpiringAdmins([..expiringAdmins, ..nonExpiringAdmins]);
 
-        data.Should().HaveCount(3);
+        data.Should().HaveCount(expiringAdmins.Count).And.OnlyContain(admin => expiringAdmins.Select(ea => ea.FullName).Contains(admin.FullName));
     }
 
 
@@ -248,6 +252,46 @@ public class WeeklyTaskOwnerReportDataCreatorTests
                 .Build();
         testData.AddPosition(nonActiveWithinThreeMonths, shouldBeIncludedInReportList: true, instanceSelector: i => i.AssignedPerson is null);
 
+        var nonActiveWithinThreeMonthsNoPersonButHasRequest =
+            new PositionBuilder()
+                .WithInstance(now.AddMonths(2), now.AddMonths(3))
+                .Build();
+        testData.AddPosition(nonActiveWithinThreeMonthsNoPersonButHasRequest, shouldBeIncludedInReportList: false);
+
+        var request = new IResourcesApiClient.ResourceAllocationRequest()
+        {
+            Id = Guid.NewGuid(),
+            OrgPosition = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasRequest.Id
+            },
+            OrgPositionInstance = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasRequest.Instances.First().Id
+            },
+            IsDraft = false,
+        };
+
+        var nonActiveWithinThreeMonthsNoPersonButHasDraftRequest =
+            new PositionBuilder()
+                .WithInstance(now.AddMonths(2), now.AddMonths(3))
+                .Build();
+        testData.AddPosition(nonActiveWithinThreeMonthsNoPersonButHasDraftRequest, shouldBeIncludedInReportList: true);
+
+        var draftRequest = new IResourcesApiClient.ResourceAllocationRequest()
+        {
+            Id = Guid.NewGuid(),
+            OrgPosition = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasDraftRequest.Id
+            },
+            OrgPositionInstance = new()
+            {
+                Id = nonActiveWithinThreeMonthsNoPersonButHasDraftRequest.Id
+            },
+            IsDraft = true
+        };
+
 
         var nonActiveOutsideThreeMonths =
             new PositionBuilder()
@@ -271,7 +315,7 @@ public class WeeklyTaskOwnerReportDataCreatorTests
         testData.AddPosition(pastPositionWithPerson);
 
 
-        var data = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(testData.PositionsToTest);
+        var data = WeeklyTaskOwnerReportDataCreator.GetTBNPositionsStartingWithinThreeMonths(testData.PositionsToTest, [request, draftRequest]);
 
         data.Should().OnlyHaveUniqueItems();
         foreach (var positionName in testData.ShouldBeIncludedInReport)
