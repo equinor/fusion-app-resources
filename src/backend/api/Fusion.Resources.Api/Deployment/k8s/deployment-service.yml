@@ -59,10 +59,10 @@ spec:
           value: "{{clientId}}"
         resources:
           requests:
-            memory: "250Mi"
-            cpu: "50m"
+            memory: "700Mi"
+            cpu: "100m"
           limits:
-            memory: "500Mi"
+            memory: "1500Mi"
             cpu: "200m"
         args:
         - /server
