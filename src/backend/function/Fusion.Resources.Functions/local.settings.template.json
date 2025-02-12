@@ -6,7 +6,6 @@
     "FUNCTIONS_INPROC_NET8_ENABLED": "1",
     "FUNCTIONS_EXTENSION_VERSION": "~4",
     "provision_position_queue": "provision-position-[REPLACE WITH DEV QUEUE]",
-    "scheduled_notification_report_queue": "scheduled-notification-[REPLACE WITH DEV QUEUE]",
     "AzureWebJobsServiceBus": "[REPLACE WITH SB CONNECTION STRING]",
     "AzureAd_TenantId": "3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
     "AzureAd_ClientId": "5a842df8-3238-415d-b168-9f16a6a6031b",
@@ -15,9 +14,7 @@
     "Endpoints_people": "https://people.ci.api.fusion-dev.net/",
     "Endpoints_org": "https://org.ci.api.fusion-dev.net/",
     "Endpoints_resources": "https://fra-resources.ci.api.fusion-dev.net/",
-    "Endpoints_summary": "https://fra-summary.ci.api.fusion-dev.net/",
     "Endpoints_context": "https://context.ci.api.fusion-dev.net/",
-    "Endpoints_notifications": "https://notifications.ci.api.fusion-dev.net/",
     "Endpoints_Resources_Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b",
     "AzureWebJobs.provision-position-request.Disabled": "true",
     "AzureWebJobs.internal-requests-reassign-invalid-departments.Disabled": "true"

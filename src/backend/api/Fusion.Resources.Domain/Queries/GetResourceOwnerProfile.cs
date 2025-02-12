@@ -58,7 +58,7 @@ namespace Fusion.Resources.Domain.Queries
                 var departmentsWithResponsibility = await ResolveDepartmentsWithResponsibilityAsync(user, userIsManagerFor);
 
                 // Determine if the user is a manager in the department he/she belongs to.
-                var isDepartmentManager = departmentsWithResponsibility.Any(r => r == user.FullDepartment);
+                var isDepartmentManager = departmentsWithResponsibility.Any();
 
                 var relevantSectors = ResolveRelevantSectors(departmentsWithResponsibility);
 
