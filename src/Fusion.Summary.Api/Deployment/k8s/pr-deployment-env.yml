@@ -131,7 +131,7 @@ spec:
   tls:
   - hosts:
     - fra-summary-{{prNumber}}.pr.api.fusion-dev.net
-    secretName: wildcard-tld-secret
+    secretName: wildcard-fusiondev-tls-cert
 
   rules:
     - host: fra-summary-{{prNumber}}.pr.api.fusion-dev.net
