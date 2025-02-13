@@ -18,7 +18,6 @@
           "org": "https://org.ci.api.fusion-dev.net",
           "people": "https://people.ci.api.fusion-dev.net",
           "resources": "[concat('https://fra-resources.', parameters('env-name'), '.api.fusion-dev.net')]",
-          "notifications": "https://notification.ci.api.fusion-dev.net",
           "context": "https://context.ci.api.fusion-dev.net",
           "portal": "https://fusion.ci.fusion-dev.net"
         },
@@ -27,7 +26,6 @@
         },
         "queues": {
           "provisionPosition": "provision-position",
-          "scheduledNotificationReportQueue": "scheduled-notification"
         }
       }
     },
@@ -142,10 +140,6 @@
               "value": "[parameters('settings').endpoints.people]"
             },
             {
-              "name": "Endpoints_notifications",
-              "value": "[parameters('settings').endpoints.notifications]"
-            },
-            {
               "name": "Endpoints_context",
               "value": "[parameters('settings').endpoints.context]"
             },
@@ -162,16 +156,8 @@
               "value": "[parameters('settings').resources.fusion]"
             },
             {
-              "name": "scheduled_notification_report_queue",
-              "value": "[parameters('settings').queues.scheduledNotificationReportQueue]"
-            },
-            {
               "name": "provision_position_queue",
               "value": "[parameters('settings').queues.provisionPosition]"
-            },
-            {
-              "name": "total_batch_time_in_minutes",
-              "value": "270"
             }
           ]
         }
