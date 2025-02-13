@@ -67,43 +67,45 @@ jobs:
                     }    
                 }
 
-          - task: Kubernetes@1
-            displayName: Log in to aks namespace
-            inputs:
-              connectionType: 'Kubernetes Service Connection'
-              kubernetesServiceEndpoint: 'fusion-aks-01-prep-fusion-resources-app-pr'
-              namespace: 'fusion-resources-app-pr'
-              command: 'login'
+          # NOTE: Deployments have time to live set to 7 days as of this writing 13.02.2025, Core wants to add a webhook to have more granular control of what can be deleted in the cluster
+          # As of now we don't have permission to delete resources in the cluster, so commenting this out after hearing with Fusion Core
+          # - task: Kubernetes@1
+          #   displayName: Log in to aks namespace
+          #   inputs:
+          #     connectionType: 'Kubernetes Service Connection'
+          #     kubernetesServiceEndpoint: 'fusion-aks-01-prep-fusion-resources-app-pr'
+          #     namespace: 'fusion-resources-app-pr'
+          #     command: 'login'
 
-          - pwsh: |
-                $activePRs = "$(activePrs)".Split(",")
+          # - pwsh: |
+          #       $activePRs = "$(activePrs)".Split(",")
                 
-                $deployments = kubectl -n fusion-resources-app-pr get deployments -o json | ConvertFrom-Json
-                $aksPrPortals = $deployments.items | select -Property {$_.metadata.labels.prNumber} | select -ExpandProperty '$_.metadata.labels.prNumber'
+          #       $deployments = kubectl -n fusion-resources-app-pr get deployments -o json | ConvertFrom-Json
+          #       $aksPrPortals = $deployments.items | select -Property {$_.metadata.labels.prNumber} | select -ExpandProperty '$_.metadata.labels.prNumber'
 
-                foreach ($prNr in $aksPrPortals) {
-                    Write-Host "Processing pr: $prNr"
+          #       foreach ($prNr in $aksPrPortals) {
+          #           Write-Host "Processing pr: $prNr"
                     
-                    $pullRequestNumber = 0
-                    if (-not [int]::TryParse($prNr, [ref]$pullRequestNumber)) {
-                        Write-Output "`Not a number, must be custom - SKIPPING"
-                        Write-Host "##vso[task.logissue type=warning]Leaving PR Portal env with id $prNr."
-                        continue
-                    }
+          #           $pullRequestNumber = 0
+          #           if (-not [int]::TryParse($prNr, [ref]$pullRequestNumber)) {
+          #               Write-Output "`Not a number, must be custom - SKIPPING"
+          #               Write-Host "##vso[task.logissue type=warning]Leaving PR Portal env with id $prNr."
+          #               continue
+          #           }
 
-                    if (-not $activePRs.Contains($prNr)) {
-                        Write-Output "`tREMOVING"
-                        kubectl -n fusion-resources-app-pr delete deployments,services,ingress -l prNumber=$prNr
-                    } else {
-                        Write-Output "`tStill active - skipping"
-                    }
-                }
-            displayName: Delete expired aks resources
+          #           if (-not $activePRs.Contains($prNr)) {
+          #               Write-Output "`tREMOVING"
+          #               kubectl -n fusion-resources-app-pr delete deployments,services,ingress -l prNumber=$prNr
+          #           } else {
+          #               Write-Output "`tStill active - skipping"
+          #           }
+          #       }
+          #   displayName: Delete expired aks resources
 
-          - task: Kubernetes@1
-            displayName: Log out from aks
-            inputs:
-              command: 'logout'
+          # - task: Kubernetes@1
+          #   displayName: Log out from aks
+          #   inputs:
+          #     command: 'logout'
 
 
 
