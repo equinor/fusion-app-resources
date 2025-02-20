@@ -67,7 +67,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var requestQuery = DispatchAsync(new GetResourceAllocationRequestsForAnalyticsAsync(query));
+            var requestQuery = DispatchAsync(new GetResourceAllocationRequestsForAnalyticsStream(query));
 
             async IAsyncEnumerable<ApiResourceAllocationRequestForAnalytics> StreamResults()
             {
@@ -156,11 +156,11 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var allAbsenceQuery = await DispatchAsync(new GetPersonsAbsenceForAnalytics(query));
+            var allAbsenceQuery = DispatchAsync(new GetPersonsAbsenceForAnalyticsStream(query));
 
             async IAsyncEnumerable<ApiPersonAbsenceForAnalyticsV2> StreamResults()
             {
-                foreach (var absence in allAbsenceQuery)
+                await foreach (var absence in await allAbsenceQuery)
                 {
                     yield return ApiPersonAbsenceForAnalyticsV2.CreateWithoutConfidentialTaskInfoForAnalytics(absence);
                 }

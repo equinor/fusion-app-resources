@@ -11,27 +11,27 @@ using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain.Queries;
 
-public class GetResourceAllocationRequestsForAnalyticsAsync : IRequest<IAsyncEnumerable<QueryResourceAllocationRequest>>
+public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<IAsyncEnumerable<QueryResourceAllocationRequest>>
 {
-    public GetResourceAllocationRequestsForAnalyticsAsync(ODataQueryParams query)
+    public GetResourceAllocationRequestsForAnalyticsStream(ODataQueryParams query)
     {
         this.Query = query;
     }
     public ODataQueryParams Query { get; }
 
 
-    public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalyticsAsync, IAsyncEnumerable<QueryResourceAllocationRequest>>
+    public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalyticsStream, IAsyncEnumerable<QueryResourceAllocationRequest>>
     {
         private readonly ResourcesDbContext db;
-        private readonly IFusionLogger<GetResourceAllocationRequestsForAnalyticsAsync> log;
+        private readonly IFusionLogger<GetResourceAllocationRequestsForAnalyticsStream> log;
 
-        public Handler(ResourcesDbContext db, IFusionLogger<GetResourceAllocationRequestsForAnalyticsAsync> log)
+        public Handler(ResourcesDbContext db, IFusionLogger<GetResourceAllocationRequestsForAnalyticsStream> log)
         {
             this.db = db;
             this.log = log;
         }
 
-        public async Task<IAsyncEnumerable<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequestsForAnalyticsAsync request, CancellationToken cancellationToken)
+        public async Task<IAsyncEnumerable<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequestsForAnalyticsStream request, CancellationToken cancellationToken)
         {
             var query = db.ResourceAllocationRequests
                 .Include(r => r.OrgPositionInstance)
