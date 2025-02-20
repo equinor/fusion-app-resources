@@ -67,11 +67,13 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var requestQuery = await DispatchAsync(new GetResourceAllocationRequestsForAnalyticsStream(query));
+            var result = await DispatchAsync(new GetResourceAllocationRequestsForAnalyticsStream(query));
+
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
 
             async IAsyncEnumerable<ApiResourceAllocationRequestForAnalytics> StreamResults()
             {
-                await foreach (var request in requestQuery)
+                await foreach (var request in result.Items)
                 {
                     yield return ApiResourceAllocationRequestForAnalytics.ForAnalytics(request);
                 }

@@ -10,8 +10,20 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain.Queries;
+public class PagedAsyncResult<T>
+{
+    public int TotalCount { get; }
+    public IAsyncEnumerable<T> Items { get; }
 
-public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<IAsyncEnumerable<QueryResourceAllocationRequest>>
+    public PagedAsyncResult(int totalCount, IAsyncEnumerable<T> items)
+    {
+        TotalCount = totalCount;
+        Items = items;
+    }
+}
+
+
+public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsyncResult<QueryResourceAllocationRequest>>
 {
     public GetResourceAllocationRequestsForAnalyticsStream(ODataQueryParams query)
     {
@@ -20,7 +32,7 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<IAsyncEn
     public ODataQueryParams Query { get; }
 
 
-    public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalyticsStream, IAsyncEnumerable<QueryResourceAllocationRequest>>
+    public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalyticsStream, PagedAsyncResult<QueryResourceAllocationRequest>>
     {
         private readonly ResourcesDbContext db;
         private readonly IFusionLogger<GetResourceAllocationRequestsForAnalyticsStream> log;
@@ -31,7 +43,7 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<IAsyncEn
             this.log = log;
         }
 
-        public async Task<IAsyncEnumerable<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequestsForAnalyticsStream request, CancellationToken cancellationToken)
+        public async Task<PagedAsyncResult<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequestsForAnalyticsStream request, CancellationToken cancellationToken)
         {
             var query = db.ResourceAllocationRequests
                 .Include(r => r.OrgPositionInstance)
@@ -65,14 +77,15 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<IAsyncEn
             var skip = request.Query.Skip.GetValueOrDefault(0);
             var take = request.Query.Top.GetValueOrDefault(totalCount);
 
-            var pagedQuery = query.Select(x => new QueryResourceAllocationRequest(x, null))
-                                  .Skip(skip)
-                                  .Take(take)
-                                  .AsAsyncEnumerable();
+            var pagedQuery = query
+                .Select(x => new QueryResourceAllocationRequest(x, null))
+                .Skip(skip)
+                .Take(take)
+                .AsAsyncEnumerable();
 
-            log.LogTrace($"Analytics query executed");
+            log.LogTrace($"Analytics query executed with total count: {totalCount}");
 
-            return pagedQuery;
+            return new PagedAsyncResult<QueryResourceAllocationRequest>(totalCount, pagedQuery);
         }
     }
 }
