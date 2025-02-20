@@ -70,6 +70,8 @@ namespace Fusion.Resources.Api.Controllers
             var result = await DispatchAsync(new GetResourceAllocationRequestsForAnalyticsStream(query));
 
             Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            Response.Headers["X-Top"] = result.Top.ToString();
+            Response.Headers["X-Skip"] = result.Skip.ToString();
 
             async IAsyncEnumerable<ApiResourceAllocationRequestForAnalytics> StreamResults()
             {
@@ -158,11 +160,15 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var allAbsenceQuery = await DispatchAsync(new GetPersonsAbsenceForAnalyticsStream(query));
+            var result = await DispatchAsync(new GetPersonsAbsenceForAnalyticsStream(query));
+
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            Response.Headers["X-Top"] = result.Top.ToString();
+            Response.Headers["X-Skip"] = result.Skip.ToString();
 
             async IAsyncEnumerable<ApiPersonAbsenceForAnalyticsV2> StreamResults()
             {
-                await foreach (var absence in allAbsenceQuery)
+                await foreach (var absence in result.Items)
                 {
                     yield return ApiPersonAbsenceForAnalyticsV2.CreateWithoutConfidentialTaskInfoForAnalytics(absence);
                 }

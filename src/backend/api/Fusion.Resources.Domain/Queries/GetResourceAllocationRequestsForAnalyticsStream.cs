@@ -7,20 +7,9 @@ using Fusion.AspNetCore.OData;
 using Fusion.Integration.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
+using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain.Queries;
-public class PagedAsyncResult<T>
-{
-    public int TotalCount { get; }
-    public IAsyncEnumerable<T> Items { get; }
-
-    public PagedAsyncResult(int totalCount, IAsyncEnumerable<T> items)
-    {
-        TotalCount = totalCount;
-        Items = items;
-    }
-}
 
 
 public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsyncResult<QueryResourceAllocationRequest>>
@@ -85,7 +74,7 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsy
 
             log.LogTrace($"Analytics query executed with total count: {totalCount}");
 
-            return new PagedAsyncResult<QueryResourceAllocationRequest>(totalCount, pagedQuery);
+            return new PagedAsyncResult<QueryResourceAllocationRequest>(totalCount, take, skip, pagedQuery);
         }
     }
 }

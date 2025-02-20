@@ -8,10 +8,11 @@ using Fusion.AspNetCore.OData;
 using Fusion.Integration.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain;
 
-public class GetPersonsAbsenceForAnalyticsStream : IRequest<IAsyncEnumerable<QueryPersonAbsenceBasic>>
+public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedAsyncResult<QueryPersonAbsenceBasic>>
 {
 
     public GetPersonsAbsenceForAnalyticsStream(ODataQueryParams query)
@@ -20,7 +21,7 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<IAsyncEnumerable<Que
     }
     public ODataQueryParams Query { get; }
 
-    public class Handler : IRequestHandler<GetPersonsAbsenceForAnalyticsStream, IAsyncEnumerable<QueryPersonAbsenceBasic>>
+    public class Handler : IRequestHandler<GetPersonsAbsenceForAnalyticsStream, PagedAsyncResult<QueryPersonAbsenceBasic>>
     {
         private readonly ResourcesDbContext db;
         private readonly IFusionLogger<GetPersonsAbsenceForAnalyticsStream> log;
@@ -31,7 +32,7 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<IAsyncEnumerable<Que
             this.log = log;
         }
 
-        public async Task<IAsyncEnumerable<QueryPersonAbsenceBasic>> Handle(GetPersonsAbsenceForAnalyticsStream request, CancellationToken cancellationToken)
+        public async Task<PagedAsyncResult<QueryPersonAbsenceBasic>> Handle(GetPersonsAbsenceForAnalyticsStream request, CancellationToken cancellationToken)
         {
             var query = db.PersonAbsences
                 .Include(x => x.Person)
@@ -39,30 +40,23 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<IAsyncEnumerable<Que
                 .OrderBy(x => x.Id)
                 .AsQueryable();
 
-            async IAsyncEnumerable<QueryPersonAbsenceBasic> StreamResults()
-            {
-                var totalCount = await query.CountAsync(cancellationToken);
-                if (totalCount == 0)
-                    totalCount = 100;
+            var totalCount = await query.CountAsync(cancellationToken);
+            if (totalCount == 0)
+                totalCount = 100; // Default to a reasonable value
 
-                var skip = request.Query.Skip.GetValueOrDefault(0);
-                var take = request.Query.Top.GetValueOrDefault(totalCount);
+            var skip = request.Query.Skip.GetValueOrDefault(0);
+            var take = request.Query.Top.GetValueOrDefault(totalCount);
 
-                var pagedQuery = query
-                    .Select(x => new QueryPersonAbsenceBasic(x))
-                    .Skip(skip)
-                    .Take(take)
-                    .AsAsyncEnumerable();
+            var pagedQuery = query
+                .Select(x => new QueryPersonAbsenceBasic(x))
+                .Skip(skip)
+                .Take(take)
+                .AsAsyncEnumerable();
 
-                await foreach (var item in pagedQuery.WithCancellation(cancellationToken))
-                {
-                    yield return item;
-                }
-            }
+            log.LogTrace($"Analytics query executed with total count: {totalCount}, Skip: {skip}, Top: {take}");
 
-            log.LogTrace($"Analytics query executed");
-
-            return StreamResults();
+            return new PagedAsyncResult<QueryPersonAbsenceBasic>(totalCount, take, skip, pagedQuery);
         }
+
     }
 }
