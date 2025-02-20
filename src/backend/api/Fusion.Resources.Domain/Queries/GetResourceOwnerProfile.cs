@@ -137,13 +137,8 @@ namespace Fusion.Resources.Domain.Queries
                 // Add the current department if the user is resource owner in the department.
                 departmentsWithResponsibility.AddRange(userIsManagerFor);
 
-                // Add all departments the user has been delegated responsibility for.
-                var delegatedResponsibilities = db.DelegatedDepartmentResponsibles
-                    .Where(r => r.ResponsibleAzureObjectId == user.AzureUniqueId)
-                    .Where(r => r.DateFrom < DateTime.Now && r.DateTo > DateTime.Now)
-                    .Select(r => new QueryDepartmentResponsible(r));
-
-                departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId)!);
+                // Add departments the user has been delegated responsibility for.
+                departmentsWithResponsibility.AddRange(await ResolveDelegatedResponsibilities(user));
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
@@ -176,6 +171,22 @@ namespace Fusion.Resources.Domain.Queries
                 var departments = await mediator.Send(new GetDepartments().InSector(sector));
                 return departments
                     .Select(dpt => dpt.FullDepartment);
+            }
+
+            // This method returns departments where the user has delegated responsibilities AND the department
+            // exists. The PIMS sync doesn't currently remove delegated responsibilities when a department has
+            // been removed.
+            private async Task<IEnumerable<string>> ResolveDelegatedResponsibilities(FusionFullPersonProfile user)
+            {
+                // Get all departments the user has been delegated responsibility for.
+                var delegatedResponsibilities = db.DelegatedDepartmentResponsibles
+                    .Where(r => r.ResponsibleAzureObjectId == user.AzureUniqueId)
+                    .Where(r => r.DateFrom < DateTime.Now && r.DateTo > DateTime.Now)
+                    .Select(r => r.DepartmentId);
+
+                // Only select responsibilities for existing departments
+                var validDepartments = await mediator.Send(new GetDepartments().ByIds(delegatedResponsibilities));
+                return validDepartments.Select(d => d.FullDepartment);
             }
         }
     }
