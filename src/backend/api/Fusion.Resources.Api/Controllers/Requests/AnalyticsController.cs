@@ -67,11 +67,11 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var requestQuery = await DispatchAsync(new GetResourceAllocationRequestsForAnalytics(query));
+            var requestQuery = DispatchAsync(new GetResourceAllocationRequestsForAnalyticsAsync(query));
 
             async IAsyncEnumerable<ApiResourceAllocationRequestForAnalytics> StreamResults()
             {
-                foreach (var request in requestQuery)
+                await foreach (var request in await requestQuery)
                 {
                     yield return ApiResourceAllocationRequestForAnalytics.ForAnalytics(request);
                 }
