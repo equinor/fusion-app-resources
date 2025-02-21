@@ -28,6 +28,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
 
+        /// <summary>
+        /// GetProfile_ShouldBeEmpty_WhenUserHasNoDepartment often fails with isResourceOwner
+        /// being true when running with the testUser above. Information about the user appears
+        /// to be retained when multiple tests are run together. Using the below test user for
+        /// only that test fixes that issue.
+        /// </summary>
+        private readonly ApiPersonProfileV3 singleTestUser;
+
         private FusionTestProjectBuilder testProject;
 
         public PersonControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -39,6 +47,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            singleTestUser = fixture.AddProfile(FusionAccountType.Employee);
 
             testProject = new FusionTestProjectBuilder()
                 .WithPositions()
@@ -52,9 +62,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetProfile_ShouldBeEmpty_WhenUserHasNoDepartment()
         {
-            using (var userScope = fixture.UserScope(testUser))
+            using (var userScope = fixture.UserScope(singleTestUser))
             {
-                testUser.FullDepartment = null;
+                singleTestUser.FullDepartment = null;
                 var client = fixture.ApiFactory.CreateClient();
                 var resp = await client.TestClientGetAsync(
                     $"/persons/me/resources/profile",
@@ -97,17 +107,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithAccountType(FusionAccountType.Employee)
                 .WithManager(manager));
 
-      
-                var client = fixture.ApiFactory.CreateClient();
-                var resp = await client.TestClientGetAsync(
-                    $"/persons/{mainResourceOwner.AzureUniqueId}/resources/profile",
-                    new
-                    {
-                        fullDepartment = default(string),
-                        isResourceOwner = true,
-                        responsibilityInDepartments = Array.Empty<string>()
-                    }
-                );
+
+            var client = fixture.ApiFactory.CreateClient();
+            var resp = await client.TestClientGetAsync(
+                $"/persons/{mainResourceOwner.AzureUniqueId}/resources/profile",
+                new
+                {
+                    fullDepartment = default(string),
+                    isResourceOwner = true,
+                    responsibilityInDepartments = Array.Empty<string>()
+                }
+            );
 
             resp.Should().BeSuccessfull();
             resp.Value.responsibilityInDepartments.Count().Should().Be(2);
