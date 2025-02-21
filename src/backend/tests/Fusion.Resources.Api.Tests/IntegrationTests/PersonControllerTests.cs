@@ -28,6 +28,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
 
+        /// <summary>
+        /// GetProfile_ShouldBeEmpty_WhenUserHasNoDepartment often fails with isResourceOwner
+        /// being true when running with the testUser above. Information about the user appears
+        /// to be retained when multiple tests are run together. Using the below test user for
+        /// only that test fixes that issue.
+        /// </summary>
         private readonly ApiPersonProfileV3 singleTestUser;
 
         private FusionTestProjectBuilder testProject;
@@ -58,7 +64,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using (var userScope = fixture.UserScope(singleTestUser))
             {
-                testUser.FullDepartment = null;
+                singleTestUser.FullDepartment = null;
                 var client = fixture.ApiFactory.CreateClient();
                 var resp = await client.TestClientGetAsync(
                     $"/persons/me/resources/profile",
