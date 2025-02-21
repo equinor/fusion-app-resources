@@ -41,8 +41,6 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedStreamResult<Qu
                 .AsQueryable();
 
             var totalCount = await query.CountAsync(cancellationToken);
-            if (totalCount == 0)
-                totalCount = 100; // Default to a reasonable value
 
             var skip = request.Query.Skip.GetValueOrDefault(0);
             var take = request.Query.Top.GetValueOrDefault(totalCount);
