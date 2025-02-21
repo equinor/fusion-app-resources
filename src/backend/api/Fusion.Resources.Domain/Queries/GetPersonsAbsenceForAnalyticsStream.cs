@@ -12,7 +12,7 @@ using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain;
 
-public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedAsyncResult<QueryPersonAbsenceBasic>>
+public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedStreamResult<QueryPersonAbsenceBasic>>
 {
 
     public GetPersonsAbsenceForAnalyticsStream(ODataQueryParams query)
@@ -21,7 +21,7 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedAsyncResult<Que
     }
     public ODataQueryParams Query { get; }
 
-    public class Handler : IRequestHandler<GetPersonsAbsenceForAnalyticsStream, PagedAsyncResult<QueryPersonAbsenceBasic>>
+    public class Handler : IRequestHandler<GetPersonsAbsenceForAnalyticsStream, PagedStreamResult<QueryPersonAbsenceBasic>>
     {
         private readonly ResourcesDbContext db;
         private readonly IFusionLogger<GetPersonsAbsenceForAnalyticsStream> log;
@@ -32,7 +32,7 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedAsyncResult<Que
             this.log = log;
         }
 
-        public async Task<PagedAsyncResult<QueryPersonAbsenceBasic>> Handle(GetPersonsAbsenceForAnalyticsStream request, CancellationToken cancellationToken)
+        public async Task<PagedStreamResult<QueryPersonAbsenceBasic>> Handle(GetPersonsAbsenceForAnalyticsStream request, CancellationToken cancellationToken)
         {
             var query = db.PersonAbsences
                 .Include(x => x.Person)
@@ -53,9 +53,9 @@ public class GetPersonsAbsenceForAnalyticsStream : IRequest<PagedAsyncResult<Que
                 .Take(take)
                 .AsAsyncEnumerable();
 
-            log.LogTrace($"Analytics query executed with total count: {totalCount}, Skip: {skip}, Top: {take}");
+            log.LogTrace($"Analytics streaming executed with total count: {totalCount}, Skip: {skip}, Top: {take}");
 
-            return new PagedAsyncResult<QueryPersonAbsenceBasic>(totalCount, take, skip, pagedQuery);
+            return new PagedStreamResult<QueryPersonAbsenceBasic>(totalCount, take, skip, pagedQuery);
         }
 
     }

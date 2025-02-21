@@ -12,7 +12,7 @@ using Fusion.Resources.Domain.Models;
 namespace Fusion.Resources.Domain.Queries;
 
 
-public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsyncResult<QueryResourceAllocationRequest>>
+public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedStreamResult<QueryResourceAllocationRequest>>
 {
     public GetResourceAllocationRequestsForAnalyticsStream(ODataQueryParams query)
     {
@@ -21,7 +21,7 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsy
     public ODataQueryParams Query { get; }
 
 
-    public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalyticsStream, PagedAsyncResult<QueryResourceAllocationRequest>>
+    public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalyticsStream, PagedStreamResult<QueryResourceAllocationRequest>>
     {
         private readonly ResourcesDbContext db;
         private readonly IFusionLogger<GetResourceAllocationRequestsForAnalyticsStream> log;
@@ -32,7 +32,7 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsy
             this.log = log;
         }
 
-        public async Task<PagedAsyncResult<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequestsForAnalyticsStream request, CancellationToken cancellationToken)
+        public async Task<PagedStreamResult<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequestsForAnalyticsStream request, CancellationToken cancellationToken)
         {
             var query = db.ResourceAllocationRequests
                 .Include(r => r.OrgPositionInstance)
@@ -72,9 +72,9 @@ public class GetResourceAllocationRequestsForAnalyticsStream : IRequest<PagedAsy
                 .Take(take)
                 .AsAsyncEnumerable();
 
-            log.LogTrace($"Analytics query executed with total count: {totalCount}");
+            log.LogTrace($"Analytics streaming executed with total count: {totalCount}");
 
-            return new PagedAsyncResult<QueryResourceAllocationRequest>(totalCount, take, skip, pagedQuery);
+            return new PagedStreamResult<QueryResourceAllocationRequest>(totalCount, take, skip, pagedQuery);
         }
     }
 }

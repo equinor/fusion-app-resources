@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Models;
 
-public class PagedAsyncResult<T>
+public class PagedStreamResult<T>
 {
     public int TotalCount { get; }
     public int Top { get; }
     public int Skip { get; }
     public IAsyncEnumerable<T> Items { get; }
 
-    public PagedAsyncResult(int totalCount, int top, int skip, IAsyncEnumerable<T> items)
+    public PagedStreamResult(int totalCount, int top, int skip, IAsyncEnumerable<T> items)
     {
         TotalCount = totalCount;
         Top = top;
