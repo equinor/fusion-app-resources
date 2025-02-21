@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
+using System.Collections.Generic;
 
 
 namespace Fusion.Resources.Api.Controllers
@@ -15,11 +16,12 @@ namespace Fusion.Resources.Api.Controllers
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]
+    [ApiVersion("3.0")]
     [Authorize]
     [ApiController]
     public class AnalyticsController : ResourceControllerBase
     {
-
+        [Obsolete("Endpoint deprecated")]
         [HttpGet("/analytics/requests/internal")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequestForAnalytics>>> GetAllRequests([FromQuery] ODataQueryParams query)
         {
@@ -45,6 +47,44 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
+        [MapToApiVersion("2.0")]
+        [HttpGet("/analytics/requests/internal")]
+        public async Task<ActionResult<IAsyncEnumerable<ApiResourceAllocationRequestForAnalytics>>> GetAllRequestsV2([FromQuery] ODataQueryParams query)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.GlobalRoleAccess("Fusion.Analytics.Requests");
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var result = await DispatchAsync(new GetResourceAllocationRequestsForAnalyticsStream(query));
+
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            Response.Headers["X-Top"] = result.Top.ToString();
+            Response.Headers["X-Skip"] = result.Skip.ToString();
+
+            async IAsyncEnumerable<ApiResourceAllocationRequestForAnalytics> StreamResults()
+            {
+                await foreach (var request in result.Items)
+                {
+                    yield return ApiResourceAllocationRequestForAnalytics.ForAnalytics(request);
+                }
+            }
+
+            return Ok(StreamResults());
+        }
+
+        [Obsolete("Endpoint deprecated")]
         [MapToApiVersion("1.0")]
         [HttpGet("/analytics/absence/internal")]
         public async Task<ActionResult<ApiCollection<ApiPersonAbsenceForAnalytics>>> GetPersonsAbsence([FromQuery] ODataQueryParams query)
@@ -72,6 +112,7 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
+        [Obsolete("Endpoint deprecated")]
         [MapToApiVersion("2.0")]
         [HttpGet("/analytics/absence/internal")]
         public async Task<ActionResult<ApiCollection<ApiPersonAbsenceForAnalyticsV2>>> GetPersonsAbsenceV2([FromQuery] ODataQueryParams query)
@@ -97,6 +138,43 @@ namespace Fusion.Resources.Api.Controllers
 
             var collection = new ApiCollection<ApiPersonAbsenceForAnalyticsV2>(apiModel) { TotalCount = allAbsenceQuery.TotalCount };
             return collection;
+        }
+
+        [MapToApiVersion("3.0")]
+        [HttpGet("/analytics/absence/internal")]
+        public async Task<ActionResult<IAsyncEnumerable<ApiPersonAbsenceForAnalyticsV2>>> GetPersonsAbsenceV3([FromQuery] ODataQueryParams query)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.GlobalRoleAccess("Fusion.Analytics.Absence");
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var result = await DispatchAsync(new GetPersonsAbsenceForAnalyticsStream(query));
+
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            Response.Headers["X-Top"] = result.Top.ToString();
+            Response.Headers["X-Skip"] = result.Skip.ToString();
+
+            async IAsyncEnumerable<ApiPersonAbsenceForAnalyticsV2> StreamResults()
+            {
+                await foreach (var absence in result.Items)
+                {
+                    yield return ApiPersonAbsenceForAnalyticsV2.CreateWithoutConfidentialTaskInfoForAnalytics(absence);
+                }
+            }
+
+            return Ok(StreamResults());
         }
 
         #region Analytics Api Models
