@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
-using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -185,8 +184,13 @@ namespace Fusion.Resources.Domain.Queries
                     .Select(r => r.DepartmentId);
 
                 // Only select responsibilities for existing departments
-                var validDepartments = await mediator.Send(new GetDepartments().ByIds(delegatedResponsibilities));
-                return validDepartments.Select(d => d.FullDepartment);
+                if (delegatedResponsibilities.Any())
+                {
+                    var validDepartments = await mediator.Send(new GetDepartments().ByIds(delegatedResponsibilities));
+                    return validDepartments.Select(d => d.FullDepartment);
+                }
+
+                return delegatedResponsibilities;
             }
         }
     }
