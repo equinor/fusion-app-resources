@@ -224,7 +224,7 @@ namespace Fusion.Resources.Domain
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
-                var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, $"orgUnitId eq '{orgUnit?.SapId}'", requests: requests);
+                var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, $"orgUnitId eq '{orgUnit?.SapId}' and isExpired eq false", requests: requests);
 
 
                 return personnel;
