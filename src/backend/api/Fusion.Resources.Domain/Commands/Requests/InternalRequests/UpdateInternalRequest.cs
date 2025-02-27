@@ -7,10 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
+using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Newtonsoft.Json;
-using Microsoft.IdentityModel.Tokens;
 using Fusion.Resources.Database.Entities;
+using Newtonsoft.Json.Linq;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -60,12 +63,14 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext db;
             private readonly IProfileService profileService;
             private readonly IMediator mediator;
+            private readonly IProjectOrgResolver orgResolver;
 
-            public Handler(ResourcesDbContext db, IProfileService profileService, IMediator mediator)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IMediator mediator, IProjectOrgResolver orgResolver)
             {
                 this.db = db;
                 this.profileService = profileService;
                 this.mediator = mediator;
+                this.orgResolver = orgResolver;
             }
 
             public async Task<QueryResourceAllocationRequest> Handle(UpdateInternalRequest request, CancellationToken cancellationToken)
@@ -76,8 +81,12 @@ namespace Fusion.Resources.Domain.Commands
 
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
-                modified |= request.ProposedChanges.IfSet(changes => dbRequest.ProposedChanges = changes.SerializeToStringOrDefault());
-                
+                modified |= await request.ProposedChanges.IfSetAsync(async changes =>
+                {
+                    await EnsureProposedBasePositionExists(changes);
+                    dbRequest.ProposedChanges = changes.SerializeToStringOrDefault();
+                });
+
                 modified |= await request.AssignedDepartment.IfSetAsync(async dep => await UpdateAssignedOrgUnitAsync(dep, dbRequest));
 
                 modified |= await request.Properties.IfSetAsync(async properties =>
@@ -175,6 +184,32 @@ namespace Fusion.Resources.Domain.Commands
                     dbItem.AssignedDepartment = null;
                     dbItem.AssignedDepartmentId = null;
                 }
+            }
+
+            private async Task EnsureProposedBasePositionExists(Dictionary<string, object>? proposedChanges)
+            {
+                if (proposedChanges == null)
+                    return;
+                var jObject = JObject.FromObject(proposedChanges);
+
+                if (!jObject.TryGetValue("basePositionId", StringComparison.InvariantCultureIgnoreCase, out var basePositionId) || basePositionId.Type == JTokenType.Null)
+                    return;
+
+                if (!Guid.TryParse(basePositionId?.ToString(), out var basePositionGuid))
+                    throw new ValidationException($"Invalid base position id proposed. {basePositionId} is not a valid guid");
+
+                ApiBasePositionV2? basePosition;
+                try
+                {
+                    basePosition = await orgResolver.ResolveBasePositionAsync(basePositionGuid);
+                }
+                catch (Exception e)
+                {
+                    throw new IntegrationError("Could not resolve proposed base position", e);
+                }
+
+                if (basePosition == null)
+                    throw new ValidationException($"Base position with id {basePositionGuid} does not exist");
             }
         }
 
