@@ -80,7 +80,6 @@ namespace Fusion.Resources.Domain.Commands
                 bool modified = false;
 
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
-                modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= await request.ProposedChanges.IfSetAsync(async changes =>
                 {
                     await EnsureProposedBasePositionExists(changes);
@@ -192,24 +191,31 @@ namespace Fusion.Resources.Domain.Commands
                     return;
                 var jObject = JObject.FromObject(proposedChanges);
 
-                if (!jObject.TryGetValue("basePositionId", StringComparison.InvariantCultureIgnoreCase, out var basePositionId) || basePositionId.Type == JTokenType.Null)
+                if (!jObject.TryGetValue("basePosition", StringComparison.InvariantCultureIgnoreCase, out var basePositionJToken) || basePositionJToken.Type == JTokenType.Null)
                     return;
-
-                if (!Guid.TryParse(basePositionId?.ToString(), out var basePositionGuid))
-                    throw new ValidationException($"Invalid base position id proposed. {basePositionId} is not a valid guid");
 
                 ApiBasePositionV2? basePosition;
                 try
                 {
-                    basePosition = await orgResolver.ResolveBasePositionAsync(basePositionGuid);
+                    basePosition = basePositionJToken.ToObject<ApiBasePositionV2>()!;
+                }
+                catch (Exception)
+                {
+                    throw new ValidationException("Could not parse proposed base position");
+                }
+
+                bool basePositionExists;
+                try
+                {
+                    basePositionExists = await orgResolver.ResolveBasePositionAsync(basePosition.Id) != null;
                 }
                 catch (Exception e)
                 {
                     throw new IntegrationError("Could not resolve proposed base position", e);
                 }
 
-                if (basePosition == null)
-                    throw new ValidationException($"Base position with id {basePositionGuid} does not exist");
+                if (!basePositionExists)
+                    throw new ValidationException($"Base position with id {basePosition.Id} does not exist");
             }
         }
 

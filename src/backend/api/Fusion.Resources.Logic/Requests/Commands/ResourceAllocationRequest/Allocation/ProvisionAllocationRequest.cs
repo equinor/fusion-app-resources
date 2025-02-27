@@ -133,8 +133,8 @@ namespace Fusion.Resources.Logic.Commands
 
                         try
                         {
-                            if (proposedChanges.TryGetValue("basePositionId", StringComparison.InvariantCultureIgnoreCase, out var basePositionId))
-                                positionPatchRequest["basePosition"] = new JObject() { { "id", basePositionId } };
+                            if (proposedChanges.TryGetValue("basePosition", StringComparison.InvariantCultureIgnoreCase, out var basePosition) && basePosition.Type != JTokenType.Null)
+                                positionPatchRequest.SetPropertyValue<ApiPositionV2>(p => p.BasePosition, basePosition.ToObject<ApiBasePositionV2>()!);
                         }
                         catch (Exception ex)
                         {
