@@ -210,18 +210,6 @@ namespace Fusion.Resources.Domain
                 // Copied from line org for now. Might want to decorate the profiles in the search index with the department property so the query is simple
                 // Will be too many round-trips to ask line org for 
 
-                //var managers = orgUnit?.Management?.Persons?
-                //    .Where(m => string.Equals(m.FullDepartment, orgUnit.FullDepartment, StringComparison.OrdinalIgnoreCase))
-                //    .Select(m => m.AzureUniqueId)
-                //    .ToList() ?? new List<Guid>();
-
-                //var removeManagerQuery = string.Join(" and ", managers.Select(m => $"azureUniqueId ne '{m}'"));
-                //var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
-
-
-                //if (managers.Any())
-                //    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}' and isResourceOwner eq true"));
-
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
                 var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, $"orgUnitId eq '{orgUnit?.SapId}' and isExpired eq false", requests: requests);
