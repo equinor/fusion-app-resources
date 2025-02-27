@@ -177,28 +177,6 @@ namespace Fusion.Resources.Domain
                 return requests.Where(r => string.IsNullOrWhiteSpace(r.State) || r.State == "created").ToList();
             }
 
-            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments, List<QueryResourceAllocationRequest> requests)
-            {
-                var department = await mediator.Send(new GetDepartment(fullDepartmentString));
-                if (department is null)
-                    return new List<QueryInternalPersonnelPerson>();
-
-                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-
-                List<QueryInternalPersonnelPerson> personnel;
-
-                if (includeSubDepartments || department.LineOrgResponsible?.AzureUniqueId is null)
-                {
-                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, requests, fullDepartmentString);
-                }
-                else
-                {
-                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value, requests);
-                }
-
-                return personnel;
-            }
-
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsyncV2(string fullDepartmentString, List<QueryResourceAllocationRequest> requests)
             {
                 // Not sure what includeSubDepartments does tbh.. By looking at existing code, it doesn't do much other than what we want to do.. 
