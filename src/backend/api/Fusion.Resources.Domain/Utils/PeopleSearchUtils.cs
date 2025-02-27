@@ -16,19 +16,6 @@ namespace Fusion.Resources.Domain
         /// Get department personnel from search index.
         /// </summary>
         /// <param name="peopleClient">HttpClient for Fusion people service</param>
-        /// <param name="requests">List of requests where state is null or created, meaning there is a change request.</param>
-        /// <param name="departments">The deparments to retrieve personnel from.</param>
-        /// <param name="includeSubDepartments">Certain departments in line org exists where a 
-        /// person in the department manages external users. Setting this flag to true will 
-        /// include such personnel in the result.</param>
-        /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, List<QueryResourceAllocationRequest> requests, params string[] departments)
-            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable(), requests);
-
-        /// <summary>
-        /// Get department personnel from search index.
-        /// </summary>
-        /// <param name="peopleClient">HttpClient for Fusion people service</param>
         /// <param name="includeSubDepartments">Certain departments in line org exists where a 
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
@@ -37,14 +24,12 @@ namespace Fusion.Resources.Domain
         /// <returns></returns>
         public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments, List<QueryResourceAllocationRequest>? requests = null)
         {
-            var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
+            var filterString = string.Join(" or ", departments.Select(dep => $"orgUnitId eq '{dep}' and isExpired eq false"));
 
             var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, null, requests);
             return searchResponse;
         }
 
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDirectReportsTo(HttpClient peopleClient, Guid azureUniqueId, List<QueryResourceAllocationRequest> queryResourceAllocationRequests)
-            => await GetFromSearchIndexAsync(peopleClient, $"managerAzureId eq '{azureUniqueId}'", null, queryResourceAllocationRequests);
 
         public static async Task<QueryInternalPersonnelPerson?> GetPersonFromSearchIndexAsync(HttpClient peopleClient, Guid uniqueId)
         {
