@@ -19,12 +19,10 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
     {
-        private readonly IOrgApiClient orgApiClient;
         private readonly IRequestRouter requestRouter;
 
-        public DepartmentsController(IOrgApiClientFactory orgApiClientFactory, IRequestRouter requestRouter)
+        public DepartmentsController(IRequestRouter requestRouter)
         {
-            this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application); ;
             this.requestRouter = requestRouter;
         }
 
@@ -227,8 +225,9 @@ namespace Fusion.Resources.Api.Controllers
         {
             var result = new ApiRelevantDepartments();
 
-            var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
-            if (position is null) return NotFound();
+            var position = await ResolvePositionAsync(positionId);
+            if (position is null || position.ProjectId != projectId)
+                return FusionApiError.NotFound(positionId, "Could not locate position");
 
             // Empty string is a valid department in line org (CEO), but we don't want to return that.
             if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
