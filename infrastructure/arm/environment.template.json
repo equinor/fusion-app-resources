@@ -197,7 +197,8 @@
                 "tier": "Standard"
             },
             "properties": {
-                "zoneRedundant": false
+                "zoneRedundant": false,
+                "minimumTlsVersion": "1.2"
             }
         },          
         {
