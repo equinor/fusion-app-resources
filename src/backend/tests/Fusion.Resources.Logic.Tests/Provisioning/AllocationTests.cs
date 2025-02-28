@@ -21,6 +21,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
@@ -373,6 +374,65 @@ namespace Fusion.Resources.Logic.Tests
             rqComments.Should().BeEmpty();
         }
 
+        [Fact]
+        public async Task WithProposedChanges()
+        {
+            #region setup
+
+            ApiPositionInstanceV2 testInstance = null!;
+
+            var originalWorkload = 50;
+            var originalAppliesFrom = DateTime.UtcNow.AddDays(100);
+            var originalAppliesTo = originalAppliesFrom.AddDays(200);
+
+            var testPerson = GenerateTestPerson();
+            GeneratePosition(p =>
+            {
+                p.WithInstances(s =>
+                {
+                    testInstance = s.AddInstance(originalAppliesFrom, originalAppliesTo - originalAppliesFrom).SetExternalId("123");
+                    testInstance.Workload = originalWorkload;
+                });
+            });
+
+
+            var proposedWorkload = 100;
+            var proposedAppliesFrom = originalAppliesFrom.AddDays(10).Date;
+            var proposedAppliesTo = originalAppliesTo.Subtract(TimeSpan.FromDays(10));
+            var proposedBasePositionId = Guid.NewGuid();
+            var proposedLocationId = Guid.NewGuid();
+
+            var request = GenerateRequest(testInstance, r =>
+            {
+                r.WithProposedPerson(testPerson);
+
+                var proposedChanges = new Dictionary<string, object>()
+                {
+                    { "workload", proposedWorkload },
+                    { "appliesFrom", proposedAppliesFrom.ToString("O") },
+                    { "appliesTo", proposedAppliesTo.ToString("O") },
+                    { "basePosition", new { id = proposedBasePositionId } },
+                    { "location", new { id = proposedLocationId } }
+                };
+
+                r.ProposedChanges = JsonConvert.SerializeObject(proposedChanges, Formatting.Indented, new JsonSerializerSettings() { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+            });
+
+            #endregion
+
+            var patchRequests = await RunProvisioningAsync(request);
+
+            patchRequests.Should().HaveCount(2);
+            var positionChange = JsonConvert.DeserializeObject<ApiPositionV2>(patchRequests.First().Item2);
+            positionChange.BasePosition.Id.Should().Be(proposedBasePositionId);
+
+            var instanceChange = JsonConvert.DeserializeObject<ApiPositionInstanceV2>(patchRequests.Last().Item2);
+            instanceChange.Workload.Should().Be(proposedWorkload);
+            instanceChange.AppliesFrom.Should().Be(proposedAppliesFrom);
+            instanceChange.AppliesTo.Should().Be(proposedAppliesTo);
+            instanceChange.Location.Id.Should().Be(proposedLocationId);
+        }
+
 
         #region Helpers
 
@@ -439,7 +499,7 @@ namespace Fusion.Resources.Logic.Tests
         private ApiPersonProfileV3 GenerateTestPerson() => new FusionTestUserBuilder().SaveProfile();
 
 
-        private async Task<IEnumerable<(Uri, string)>> RunProvisioningAsync(DbResourceAllocationRequest request)
+        private async Task<List<(Uri, string)>> RunProvisioningAsync(DbResourceAllocationRequest request)
         {
             var factoryMock = new Mock<IOrgApiClientFactory>();
             factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
