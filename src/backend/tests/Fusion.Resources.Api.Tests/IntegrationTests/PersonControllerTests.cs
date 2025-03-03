@@ -28,6 +28,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
 
+
         private FusionTestProjectBuilder testProject;
 
         public PersonControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -97,17 +98,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithAccountType(FusionAccountType.Employee)
                 .WithManager(manager));
 
-      
-                var client = fixture.ApiFactory.CreateClient();
-                var resp = await client.TestClientGetAsync(
-                    $"/persons/{mainResourceOwner.AzureUniqueId}/resources/profile",
-                    new
-                    {
-                        fullDepartment = default(string),
-                        isResourceOwner = true,
-                        responsibilityInDepartments = Array.Empty<string>()
-                    }
-                );
+
+            var client = fixture.ApiFactory.CreateClient();
+            var resp = await client.TestClientGetAsync(
+                $"/persons/{mainResourceOwner.AzureUniqueId}/resources/profile",
+                new
+                {
+                    fullDepartment = default(string),
+                    isResourceOwner = true,
+                    responsibilityInDepartments = Array.Empty<string>()
+                }
+            );
 
             resp.Should().BeSuccessfull();
             resp.Value.responsibilityInDepartments.Count().Should().Be(2);
