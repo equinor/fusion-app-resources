@@ -20,15 +20,9 @@ namespace Fusion.Resources.Domain
         private bool shouldExpandDelegatedResourceOwners = false;
         private string? resourceOwnerSearch;
 
-        private string? departmentIdStartsWith;
         private string? sector;
         private string[]? departmentIds = null;
 
-        public GetDepartments StartsWith(string department)
-        {
-            this.departmentIdStartsWith = department;
-            return this;
-        }
 
         public GetDepartments ByIds(params string[] departmentIds)
         {
@@ -100,16 +94,7 @@ namespace Fusion.Resources.Domain
                        .Where(o => new DepartmentPath(o.FullDepartment!).Parent() == request.sector)
                        .ToList();
 
-                    query = query.AsQueryable();
-                }
-
-                if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
-                {
-                    var items = query.ToList()
-                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
-                        .ToList();
-
-                    query = query.AsQueryable();
+                    query = query.Where(d => items.Contains(d));
                 }
 
                 List<QueryDepartment> result;
