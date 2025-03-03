@@ -55,7 +55,7 @@ namespace Fusion.Resources.Logic.Commands
                         var draft = await CreateProvisionDraftAsync(dbRequest);
                         await EnsureDraftInitializedAsync(dbRequest, draft.Id);
 
-                        await HandleRequestPositionChangeAsync(dbRequest, draft, position);
+                        await AllocateRequestPositionChangesAsync(dbRequest, draft, position);
                         await AllocateRequestInstanceAsync(dbRequest, draft, position);
 
                         await client.PublishAndWaitAsync(draft);
@@ -122,8 +122,7 @@ namespace Fusion.Resources.Logic.Commands
                             $"Provisioning of request [{dbRequest.Id}] to position [{dbRequest.OrgPositionId}/{dbRequest.OrgPositionInstance.Id}]");
                     }
 
-                    // TODO: Decide on name for this method
-                    private async Task HandleRequestPositionChangeAsync(DbResourceAllocationRequest dbRequest, ApiDraftV2 draft, ApiPositionV2 position)
+                    private async Task AllocateRequestPositionChangesAsync(DbResourceAllocationRequest dbRequest, ApiDraftV2 draft, ApiPositionV2 position)
                     {
                         var positionPatchRequest = new JObject();
                         var proposedChanges = new JObject();
