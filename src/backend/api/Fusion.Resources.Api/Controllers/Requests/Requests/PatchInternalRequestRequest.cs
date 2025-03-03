@@ -58,14 +58,12 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         if (x.HasValue && x.Value != null)
                         {
-                            var t = typeof(ApiClients.Org.ApiPositionInstanceV2);
-                            var allowedProperties = t.GetProperties();
+                            string[] allowedProperties = ["appliesFrom", "appliesTo", "location", "workload", "basePosition"];
 
                             var isInvalid = false;
                             foreach (var key in x.Value.Keys)
                             {
-
-                                if (!allowedProperties.Any(p => string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase)))
+                                if (!allowedProperties.Any(p => string.Equals(p, key, StringComparison.OrdinalIgnoreCase)))
                                 {
                                     context.AddFailure($"Key '{key}' is not valid");
                                     isInvalid = true;
@@ -74,7 +72,7 @@ namespace Fusion.Resources.Api.Controllers
 
                             if (isInvalid)
                             {
-                                context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.Name.ToLowerFirstChar()))}");
+                                context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.ToLowerFirstChar()))}");
                             }
 
 
