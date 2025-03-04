@@ -26,6 +26,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// Will be generated new for each test
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
+        private readonly TestTaskDetails testTaskDetails;
+        private readonly ApiTaskDetails apiTaskDetails;
 
         private Guid TestAbsenceId;
 
@@ -42,6 +44,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser = fixture.AddProfile(FusionAccountType.Employee);
             testUser.FullDepartment = "TPD PRD FE MMC EAM";
             testUser.Department = "FE MMC EAM";
+
+            testTaskDetails = new TestTaskDetails()
+            {
+                TaskName = "Top secret task name",
+                RoleName = "Top secret role name",
+                Location = "Top secret location"
+            };
+
+            apiTaskDetails = new ApiTaskDetails()
+            {
+                TaskName = "Top secret task name",
+                RoleName = "Top secret role name",
+                Location = "Top secret location"
+            };
         }
 
         [Fact]
@@ -88,7 +104,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             CheckAllowHeader("!GET", result);
         }
-        
+
         [Fact]
         public async Task GetAbsenceForUser_ShouldBeOk_WhenCurrentUser()
         {
@@ -163,10 +179,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var employeeUser = fixture.AddProfile(FusionAccountType.Employee);
 
             using var adminScope = fixture.AdminScope();
-            var publicCurrentTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.AppliesFrom = DateTime.Now.AddDays(-10); a.AppliesTo = DateTime.Now.AddDays(10); });
-            var publicPastTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.AppliesFrom = DateTime.Now.AddDays(-20); a.AppliesTo = DateTime.Now.AddDays(-10); });
-            var privateCurrentTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.AppliesFrom = DateTime.Now.AddDays(-10); a.AppliesTo = DateTime.Now.AddDays(10); });
-            var privatePastTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.AppliesFrom = DateTime.Now.AddDays(-20); a.AppliesTo = DateTime.Now.AddDays(-10); });
+
+            var publicCurrentTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.AppliesFrom = DateTime.Now.AddDays(-10); a.AppliesTo = DateTime.Now.AddDays(10); a.TaskDetails = testTaskDetails; });
+            var publicPastTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.AppliesFrom = DateTime.Now.AddDays(-20); a.AppliesTo = DateTime.Now.AddDays(-10); a.TaskDetails = testTaskDetails; });
+            var privateCurrentTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.AppliesFrom = DateTime.Now.AddDays(-10); a.AppliesTo = DateTime.Now.AddDays(10); a.TaskDetails = testTaskDetails; });
+            var privatePastTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.AppliesFrom = DateTime.Now.AddDays(-20); a.AppliesTo = DateTime.Now.AddDays(-10); a.TaskDetails = testTaskDetails; });
             var leave = await client.AddUserAbsence(testUser, a => a.IsPrivate = false);
 
 
@@ -190,8 +207,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var employeeUser = fixture.AddProfile(FusionAccountType.Employee);
 
             using var adminScope = fixture.AdminScope();
-            var publicTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = false);
-            var privateTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = true);
+            var publicTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.TaskDetails = testTaskDetails; });
+            var privateTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.TaskDetails = testTaskDetails; });
             var leave = await client.AddUserAbsence(testUser, a => a.IsPrivate = false);
 
 
@@ -216,12 +233,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 a.IsPrivate = false;
                 a.AppliesFrom = DateTime.Now.AddDays(-100);
                 a.AppliesTo = DateTime.Now.AddDays(100);
+                a.TaskDetails = testTaskDetails;
             });
             var pastTaskResp = await client.AddUserOtherTask(testUser, a =>
             {
                 a.IsPrivate = false;
                 a.AppliesFrom = DateTime.Now.AddDays(-100);
                 a.AppliesTo = DateTime.Now.AddDays(-10);
+                a.TaskDetails = testTaskDetails;
             });
 
 
@@ -259,7 +278,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesTo = new DateTime(2022, 04, 30),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Vacation,
-                AbsencePercentage = null // Clearing absencePercentage = 100% 
+                AbsencePercentage = null // Clearing absencePercentage = 100%
             };
 
             using var authScope = fixture.AdminScope();
@@ -376,13 +395,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Type = type,
                 AbsencePercentage = null,
                 IsPrivate = true,
-
-                TaskDetails = new ApiTaskDetails
-                {
-                    TaskName = "Top secret task name",
-                    RoleName = "Top secret role name",
-                    Location = "Top secret location"
-                }
+                TaskDetails = apiTaskDetails,
             };
 
             using var authScope = fixture.AdminScope();
@@ -403,7 +416,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 TaskDetails = new ApiTaskDetails
                 {
                     BasePositionId = new Guid("b97703e6-cdc8-4a3f-a889-21a1d375422f"),
-                    Location = "",
+                    Location = "Test",
                     TaskName = "Test"
                 },
                 Type = ApiPersonAbsence.ApiAbsenceType.OtherTasks
@@ -426,10 +439,37 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesTo = new DateTime(2021, 09, 03),
                 Comment = "",
                 IsPrivate = false,
+                TaskDetails = new ApiTaskDetails() { Location = "Top secret location" },
+                Type = ApiPersonAbsence.ApiAbsenceType.OtherTasks
+            };
+
+            using var authScope = fixture.AdminScope();
+
+            var response = method switch
+            {
+                "POST" => await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", task),
+                "PUT" => await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{this.TestAbsenceId}", task),
+                _ => null
+            };
+
+            response.Should().BeBadRequest();
+        }
+
+        [Theory]
+        [InlineData("POST")]
+        [InlineData("PUT")]
+        public async Task AddTaskWithoutLocation_ShouldNotBeAllowed(string method)
+        {
+            var task = new CreatePersonAbsenceRequest
+            {
+                AbsencePercentage = 100,
+                AppliesFrom = new DateTime(2025, 08, 01),
+                AppliesTo = new DateTime(2025, 08, 31),
+                Comment = "",
+                IsPrivate = false,
                 TaskDetails = new ApiTaskDetails
                 {
-                    Location = "",
-                    TaskName = "Test"
+                    TaskName = "Test",
                 },
                 Type = ApiPersonAbsence.ApiAbsenceType.OtherTasks
             };
