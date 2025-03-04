@@ -892,6 +892,14 @@ namespace Fusion.Resources.Api.Controllers
                         if (result.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                     }
+
+                    if (result.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwnerForDepartment(
+                            new DepartmentPath(result.AssignedDepartment).Parent(),
+                            includeParents: true
+                        );
+                    }
                 });
             });
 
@@ -1481,6 +1489,14 @@ namespace Fusion.Resources.Api.Controllers
                         if (item.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
                     }
+
+                    if (item.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwnerForDepartment(
+                            new DepartmentPath(item.AssignedDepartment).Parent(),
+                            includeParents: true
+                        );
+                    }
                 });
             });
 
@@ -1612,6 +1628,14 @@ namespace Fusion.Resources.Api.Controllers
 
                         if (item.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+                    }
+
+                    if (item.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwnerForDepartment(
+                            new DepartmentPath(item.AssignedDepartment).Parent(),
+                            includeParents: true
+                        );
                     }
                 });
             });
