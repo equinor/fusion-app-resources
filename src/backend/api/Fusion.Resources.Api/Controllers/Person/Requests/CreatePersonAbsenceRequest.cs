@@ -22,7 +22,7 @@ namespace Fusion.Resources.Api.Controllers
         public void LoadCommand(CreatePersonAbsence command)
         {
             DateTime.SpecifyKind(AppliesFrom, DateTimeKind.Utc);
-            if(AppliesTo.HasValue) DateTime.SpecifyKind(AppliesTo.Value, DateTimeKind.Utc);
+            if (AppliesTo.HasValue) DateTime.SpecifyKind(AppliesTo.Value, DateTimeKind.Utc);
 
             command.Comment = NullIfEmpty(Comment);
             command.AppliesFrom = AppliesFrom;
@@ -60,11 +60,16 @@ namespace Fusion.Resources.Api.Controllers
                    .NotEmpty()
                    .When(x => x.TaskDetails is not null && x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks && !x.TaskDetails!.BasePositionId.HasValue)
                    .WithMessage("Either role name or base position must be set.");
+                RuleFor(x => x.TaskDetails!.Location)
+                    .NotNull()
+                    .NotEmpty()
+                    .When(x => x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks)
+                    .WithMessage("Location must be set when type is 'other tasks'.");
             }
         }
 
         #endregion
-    
+
         public static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
     }
 }

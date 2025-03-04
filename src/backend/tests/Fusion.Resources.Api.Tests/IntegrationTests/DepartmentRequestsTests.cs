@@ -64,7 +64,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testRequest = await adminClient.AssignRandomDepartmentAsync(testRequest.Id);
 
             // Should either create or fetch existing org unit.
-            assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment); 
+            assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment);
 
         }
 
@@ -494,6 +494,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 x.AppliesFrom = new DateTime(2020, 03, 01);
                 x.AppliesTo = new DateTime(2020, 04, 15);
+                x.TaskDetails = new TestTaskDetails()
+                {
+                    RoleName = "TestRole",
+                    Location = "Norway",
+                };
             });
             var absence = absenceResp.Value;
 
@@ -517,7 +522,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetTimeline_ShouldSupportSAPId()
         {
             using var adminScope = fixture.AdminScope();
-           
+
             var timelineStart = new DateTime(2020, 03, 01);
             var timelineEnd = new DateTime(2020, 03, 31);
 
@@ -556,7 +561,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     x.AppliesFrom = new DateTime(2020, 03, 01);
                     x.AppliesTo = new DateTime(2020, 04, 15);
                     x.IsPrivate = true;
+                    x.TaskDetails = new TestTaskDetails()
+                    {
+                        RoleName = "TestRole",
+                        Location = "Norway",
+                    };
                 });
+                absenceResp.Should().BeSuccessfull();
                 absence = absenceResp.Value;
             }
 
@@ -597,7 +608,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithPositions(10, 50)
                 .AddToMockService();
 
-            var profile = fixture.AddProfile(s => {
+            var profile = fixture.AddProfile(s =>
+            {
                 s.WithFullDepartment(department);
                 s.WithPositions(project.Positions);
             });
@@ -627,6 +639,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                                           {
                                               x.AppliesFrom = new DateTime(2021, 08, 06);
                                               x.AppliesTo = new DateTime(2021, 09, 03);
+                                              x.TaskDetails = new TestTaskDetails()
+                                              {
+                                                  RoleName = "TestRole",
+                                                  Location = "Norway",
+                                              };
                                           });
 
             var timelineStart = new DateTime(2022, 04, 01);
