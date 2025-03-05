@@ -880,7 +880,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
-            var isRequestInvalid = await IsInvalidAllocationRequestAsync(result);
+            var isRequestInvalid = await IsRequestInvalidAsync(result);
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
@@ -892,16 +892,15 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         if (result.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+                    }
 
-
-                        if (isRequestInvalid && result.AssignedDepartment is not null)
-                        {
-                            or.BeResourceOwnerForDepartment(
-                                new DepartmentPath(result.AssignedDepartment),
-                                includeParents: true
-                            );
-                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(result.AssignedDepartment), AccessRoles.ResourceOwner);
-                        }
+                    if (isRequestInvalid && result.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwnerForDepartment(
+                            new DepartmentPath(result.AssignedDepartment),
+                            includeParents: true
+                        );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(result.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
 
                 });
@@ -1481,7 +1480,7 @@ namespace Fusion.Resources.Api.Controllers
             });
             if (patchResult.Success) allowedVerbs.Add("PATCH");
 
-            var isRequestInvalid = await IsInvalidAllocationRequestAsync(item);
+            var isRequestInvalid = await IsRequestInvalidAsync(item);
             var deleteResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
@@ -1493,16 +1492,15 @@ namespace Fusion.Resources.Api.Controllers
 
                         if (item.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+                    }
 
-                        if (isRequestInvalid && item.AssignedDepartment is not null)
-                        {
-                            or.BeResourceOwnerForDepartment(
-                                new DepartmentPath(item.AssignedDepartment),
-                                includeParents: true
-                            );
-                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
-                        }
-
+                    if (isRequestInvalid && item.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwnerForDepartment(
+                            new DepartmentPath(item.AssignedDepartment),
+                            includeParents: true
+                        );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -1624,7 +1622,7 @@ namespace Fusion.Resources.Api.Controllers
             });
             if (getAuth.Success) allowedVerbs.Add("GET");
 
-            var isRequestInvalid = await IsInvalidAllocationRequestAsync(item);
+            var isRequestInvalid = await IsRequestInvalidAsync(item);
             var deleteAuth = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
@@ -1636,15 +1634,15 @@ namespace Fusion.Resources.Api.Controllers
 
                         if (item.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+                    }
 
-                        if (isRequestInvalid && item.AssignedDepartment is not null)
-                        {
-                            or.BeResourceOwnerForDepartment(
-                                new DepartmentPath(item.AssignedDepartment),
-                                includeParents: true
-                            );
-                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
-                        }
+                    if (isRequestInvalid && item.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwnerForDepartment(
+                            new DepartmentPath(item.AssignedDepartment),
+                            includeParents: true
+                        );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -1743,11 +1741,8 @@ namespace Fusion.Resources.Api.Controllers
                 && !patchValue.Value!.Equals(originalValue);
         }
 
-        private async Task<bool> IsInvalidAllocationRequestAsync(QueryResourceAllocationRequest request)
+        private async Task<bool> IsRequestInvalidAsync(QueryResourceAllocationRequest request)
         {
-            if (request.Type != InternalRequestType.Allocation)
-                return false;
-
             if (request.OrgPositionId == null)
                 return true;
 

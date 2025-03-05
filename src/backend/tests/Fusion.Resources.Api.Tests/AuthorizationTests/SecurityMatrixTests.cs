@@ -142,7 +142,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
         [InlineData(ManagerRoleType.None, TestDepartment, false)]
-        public async Task CanDeleteInvalidAllocationRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed, bool removeInstanceInstead = false)
+        public async Task CanDeleteInvalidRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed, bool removeInstanceInstead = false)
         {
             var request = await CreateAndStartRequest();
 
