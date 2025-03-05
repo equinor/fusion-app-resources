@@ -137,9 +137,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, false)]
         [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
         [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
-        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
-        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false, true)]
-        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
         [InlineData(ManagerRoleType.None, TestDepartment, false)]
         public async Task CanDeleteInvalidAllocationRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed, bool removeInstanceInstead = false)

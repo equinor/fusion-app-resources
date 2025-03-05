@@ -900,6 +900,7 @@ namespace Fusion.Resources.Api.Controllers
                                 new DepartmentPath(result.AssignedDepartment),
                                 includeParents: true
                             );
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(result.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
                     }
 
@@ -1499,6 +1500,7 @@ namespace Fusion.Resources.Api.Controllers
                                 new DepartmentPath(item.AssignedDepartment),
                                 includeParents: true
                             );
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
 
                     }
@@ -1641,6 +1643,7 @@ namespace Fusion.Resources.Api.Controllers
                                 new DepartmentPath(item.AssignedDepartment),
                                 includeParents: true
                             );
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
                     }
                 });
