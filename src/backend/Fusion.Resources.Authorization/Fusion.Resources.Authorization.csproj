@@ -14,7 +14,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Authorization" Version="8.0.10"/>
+    <PackageReference Include="Fusion.Integration.Authorization" Version="8.2.3"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\api\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
