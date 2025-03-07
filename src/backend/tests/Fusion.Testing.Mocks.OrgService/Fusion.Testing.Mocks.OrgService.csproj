@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-	  <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Data\BasePositions.csv" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove="Data\BasePositions.csv"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Data\BasePositions.csv" />
-  </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Data\BasePositions.csv"/>
+    </ItemGroup>
 
-  <ItemGroup>
-      <PackageReference Include="Bogus" Version="35.6.1"/>
-      <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.0.8"/>
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.0.6"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
-      <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.4"/>
-      <PackageReference Include="Fusion.AspNetCore" Version="8.0.6"/>
-  </ItemGroup>
-  
+    <ItemGroup>
+        <PackageReference Include="Bogus" Version="35.6.2"/>
+        <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.4"/>
+        <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.1.0"/>
+        <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.2.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.13"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0"/>
+        <PackageReference Include="Fusion.AspNetCore" Version="8.0.8"/>
+    </ItemGroup>
+
 </Project>
