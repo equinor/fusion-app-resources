@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Tests.FusionMocks
 {
-
-    public class FakeNotificationTransaction : IEventNotificationTransaction
+    public sealed class FakeNotificationTransaction : IEventNotificationTransaction
     {
         public Task CommitAsync(CancellationToken cancellationToken = default)
         {
@@ -32,6 +31,10 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         {
             return Task.CompletedTask;
         }
+
+        public void Dispose()
+        {
+        }
     }
 
     public class EventNotificationClientMock : IEventNotificationClient
@@ -51,10 +54,31 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public Task<IEventNotificationTransaction> BeginTransactionAsync() => Task.FromResult<IEventNotificationTransaction>(new FakeNotificationTransaction());
 
+        public Task SendScheduledNotificationAsync<T>(FusionEventType type, T payload, string eventId, TimeSpan? delay = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SendNotificationAsync<T>(FusionEventType type, T payload) => SendNotificationAsync(type, payload, $"{Guid.NewGuid()}");
+
+        public Task SendScheduledNotificationAsync<T>(FusionEventType type, T payload, TimeSpan? delay = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SendNotificationAsync<T>(FusionEventType type, T payload, string eventId) => DispatchNotification(type, null, payload, null, eventId);
 
         public Task SendNotificationAsync<T>(FusionEvent<T> @event) => DispatchNotification(@event.Type, @event.Category, @event.Payload, @event.AppContext, @event.EventId);
+
+        public Task SendScheduledNotificationAsync<T>(FusionEvent<T> @event, TimeSpan? delay = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SendScheduledNotificationAsync(IEnumerable<FusionEvent> events, TimeSpan? delay = null)
+        {
+            throw new NotImplementedException();
+        }
 
         public Task SendNotificationAsync<T>(FusionEventType type, T payload, Action<FusionEvent<T>> setup)
         {

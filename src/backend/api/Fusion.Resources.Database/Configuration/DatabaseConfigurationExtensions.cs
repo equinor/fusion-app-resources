@@ -23,8 +23,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddResourceDatabase<TTokenProvider>(this IServiceCollection services, IConfiguration configuration)
             where TTokenProvider : class, ISqlTokenProvider
         {
-            var connectionString = configuration.GetConnectionString(nameof(ResourcesDbContext));
-
             string migrationAssemblyName = Assembly.GetExecutingAssembly().FullName!;
 
             services.AddDbContext<ResourcesDbContext>(options => {
@@ -37,12 +35,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ISqlTokenProvider, TTokenProvider>();
 
             return services;
-        }
-
-        public static DbContextOptionsBuilder UseSqlServer(this DbContextOptionsBuilder optionsBuilder, Action<SqlServerDbContextOptionsBuilder>? sqlServerOptionsAction = null)
-        {
-            sqlServerOptionsAction?.Invoke(new SqlServerDbContextOptionsBuilder(optionsBuilder));
-            return optionsBuilder;
         }
     }
 }
