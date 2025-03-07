@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
+using Fusion.Hashing;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Fusion.Testing.Mocks.LineOrgService
