@@ -25,7 +25,8 @@ namespace Fusion.Resources.Database.Authentication
             this.tokenProvider = tokenProvider;
             this.configuration = configuration;
 
-            this.connectionString = configuration.GetConnectionString(nameof(ResourcesDbContext));
+            this.connectionString = configuration.GetConnectionString(nameof(ResourcesDbContext))
+                                    ?? throw new InvalidOperationException($"Missing connection string for {nameof(ResourcesDbContext)}");
 
             if (!Enum.TryParse<ConnectionMode>(configuration["Database:ConnectionMode"], true, out ConnectionMode mode))
                 mode = ConnectionMode.Default;

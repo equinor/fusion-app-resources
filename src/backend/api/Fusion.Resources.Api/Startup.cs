@@ -1,5 +1,4 @@
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Fusion.Events;
 using Fusion.Integration.Authentication;
 using Fusion.Integration.LineOrg;
@@ -8,10 +7,7 @@ using Fusion.Resources.Api.Authentication;
 using Fusion.Resources.Api.HostedServices;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Logic;
-using JSM.FluentValidation.AspNet.AsyncFilter;
-using MediatR;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -21,9 +17,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using SixLabors.ImageSharp;
-using System.Reflection;
 using Fusion.AspNetCore.Versioning;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 namespace Fusion.Resources.Api
 {
@@ -117,9 +112,14 @@ namespace Fusion.Resources.Api
 
             services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
 
-            services.AddControllers()
-                .AddModelValidationAsyncActionFilter();
-            
+            services.AddFluentValidationAutoValidation(c =>
+            {
+                c.EnablePathBindingSourceAutomaticValidation = true;
+                c.EnableFormBindingSourceAutomaticValidation = true;
+            });
+
+            services.AddControllers();
+
             // Keeping for reference - The validator is not added to the .net core validation pipeline. This is due to limitations in running async 
             // validators. This is required to validate against external requirements, e.g. position exists.
             // The validation is executed by an action attribute filter, added by ".AddModelValidationAsyncActionFilter()". 
