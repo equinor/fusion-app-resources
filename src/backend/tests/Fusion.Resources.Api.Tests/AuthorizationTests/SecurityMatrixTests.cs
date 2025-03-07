@@ -180,7 +180,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var actor = fixture.AddProfile(FusionAccountType.Employee);
             SetupManagerRole(role, actor, department);
-            
+
             using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
@@ -204,7 +204,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var actor = fixture.AddProfile(FusionAccountType.Employee);
             SetupManagerRole(role, actor, department);
-            
+
             using var userScope = fixture.UserScope(actor);
 
             var client = fixture.ApiFactory.CreateClient();
@@ -530,7 +530,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, ParentDepartment, true)]
         [InlineData(ActorType.Manager, ManagerRoleType.ResourceOwner, SameL2Department, true)]
         // This should be reconsidered. Just being the creator should not give you any additional access, as roles can be changed.
-        [InlineData(ActorType.RequestCreator, ManagerRoleType.None, TestDepartment, true)]  
+        [InlineData(ActorType.RequestCreator, ManagerRoleType.None, TestDepartment, true)]
         [InlineData(ActorType.TaskOwner, ManagerRoleType.None, TestDepartment, false)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
@@ -552,7 +552,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 ActorType.Manager => fixture.AddProfile(FusionAccountType.Employee),
                 ActorType.TaskOwner => Users["taskOwner"],
-                ActorType.RequestCreator=> Users["resourceOwnerCreator"],
+                ActorType.RequestCreator => Users["resourceOwnerCreator"],
                 _ => throw new NotSupportedException("Unsupported actor type")
             };
             SetupManagerRole(role, actor, department);
@@ -585,7 +585,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             // Create the actor we want to confirm permissions for
             var testUser = fixture.AddProfile(FusionAccountType.Employee);
             SetupManagerRole(role, testUser, department);
-            
+
             using var userScope = fixture.UserScope(testUser);
 
             var result = await client.TestClientPostAsync<TestAbsence>(
@@ -694,7 +694,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
-        public enum AbsenceAccessLevel{ None, All, Limited, OtherTasksOnly }
+        public enum AbsenceAccessLevel { None, All, Limited, OtherTasksOnly }
         [Theory]
         [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, TestDepartment, AbsenceAccessLevel.All)]
         [InlineData(FusionAccountType.Employee, ManagerRoleType.ResourceOwner, SiblingDepartment, AbsenceAccessLevel.All)]
@@ -872,7 +872,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var actor = fixture.AddProfile(FusionAccountType.Employee);
             SetupManagerRole(role, actor, department);
-            
+
             using var userScope = fixture.UserScope(actor);
             var client = fixture.ApiFactory.CreateClient();
 
@@ -899,7 +899,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 appliesTo = DateTime.Today.AddDays(10),
                 comment = "A comment",
                 type = "absence",
-                absencePercentage = 100
+                absencePercentage = 100,
+                // TaskDetails = new TestTaskDetails() { Location = "Top secret location", TaskName = "Top secret task name" }
             });
 
             return result.Value;
@@ -922,7 +923,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 comment = "A comment",
                 type = "otherTasks",
                 absencePercentage = 100,
-                isPrivate = isPrivate
+                isPrivate = isPrivate,
+                TaskDetails = new TestTaskDetails() { Location = "Top secret location", RoleName = "Top secret role name" },
             });
 
             return result.Value;
