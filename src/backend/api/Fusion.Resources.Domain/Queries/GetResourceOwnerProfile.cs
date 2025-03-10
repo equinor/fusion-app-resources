@@ -173,8 +173,7 @@ namespace Fusion.Resources.Domain.Queries
             }
 
             // This method returns departments where the user has delegated responsibilities AND the department
-            // exists. The PIMS sync doesn't currently remove delegated responsibilities when a department has
-            // been removed.
+            // exists. If a department isn't deleted properly, delegated responsibilities may not be cleaned up.
             private async Task<IEnumerable<string>> ResolveDelegatedResponsibilities(FusionFullPersonProfile user)
             {
                 // Get all departments the user has been delegated responsibility for.
