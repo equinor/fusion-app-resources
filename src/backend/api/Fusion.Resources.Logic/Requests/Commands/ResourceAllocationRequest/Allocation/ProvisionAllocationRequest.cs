@@ -55,12 +55,10 @@ namespace Fusion.Resources.Logic.Commands
                         var draft = await CreateProvisionDraftAsync(dbRequest);
                         await EnsureDraftInitializedAsync(dbRequest, draft.Id);
 
-
-                        var draftId = draft.Id;
-
+                        await AllocateRequestPositionChangesAsync(dbRequest, draft, position);
                         await AllocateRequestInstanceAsync(dbRequest, draft, position);
 
-                        draft = await client.PublishAndWaitAsync(draft);
+                        await client.PublishAndWaitAsync(draft);
                     }
 
                     /// <summary>
@@ -122,6 +120,34 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         return await client.CreateProjectDraftAsync(dbRequest.Project.OrgProjectId, $"Allocation provisioning",
                             $"Provisioning of request [{dbRequest.Id}] to position [{dbRequest.OrgPositionId}/{dbRequest.OrgPositionInstance.Id}]");
+                    }
+
+                    private async Task AllocateRequestPositionChangesAsync(DbResourceAllocationRequest dbRequest, ApiDraftV2 draft, ApiPositionV2 position)
+                    {
+                        var positionPatchRequest = new JObject();
+                        var proposedChanges = new JObject();
+
+                        if (!string.IsNullOrEmpty(dbRequest.ProposedChanges))
+                            proposedChanges = JObject.Parse(dbRequest.ProposedChanges);
+
+                        try
+                        {
+                            if (proposedChanges.TryGetValue("basePosition", StringComparison.InvariantCultureIgnoreCase, out var basePosition) && basePosition.Type != JTokenType.Null)
+                                positionPatchRequest.SetPropertyValue<ApiPositionV2>(p => p.BasePosition, basePosition.ToObject<ApiBasePositionV2>()!);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new ProvisioningError("Invalid data from request", ex);
+                        }
+
+                        if (positionPatchRequest.Count == 0)
+                            return;
+
+                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/drafts/{draft.Id}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
+                        var updateResp = await client.PatchAsync<ApiPositionV2>(url, positionPatchRequest);
+
+                        if (!updateResp.IsSuccessStatusCode)
+                            throw new OrgApiError(updateResp.Response, updateResp.Content);
                     }
 
                     private async Task AllocateRequestInstanceAsync(DbResourceAllocationRequest dbRequest, ApiDraftV2 draft, ApiPositionV2 position)
