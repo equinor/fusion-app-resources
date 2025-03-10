@@ -8,9 +8,10 @@ registries:
     url: https://api.nuget.org/v3/index.json
 updates:
   - package-ecosystem: nuget
-    directory: /
+    directories:
+      - "/*"
     registries: "*"
     schedule:
-      interval: "monthly"
-      time: "06:00"
+      interval: "daily"
+      time: "14:35"
       timezone: "Europe/Oslo"
