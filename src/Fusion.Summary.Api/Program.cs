@@ -1,6 +1,5 @@
 using System.Reflection;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Fusion.AspNetCore.Versioning;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api;
@@ -11,6 +10,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +30,11 @@ var environment = builder.Configuration["Environment"] ?? "Development";
 var fusionEnvironment = builder.Configuration["FUSION_ENVIRONMENT"] ?? "ci";
 var databaseConnectionString = builder.Configuration.GetConnectionString(nameof(SummaryDbContext))!;
 
+builder.Services.AddFluentValidationAutoValidation(c =>
+{
+    c.EnablePathBindingSourceAutomaticValidation = true;
+    c.EnableFormBindingSourceAutomaticValidation = true;
+});
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks()
@@ -74,7 +79,13 @@ builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString)
     .AddSqlTokenProvider<SqlTokenProvider>()
     .AddAccessTokenSupport();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-builder.Services.AddFluentValidationAutoValidation().AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+builder.Services.AddFluentValidationAutoValidation(c =>
+{
+    c.EnablePathBindingSourceAutomaticValidation = true;
+    c.EnableFormBindingSourceAutomaticValidation = true;
+});
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();
 app.UseCors(opts => opts
