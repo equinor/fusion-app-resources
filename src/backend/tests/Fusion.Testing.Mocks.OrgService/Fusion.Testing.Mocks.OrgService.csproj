@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10"/>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
       <PackageReference Include="Fusion.ApiClients.Org" Version="8.0.4"/>
-      <PackageReference Include="Fusion.AspNetCore" Version="8.0.6"/>
+      <PackageReference Include="Fusion.AspNetCore" Version="8.0.8"/>
   </ItemGroup>
   
 </Project>
