@@ -120,20 +120,6 @@ namespace Fusion.Resources.Api
 
             services.AddControllers();
 
-            // Keeping for reference - The validator is not added to the .net core validation pipeline. This is due to limitations in running async 
-            // validators. This is required to validate against external requirements, e.g. position exists.
-            // The validation is executed by an action attribute filter, added by ".AddModelValidationAsyncActionFilter()". 
-            // This logic is provided by the nuget library 'JSM.FluentValidation.AspNet.AsyncFilter'.
-
-            //.AddFluentValidation(c =>
-            //{
-            //    c.RegisterValidatorsFromAssemblyContaining<Startup>();
-            //    // Domain project
-            //    c.RegisterValidatorsFromAssemblyContaining<PersonId>();
-            //    // Logic project, where ResourceAllocationRequest having validators
-            //    c.RegisterValidatorsFromAssemblyContaining<Logic.Commands.ResourceAllocationRequest>();
-            //});
-
             services.AddValidatorsFromAssemblyContaining<Startup>(ServiceLifetime.Transient);
             services.AddValidatorsFromAssemblyContaining<PersonId>(ServiceLifetime.Transient);
             services.AddValidatorsFromAssemblyContaining<Logic.Commands.ResourceAllocationRequest>(ServiceLifetime.Transient);
