@@ -141,6 +141,18 @@ namespace Fusion.Testing.Mocks.OrgService
             position.Instances.ForEach(i => i.AddTaskOwner(parentPoisitionId));
             return position;
         }
+
+        public static ApiPositionV2 WithLocation(this ApiPositionV2 position)
+        {
+            var faker = new Bogus.Faker();
+            position.Instances.ForEach(i => i.Location = new ApiPositionLocationV2
+            {
+                Name = faker.Address.City(),
+                Country = faker.Address.Country(),
+                Code = faker.Address.CountryCode()
+            });
+            return position;
+        }
     }
 
 }

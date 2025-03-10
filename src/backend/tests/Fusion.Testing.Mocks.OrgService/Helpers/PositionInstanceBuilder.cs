@@ -65,7 +65,14 @@ namespace Fusion.Testing.Mocks.OrgService
                 .RuleFor(i => i.Id, f => Guid.NewGuid())
                 .RuleFor(i => i.ExternalId, f => f.Random.AlphaNumeric(3))
                 .RuleFor(i => i.Calendar, f => "Normal")
-                .RuleFor(i => i.Workload, f => f.Random.Double(0, 100));
+                .RuleFor(i => i.Workload, f => f.Random.Double(0, 100))
+                .RuleFor(i => i.Location, f => new ApiPositionLocationV2()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = f.Address.City(),
+                    Country = f.Address.Country(),
+                    Code = f.Address.CountryCode()
+                });
 
             var instances = faker.Generate(count);
 
@@ -92,7 +99,14 @@ namespace Fusion.Testing.Mocks.OrgService
                 .RuleFor(i => i.Id, f => Guid.NewGuid())
                 .RuleFor(i => i.ExternalId, f => f.Random.AlphaNumeric(3))
                 .RuleFor(i => i.Calendar, f => "Normal")
-                .RuleFor(i => i.Workload, f => f.Random.Double(0, 100));
+                .RuleFor(i => i.Workload, f => f.Random.Double(0, 100))
+                .RuleFor(i => i.Location, f => new ApiPositionLocationV2()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = f.Address.City(),
+                    Country = f.Address.Country(),
+                    Code = f.Address.CountryCode()
+                });
         }
 
 

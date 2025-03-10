@@ -404,6 +404,8 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
             if (HasChanged(request.AdditionalNote, item.AdditionalNote))
                 return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
+            if (item?.OrgPositionInstance?.Location is null && !(request.ProposedChanges.Value?.ContainsKey("location") ?? false))
+                return ApiErrors.InvalidInput("Location is required.");
 
             #region Authorization
 
@@ -671,7 +673,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest([FromRoute]RequestIdentifier requestId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest([FromRoute] RequestIdentifier requestId, [FromQuery] ODataQueryParams query)
         {
             if (!requestId.Exists)
                 return requestId.NotFoundResult();

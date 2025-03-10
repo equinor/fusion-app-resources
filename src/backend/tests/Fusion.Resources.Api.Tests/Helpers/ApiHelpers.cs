@@ -287,6 +287,7 @@ namespace Fusion.Resources.Api.Tests
             payload.TaskDetails = new Faker<TestTaskDetails>()
                 .RuleFor(x => x.TaskName, f => f.Company.CatchPhrase())
                 .RuleFor(x => x.RoleName, f => f.Company.CatchPhrase())
+                .RuleFor(x => x.Location, f => f.Address.City())
                 .Generate();
 
             setup?.Invoke(payload);
