@@ -17,6 +17,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -125,6 +126,41 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientDeleteAsync<dynamic>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}");
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, TestDepartment, true, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SiblingDepartment, false)]
+        [InlineData(ManagerRoleType.ResourceOwner, ParentDepartment, true)]
+        [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.None, TestDepartment, false)]
+        public async Task CanDeleteInvalidRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed, bool removeInstanceInstead = false)
+        {
+            var request = await CreateAndStartRequest();
+
+            var actor = fixture.AddProfile(FusionAccountType.Employee);
+            SetupManagerRole(role, actor, department);
+
+            using var userScope = fixture.UserScope(actor);
+
+            InvalidateRequest(request, removeInstance: removeInstanceInstead);
+
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientOptionsAsync($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}");
+
+            if (shouldBeAllowed) result.Should().HaveAllowHeaders(HttpMethod.Delete);
+            else result.Should().NotHaveAllowHeaders(HttpMethod.Delete);
+
+            result = await client.TestClientDeleteAsync<dynamic>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}");
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
@@ -941,6 +977,16 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
         private Task<TestApiInternalRequestModel> CreateAndStartRequest()
             => CreateAndStartRequest(testPosition);
+
+        private void InvalidateRequest(TestApiInternalRequestModel request, bool removeInstance)
+        {
+            var id = (removeInstance ? request.OrgPositionInstanceId : request.OrgPositionId)!.Value;
+
+            if (removeInstance)
+                OrgServiceMock.RemoveInstance(id);
+            else
+                OrgServiceMock.RemovePosition(id);
+        }
         private async Task<TestApiInternalRequestModel> CreateAndStartRequest(ApiPositionV2 position)
         {
             var creatorClient = fixture.ApiFactory.CreateClient()

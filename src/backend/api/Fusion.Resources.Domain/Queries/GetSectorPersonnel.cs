@@ -101,7 +101,7 @@ namespace Fusion.Resources.Domain
                 );
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, departments.Select(x => x.FullDepartment));
+                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, departments.Select(x => x.Identifier).Where(i => !string.IsNullOrEmpty(i))!);
 
                 return sectorPersonnel
                     .Where(x => x.ManagerAzureId != null && managerIds.Contains(x.ManagerAzureId.Value))

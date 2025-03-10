@@ -177,28 +177,6 @@ namespace Fusion.Resources.Domain
                 return requests.Where(r => string.IsNullOrWhiteSpace(r.State) || r.State == "created").ToList();
             }
 
-            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments, List<QueryResourceAllocationRequest> requests)
-            {
-                var department = await mediator.Send(new GetDepartment(fullDepartmentString));
-                if (department is null)
-                    return new List<QueryInternalPersonnelPerson>();
-
-                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-
-                List<QueryInternalPersonnelPerson> personnel;
-
-                if (includeSubDepartments || department.LineOrgResponsible?.AzureUniqueId is null)
-                {
-                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, requests, fullDepartmentString);
-                }
-                else
-                {
-                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value, requests);
-                }
-
-                return personnel;
-            }
-
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsyncV2(string fullDepartmentString, List<QueryResourceAllocationRequest> requests)
             {
                 // Not sure what includeSubDepartments does tbh.. By looking at existing code, it doesn't do much other than what we want to do.. 
@@ -210,21 +188,9 @@ namespace Fusion.Resources.Domain
                 // Copied from line org for now. Might want to decorate the profiles in the search index with the department property so the query is simple
                 // Will be too many round-trips to ask line org for 
 
-                var managers = orgUnit?.Management?.Persons?
-                    .Where(m => string.Equals(m.FullDepartment, orgUnit.FullDepartment, StringComparison.OrdinalIgnoreCase))
-                    .Select(m => m.AzureUniqueId)
-                    .ToList() ?? new List<Guid>();
-
-                var removeManagerQuery = string.Join(" and ", managers.Select(m => $"azureUniqueId ne '{m}'"));
-                var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
-
-
-                if (managers.Any())
-                    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}' and isResourceOwner eq true"));
-
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
-                var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, queryString, requests: requests);
+                var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, $"orgUnitId eq '{orgUnit?.SapId}' and isExpired eq false", requests: requests);
 
 
                 return personnel;
