@@ -863,8 +863,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 appliesTo = DateTime.Today.AddDays(10),
                 comment = "A comment",
                 type = "absence",
-                absencePercentage = 100,
-                // TaskDetails = new TestTaskDetails() { Location = "Top secret location", TaskName = "Top secret task name" }
+                absencePercentage = 100
             });
 
             return result.Value;
