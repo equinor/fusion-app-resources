@@ -12,6 +12,6 @@ updates:
       - "/*"
     registries: "*"
     schedule:
-      interval: "daily"
-      time: "14:35"
+      interval: "monthly"
+      time: "06:00"
       timezone: "Europe/Oslo"
