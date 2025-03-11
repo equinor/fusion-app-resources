@@ -244,6 +244,15 @@ namespace Fusion.Resources.Api.Controllers
             if (!assignedPersonProfile?.FullDepartment?.Equals(departmentString.FullDepartment, StringComparison.OrdinalIgnoreCase) == true)
                 return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentString.FullDepartment}'");
 
+            // Verify the split has a location, or a non-null location is being proposed
+            var hasExistingLocation = position.Instances
+                .FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)
+                ?.Location != null;
+            var isProposingLocation = request.ProposedChanges?.ContainsKey("location") ?? false;
+            var proposingNullLocation = isProposingLocation ? request.ProposedChanges?["location"] == null : false;
+            if ((!hasExistingLocation && !isProposingLocation) || proposingNullLocation)
+                return ApiErrors.InvalidInput("Location is required");
+
             // Check if change requests are disabled.
             // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims.
             // Change requests are only enabled on projects that have pims write sync enabled for now.
@@ -404,8 +413,14 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
             if (HasChanged(request.AdditionalNote, item.AdditionalNote))
                 return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
-            if (item?.OrgPositionInstance?.Location is null && !(request.ProposedChanges.Value?.ContainsKey("location") ?? false))
-                return ApiErrors.InvalidInput("Location is required.");
+            // Verify the split has a location, or a non-null location is being proposed
+            var hasExistingLocation = item.OrgPosition!.Instances
+                .FirstOrDefault(i => i.Id == item.OrgPositionInstanceId)
+                ?.Location != null;
+            var isProposingLocation = request.ProposedChanges.Value?.ContainsKey("location") ?? false;
+            var proposingNullLocation = isProposingLocation ? request.ProposedChanges.Value?["location"] == null : false;
+            if ((!hasExistingLocation && !isProposingLocation) || proposingNullLocation)
+                return ApiErrors.InvalidInput("Location is required");
 
             #region Authorization
 
