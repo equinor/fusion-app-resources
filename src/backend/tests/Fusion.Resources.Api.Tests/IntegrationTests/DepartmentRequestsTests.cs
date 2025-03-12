@@ -15,6 +15,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Fusion.Services.LineOrg.ApiModels;
 using Newtonsoft.Json.Linq;
+using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -930,8 +931,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result!.pendingRequests.Should().BeNull();
         }
 
-        [Fact]
-        public async Task CreateChangeRequest_ShouldFail_WhenRemovingLocation()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task CreateChangeRequest_ShouldFail_WhenRemovingLocation(bool useLocationObject)
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
@@ -954,13 +957,54 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 orgPositionInstanceId = request.OrgPositionInstanceId,
                 proposedChanges = new Dictionary<string, object>
                 {
-                    ["location"] = null
+                    ["location"] = useLocationObject
+                        ? new
+                        {
+                            name = (string)null,
+                        }
+                        : null,
                 }
             });
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>(
                     $"departments/{user.FullDepartment}/resources/requests", payload);
             response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task CreateChangeRequest_ShouldSucceed_WhenProposingLocation()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            await Client.ResourceOwnerApproveAsync(user.Department, request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var payload = JObject.FromObject(new
+            {
+                type = "ResourceOwnerChange",
+                subtype = "adjustment",
+                orgPositionId = request.OrgPositionId,
+                orgPositionInstanceId = request.OrgPositionInstanceId,
+                proposedChanges = new Dictionary<string, object>
+                {
+                    ["location"] = new
+                    {
+                        name = "Top secret location",
+                    }
+                }
+            });
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>(
+                    $"departments/{user.FullDepartment}/resources/requests", payload);
+            response.Should().BeSuccessfull();
         }
 
 

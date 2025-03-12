@@ -1,4 +1,5 @@
 ﻿﻿using FluentValidation;
+using Fusion.ApiClients.Org;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
@@ -16,6 +17,7 @@ using Fusion.Resources.Logic.Requests;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -245,13 +247,12 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentString.FullDepartment}'");
 
             // Verify the split has a location, or a non-null location is being proposed
-            var hasExistingLocation = position.Instances
-                .FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)
-                ?.Location != null;
-            var isProposingLocation = request.ProposedChanges?.ContainsKey("location") ?? false;
-            var proposingNullLocation = isProposingLocation ? request.ProposedChanges?["location"] == null : false;
-            if ((!hasExistingLocation && !isProposingLocation) || proposingNullLocation)
+            if (LocationWillBeNull(
+                position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)?.Location,
+                request.ProposedChanges))
+            {
                 return ApiErrors.InvalidInput("Location is required");
+            }
 
             // Check if change requests are disabled.
             // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims.
@@ -414,12 +415,7 @@ namespace Fusion.Resources.Api.Controllers
             if (HasChanged(request.AdditionalNote, item.AdditionalNote))
                 return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
             // Verify the split has a location, or a non-null location is being proposed
-            var hasExistingLocation = item.OrgPosition!.Instances
-                .FirstOrDefault(i => i.Id == item.OrgPositionInstanceId)
-                ?.Location != null;
-            var isProposingLocation = request.ProposedChanges.Value?.ContainsKey("location") ?? false;
-            var proposingNullLocation = isProposingLocation ? request.ProposedChanges.Value?["location"] == null : false;
-            if ((!hasExistingLocation && !isProposingLocation) || proposingNullLocation)
+            if (LocationWillBeNull(item.OrgPosition!.Instances.FirstOrDefault(i => i.Id == item.OrgPositionInstanceId)?.Location, request.ProposedChanges?.Value))
                 return ApiErrors.InvalidInput("Location is required");
 
             #region Authorization
@@ -457,7 +453,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
-                if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
+                if (request.ProposedChanges?.HasValue ?? false) updateCommand.ProposedChanges = request.ProposedChanges.Value;
                 if (request.Properties.HasValue) updateCommand.Properties = request.Properties.Value;
 
 
@@ -1775,6 +1771,35 @@ namespace Fusion.Resources.Api.Controllers
                 return true;
 
             return false;
+        }
+
+        // When a resource owner makes a proposal for a request or creates a change request the resulting position instance
+        // must have a location. The position is optional when creating a request, so we need to check that a location either
+        // was set when creating the request and the proposal does not remove it, or that the proposal adds a location.
+        private static bool LocationWillBeNull(ApiPositionLocationV2? existingLocation, Dictionary<string, object>? proposedChanges)
+        {
+            var isProposingLocation = proposedChanges?.ContainsKey("location") ?? false;
+            var locationWillNotBeSet = existingLocation == null && !isProposingLocation;
+            if (isProposingLocation && (proposedChanges?.TryGetValue("location", out var locationData) ?? false))
+            {
+                // Check if location has a valid value, depending on the calling endpoint the data type is different
+                if (locationData is JObject locationJObject)
+                {
+                    var name = locationJObject["name"] ?? null;
+                    return name == null || locationWillNotBeSet;
+                }
+                else if (locationData is Dictionary<string, object> locationDict)
+                {
+                    if (locationDict.TryGetValue("name", out var name))
+                    {
+                        return name == null || locationWillNotBeSet;
+                    }
+                }
+
+                // Location is null or an unknown type
+                return true;
+            }
+            return locationWillNotBeSet;
         }
     }
 }

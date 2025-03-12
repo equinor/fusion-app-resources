@@ -844,7 +844,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 proposedChanges = new Dictionary<string, object>
                 {
-                    ["location"] = "Top Secret Location"
+                    ["location"] = new { name = "Top Secret Location" },
                 }
             });
 
