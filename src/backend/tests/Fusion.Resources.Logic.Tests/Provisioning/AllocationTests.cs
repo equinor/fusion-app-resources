@@ -1,6 +1,5 @@
 ﻿using Azure;
 using FluentAssertions;
-using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -21,6 +20,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
@@ -442,7 +442,7 @@ namespace Fusion.Resources.Logic.Tests
         private async Task<IEnumerable<(Uri, string)>> RunProvisioningAsync(DbResourceAllocationRequest request)
         {
             var factoryMock = new Mock<IOrgApiClientFactory>();
-            factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
+            factoryMock.Setup(c => c.CreateClient()).Returns(orgClientMock.Object);
 
             var cmd = new ResourceAllocationRequest.Allocation.ProvisionAllocationRequest(request.Id);
 

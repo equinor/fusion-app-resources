@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using MediatR;
 using System.Diagnostics;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -58,7 +59,7 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         if (x.HasValue && x.Value != null)
                         {
-                            var t = typeof(ApiClients.Org.ApiPositionInstanceV2);
+                            var t = typeof(ApiPositionInstanceV2);
                             var allowedProperties = t.GetProperties();
 
                             var isInvalid = false;

@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -10,6 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
+using Fusion.Resources.Domain.Services;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Services.Org.ApiModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Queries
@@ -105,7 +107,7 @@ namespace Fusion.Resources.Domain.Queries
                     return positions;
 
 
-                var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                var client = orgApiClientFactory.CreateClient();
                 var resp = await client.GetAsync<List<ApiPositionV2>>("/admin/positions/tbn");
 
                 if (!resp.IsSuccessStatusCode)

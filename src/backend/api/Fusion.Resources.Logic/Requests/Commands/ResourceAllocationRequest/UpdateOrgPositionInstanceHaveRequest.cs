@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using MediatR;
+﻿using MediatR;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;

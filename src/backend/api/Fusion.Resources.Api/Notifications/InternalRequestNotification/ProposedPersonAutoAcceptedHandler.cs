@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
@@ -10,6 +9,7 @@ using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Services.Org.ApiModels;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

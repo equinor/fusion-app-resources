@@ -12,6 +12,8 @@ using Fusion.Resources.Domain.Commands.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Fusion.Resources.Domain.Commands.Conversations;
+using Fusion.Resources.Domain.Services;
+using Fusion.Resources.Domain.Services.OrgClient;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -108,7 +110,7 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
-            private readonly IOrgApiClient orgClient;
+            private readonly OrgApiClient orgClient;
             private readonly IFusionProfileResolver profileResolver;
 
             public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory, IFusionProfileResolver profileResolver)
@@ -118,7 +120,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
                 this.profileResolver = profileResolver;
-                this.orgClient = apiClientFactory.CreateClient(ApiClientMode.Application);
+                this.orgClient = apiClientFactory.CreateClient();
             }
 
             public async Task<QueryResourceAllocationRequest?> Handle(GetResourceAllocationRequestItem request, CancellationToken cancellationToken)
