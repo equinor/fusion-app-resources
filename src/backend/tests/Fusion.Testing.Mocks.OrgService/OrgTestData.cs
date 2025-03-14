@@ -1,7 +1,7 @@
 ﻿using Bogus;
-using Fusion.ApiClients.Org;
 using System;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -27,7 +27,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 };
 
                 director.ProjectId = project.ProjectId;
-                director.Project = new ApiProjectReferenceV2()
+                director.Project = new ApiProjectReference()
                 {
                     ProjectId = project.ProjectId,
                     DomainId = project.DomainId,

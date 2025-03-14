@@ -109,9 +109,7 @@ namespace Fusion.Resources.Api
             services.AddScoped<ILocalClaimsTransformation, ResourcesLocalClaimsTransformation>();
 
             services.AddScoped<IRequestRouter, RequestRouter>();
-
-            services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
-
+            
             services.AddFluentValidationAutoValidation(c =>
             {
                 c.EnablePathBindingSourceAutomaticValidation = true;
