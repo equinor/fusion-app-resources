@@ -43,6 +43,22 @@ public class DepartmentTests : TestBase
         response.Should().BeSuccessfull();
     }
 
+    [Fact]
+    public async Task PutDepartment_EmptyName_ShouldBeBadRequest()
+    {
+        using var adminScope = _fixture.AdminScope();
+        var testUser = _fixture.Fusion.CreateUser().AsEmployee().AzureUniqueId!.Value;
+
+        var response = await _client.TestClientPutAsync<dynamic>($"departments/123124", new
+        {
+            resourceOwnersAzureUniqueId = new[] { testUser },
+            delegateResourceOwnersAzureUniqueId = new string[0],
+            fullDepartmentName = ""
+        });
+
+        response.Should().BeBadRequest();
+    }
+
 
     [Fact]
     public async Task PutDepartment_Then_UpdateOwner_ShouldBeSuccess()
