@@ -19,7 +19,7 @@ namespace Fusion.Resources.Domain.Commands
             OrgProjectIds = orgProjectIds;
             return this;
         }
-        
+
         public class Handler : IRequestHandler<SyncProjectStates>
         {
             private readonly ResourcesDbContext db;
@@ -43,7 +43,7 @@ namespace Fusion.Resources.Domain.Commands
 
                     if (orgProject is not null)
                     {
-                        project.State = orgProject.State;
+                        project.State = orgProject.State ?? "ACTIVE";
                     }
                 }
                 await db.SaveChangesAsync(cancellationToken);

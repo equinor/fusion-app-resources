@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain
             Name = project.Name;
             DomainId = project.DomainId;
             OrgProjectId = project.OrgProjectId;
-            State = project.State;
+            State = project.State ?? "ACTIVE";
         }
 
         public Guid Id { get; set; }
@@ -35,7 +35,7 @@ namespace Fusion.Resources.Domain
             Name = name;
             DomainId = domainId;
             Type = type;
-            State = state;
+            State = state ?? "ACTIVE";
         }
         public string Name { get; set; }
         public string? DomainId { get; set; }
