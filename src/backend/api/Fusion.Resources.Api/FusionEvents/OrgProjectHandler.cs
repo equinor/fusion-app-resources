@@ -3,8 +3,6 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,7 +59,7 @@ namespace Fusion.Resources.Api
             {
                 existingProject.Name = orgProject.Name;
                 existingProject.DomainId = orgProject.DomainId;
-                existingProject.State = orgProject.State;
+                existingProject.State = orgProject.State ?? "ACTIVE";
 
                 await db.SaveChangesAsync(cancellationToken);
             }

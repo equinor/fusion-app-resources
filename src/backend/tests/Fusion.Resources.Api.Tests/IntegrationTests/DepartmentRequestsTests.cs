@@ -64,7 +64,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testRequest = await adminClient.AssignRandomDepartmentAsync(testRequest.Id);
 
             // Should either create or fetch existing org unit.
-            assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment); 
+            assignedOrgUnit = fixture.AddOrgUnit(testRequest.AssignedDepartment);
 
         }
 
@@ -154,6 +154,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 $"/departments/12312312399/resources/requests");
 
             response.Should().BeNotFound();
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ProjectsShouldHaveState()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/{assignedOrgUnit.SapId}/resources/requests");
+            response.Should().BeSuccessfull();
+            response.Value.Value.All(request => request.Project.State.Length > 0).Should().BeTrue();
         }
 
         #endregion
@@ -517,7 +527,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetTimeline_ShouldSupportSAPId()
         {
             using var adminScope = fixture.AdminScope();
-           
+
             var timelineStart = new DateTime(2020, 03, 01);
             var timelineEnd = new DateTime(2020, 03, 31);
 
@@ -597,7 +607,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithPositions(10, 50)
                 .AddToMockService();
 
-            var profile = fixture.AddProfile(s => {
+            var profile = fixture.AddProfile(s =>
+            {
                 s.WithFullDepartment(department);
                 s.WithPositions(project.Positions);
             });
