@@ -251,6 +251,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task Get_ProjectRequest_ProjectState_ShouldNotBeNull()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
+            response.Value.Project.State.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
         public async Task CreateRequest_ShouldSet_AdditionalNote()
         {
             using var adminScope = fixture.AdminScope();
