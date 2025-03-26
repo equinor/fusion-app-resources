@@ -18,7 +18,7 @@ using Fusion.Testing.Mocks.ProfileService;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-#nullable enable 
+#nullable enable
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -86,7 +86,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddToMockService();
 
             taskOwnerPosition = testProject.AddPosition().WithAssignedPerson(testUser);
-            requestPosition = testProject.AddPosition().WithAssignedPerson(requestAssignedPerson).WithTaskOwner(taskOwnerPosition.Id);
+            requestPosition = testProject.AddPosition().WithAssignedPerson(requestAssignedPerson).WithTaskOwner(taskOwnerPosition.Id).WithLocation();
             testProject.SetTaskOwner(requestPosition.Id, taskOwnerPosition.Id);
             // Prepare context resolver.
             fixture.ContextResolver
@@ -196,7 +196,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
-            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response.Value})}");
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response.Value })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
 
             var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(normalRequest.Id);
