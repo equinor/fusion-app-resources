@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Infrastructure.MediatR.Distributed;
+using Fusion.Integration.Http.Models;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -113,7 +114,26 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     services.TryRemoveImplementationService<IMemoryCache>();
                     services.AddSingleton<IMemoryCache, AlwaysEmptyCache>();
                 }
-                services.AddSingleton(new Mock<IFusionServiceDiscovery>(MockBehavior.Loose).Object);
+
+                services.AddSingleton<IFusionServiceDiscovery>(sp =>
+                {
+                    var serviceDiscoveryMock = new Mock<IFusionServiceDiscovery>();
+                    serviceDiscoveryMock.Setup(sd => sd.ResolveAsync(It.IsAny<string>())).Returns((string service) =>
+                    {
+                        var dis = new DiscoveryService
+                        {
+                            Environment = "ci",
+                            Key = service,
+                            Name = service,
+                            Uri = $"http://localhost/{service}",
+                            Scopes = [],
+                            Tags = []
+                        };
+                        return ValueTask.FromResult(dis);
+                    });
+
+                    return serviceDiscoveryMock.Object;
+                });
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());

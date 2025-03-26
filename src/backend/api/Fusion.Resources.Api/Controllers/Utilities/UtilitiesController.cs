@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Fusion.Resources.Api.Controllers.Utilities
 {
@@ -21,13 +22,15 @@ namespace Fusion.Resources.Api.Controllers.Utilities
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionTokenProvider tokenProvider;
         private readonly IOptions<FusionIntegrationOptions> fusionOptions;
+        private readonly string clientId;
 
         public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider,
-            IOptions<FusionIntegrationOptions> fusionOptions)
+            IOptions<FusionIntegrationOptions> fusionOptions, IConfiguration configuration)
         {
             this.httpClientFactory = httpClientFactory;
             this.tokenProvider = tokenProvider;
             this.fusionOptions = fusionOptions;
+            clientId = configuration["AzureAd:ClientId"]!;
         }
 
         [HttpPost("/utilities/parse-spreadsheet")]
@@ -38,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers.Utilities
                 return FusionApiError.InvalidOperation("MissingBody", "Could not locate any body payload");
 
             var url = $"https://pro-f-utility-{fusionOptions.Value.ServiceDiscovery.Environment}.azurewebsites.net";
-            var token = await tokenProvider.GetApplicationTokenAsync();
+            var token = await tokenProvider.GetApplicationTokenAsync(clientId);
             var client = httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
             client.BaseAddress = new Uri(url);

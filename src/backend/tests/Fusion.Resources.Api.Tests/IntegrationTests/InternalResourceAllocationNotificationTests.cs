@@ -9,6 +9,7 @@ using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
@@ -33,6 +34,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         ///     Will be generated new for each test
         /// </summary>
         private ApiPersonProfileV3 testUser = null!;
+
+        private ApiPersonProfileV3 testProposedUser = null!;
+        
         private readonly ApiPersonProfileV3 resourceOwnerPerson;
         private readonly ApiPersonProfileV3 requestAssignedPerson;
         private ApiPositionV2 taskOwnerPosition = null!;
@@ -68,6 +72,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             // Mock profile
             testUser = fixture.AddResourceOwner(TestDepartmentId);
+            testProposedUser = fixture.AddProfile(person =>
+            {
+                var d = new DepartmentPath(TestDepartmentId);
+
+                person.WithFullDepartment(d);
+                person.WithDepartment(d.GetShortName());
+                person.WithAccountType(FusionAccountType.Employee);
+            });
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -99,7 +111,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var request = await Client.CreateRequestAsync(ProjectId, r => r
                 .AsTypeNormal()
                 .WithPosition(requestPosition)
-                .WithAssignedDepartment(testUser.FullDepartment!));
+                .WithAssignedDepartment(testProposedUser.FullDepartment!));
 
             await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{request.Id}/start", null);
             await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
@@ -107,7 +119,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             TestLogger.TryLog($"{JsonConvert.SerializeObject(new { request })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(request.Id);
-            notificationsForRequest.Count.Should().BeGreaterOrEqualTo(1);
+            notificationsForRequest.Count(x => x.PersonIdentifier == testUser.AzureUniqueId.ToString()).Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
@@ -118,8 +130,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsTypeDirect()
                 .WithAdditionalNote("se separate description of tasks and skills for US IDM position.  The position should be an expatriate position until a suitable local candidate is available.   Task for US IDM.  Building an information management culture for wind projects in the US sector​  Establish new routines for information handling for new contract models, including handover to operations​  Establish a best practice for handling information and communication from stakeholders​  Networking to get to know American requirements, work culture and stakeholder management​  Ensure alignment and correct handling of information from permitting, stakeholder management and commercial disciplines​  Close collaboration with legal discipline to ensure correct handling of information with regards to local requirements​  Establish local IDM work processes for projects and operations​  Alignment with REN BD US​   Skillset .  Proven leadership experience and international experience​  Strong multi-discipline understanding​  Strong ability to identify the need for new processes, define requirements and, together with stakeholders, establish efficient solutions​  Methodical, analytical and structured problem solving​  Strong understanding of risk picture in the project and how this effects IDM deliveries​  Highly experienced in IDM​  Strong cultural collaboration skills​  Strong focus on good team collaboration and communication both with site team and home team​   Task on behalf of IDM home team.  Implement and follow-up information security and information management routines​  Solving ad-hoc issues regarding information security and information handling​  Emergency access management ​  Ensure alignment with the home team and PDC​  Ensure correct handling of authority communications​  Responsibility for follow up of site specific contract issues​  Training of internal and external personnel​  Hire and train local IDM resources​  Establish and maintain an archive for paper originals​  Leading by example​  Multi-discipline approach to the tasks​  ")
                 .WithPosition(requestPosition)
-                .WithProposedPerson(testUser)
-                .WithAssignedDepartment(testUser.FullDepartment!));
+                .WithProposedPerson(testProposedUser)
+                .WithAssignedDepartment(TestDepartmentId!));
 
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{directRequest.Id}/start", null);

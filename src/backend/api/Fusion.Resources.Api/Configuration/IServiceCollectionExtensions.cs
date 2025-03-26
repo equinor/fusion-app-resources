@@ -44,28 +44,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return services;
         }
-
-        public static IServiceCollection AddLineOrgHttpClient(this IServiceCollection services)
-        {
-            services.AddFusionIntegrationHttpClient("lineorg", o =>
-            {
-                o.EndpointResolver = (sp) =>
-                {
-                    var intgConfig = sp.GetRequiredService<IOptions<FusionIntegrationOptions>>();
-                    var fusionEnv = intgConfig.Value.ServiceDiscovery?.Environment ?? "ci";
-                    
-                    if (fusionEnv.Equals("fprd", StringComparison.OrdinalIgnoreCase))
-                        return Task.FromResult("https://lineorg.api.fusion.equinor.com");
-                    return Task.FromResult($"https://lineorg.{fusionEnv}.api.fusion-dev.net");
-                };
-
-                // Bug, must be specified
-                o.Uri = new Uri("https://fusion-s-lineorg-.azurewebsits.net");
-
-                //o.Resource 
-            });
-
-            return services;
-        }
+        
     }
 }
