@@ -29,6 +29,9 @@ namespace Fusion.Resources.Domain
         {
         }
 
+        /// This constructor will not treat state == null as the project's state being Active. The
+        /// project's data may be coming from sources other than the resources db and so resolving
+        /// the state is up to the callee.
         public QueryProjectRef(Guid orgId, string name, string domainId, string type, string? state)
         {
             OrgProjectId = orgId;
