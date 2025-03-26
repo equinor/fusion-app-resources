@@ -35,7 +35,7 @@ namespace Fusion.Resources.Domain
             Name = name;
             DomainId = domainId;
             Type = type;
-            State = state.ResolveProjectState();
+            State = state;
         }
         public string Name { get; set; }
         public string? DomainId { get; set; }
