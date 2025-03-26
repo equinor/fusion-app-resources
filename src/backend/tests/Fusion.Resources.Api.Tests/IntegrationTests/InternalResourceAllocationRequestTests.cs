@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -828,6 +829,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             NotificationClientMock.SentMessages.Count.Should().BeGreaterThan(0);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldFail_WhenNoLocationOnInstanceOrProsposedChanges()
+        {
+            const string department = "JHA HRA BAR";
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject, null, position => position.Instances.ForEach(instance => instance.Location = null));
+            var payload = new JObject { { "assignedDepartment", JToken.FromObject(department) } };
+
+            var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldSucceed_WhenLocationOnlyOnProposedChanges()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject, null, position => position.Instances.ForEach(instance => instance.Location = null));
+            var payload = JObject.FromObject(new
+            {
+                proposedChanges = new Dictionary<string, object>
+                {
+                    ["location"] = new { name = "Top Secret Location" },
+                }
+            });
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{request.Id}", payload);
+            response.Should().BeSuccessfull();
         }
 
         [Theory]

@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Fusion.Services.LineOrg.ApiModels;
+using Newtonsoft.Json.Linq;
+using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -504,6 +506,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 x.AppliesFrom = new DateTime(2020, 03, 01);
                 x.AppliesTo = new DateTime(2020, 04, 15);
+                x.TaskDetails = new TestTaskDetails()
+                {
+                    RoleName = "TestRole",
+                    Location = "Norway",
+                };
             });
             var absence = absenceResp.Value;
 
@@ -566,7 +573,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     x.AppliesFrom = new DateTime(2020, 03, 01);
                     x.AppliesTo = new DateTime(2020, 04, 15);
                     x.IsPrivate = true;
+                    x.TaskDetails = new TestTaskDetails()
+                    {
+                        RoleName = "TestRole",
+                        Location = "Norway",
+                    };
                 });
+                absenceResp.Should().BeSuccessfull();
                 absence = absenceResp.Value;
             }
 
@@ -638,6 +651,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                                           {
                                               x.AppliesFrom = new DateTime(2021, 08, 06);
                                               x.AppliesTo = new DateTime(2021, 09, 03);
+                                              x.TaskDetails = new TestTaskDetails()
+                                              {
+                                                  RoleName = "TestRole",
+                                                  Location = "Norway",
+                                              };
                                           });
 
             var timelineStart = new DateTime(2022, 04, 01);
@@ -921,6 +939,82 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             result.Should().NotBeNull();
             result!.pendingRequests.Should().BeNull();
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task CreateChangeRequest_ShouldFail_WhenRemovingLocation(bool useLocationObject)
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            await Client.ResourceOwnerApproveAsync(user.Department, request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var payload = JObject.FromObject(new
+            {
+                type = "ResourceOwnerChange",
+                subtype = "adjustment",
+                orgPositionId = request.OrgPositionId,
+                orgPositionInstanceId = request.OrgPositionInstanceId,
+                proposedChanges = new Dictionary<string, object>
+                {
+                    ["location"] = useLocationObject
+                        ? new
+                        {
+                            name = (string)null,
+                        }
+                        : null,
+                }
+            });
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>(
+                    $"departments/{user.FullDepartment}/resources/requests", payload);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task CreateChangeRequest_ShouldSucceed_WhenProposingLocation()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            await Client.ResourceOwnerApproveAsync(user.Department, request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var payload = JObject.FromObject(new
+            {
+                type = "ResourceOwnerChange",
+                subtype = "adjustment",
+                orgPositionId = request.OrgPositionId,
+                orgPositionInstanceId = request.OrgPositionInstanceId,
+                proposedChanges = new Dictionary<string, object>
+                {
+                    ["location"] = new
+                    {
+                        name = "Top secret location",
+                    }
+                }
+            });
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>(
+                    $"departments/{user.FullDepartment}/resources/requests", payload);
+            response.Should().BeSuccessfull();
         }
 
 
