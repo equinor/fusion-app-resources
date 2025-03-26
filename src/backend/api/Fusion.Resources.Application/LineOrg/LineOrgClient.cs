@@ -56,7 +56,7 @@ namespace Fusion.Resources.Application.LineOrg
             }
 
             var json = await resp.Content.ReadAsStringAsync();
-            var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() });
+            var orgUnits = JsonConvert.DeserializeAnonymousType(json, new { value = new List<ApiOrgUnit>() })!;
 
             memoryCache.Set(OrgUnitsMemCacheKey, orgUnits.value, TimeSpan.FromMinutes(60));
 

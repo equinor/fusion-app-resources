@@ -21,13 +21,22 @@ namespace Fusion.Resources.Api.Configuration
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var baseUri = new Uri(await endpointResolver.ResolveEndpointAsync(FusionEndpoint.CommonLib));
-            var absoluteUri = new Uri(baseUri, request.RequestUri!.PathAndQuery);
-            request.RequestUri = absoluteUri;
+            const string appKey = FusionServiceEndpointKeys.CommonLib;
+            var endpoint = await endpointResolver.ResolveEndpointAsync(appKey);
+
+            if (endpoint is null)
+                throw new ArgumentException($"Endpoint for {appKey} could not be resolved");
+
+            // https://docs.fusion.equinor.com/blog/integration-lib-discovery
+            // NOTE: Currently integration lib only supports passing one scope as parameter when requesting a token, even though the service endpoint can contain multiple scopes.
+            // At the moment the services provided by Fusion only contains one scope and we can therefore safely use endpoint.Scopes[0].
+            var scope = endpoint.Scopes[0];
+
+            request.RequestUri = new Uri(endpoint + request.RequestUri?.PathAndQuery);
 
             if (request.Headers.Authorization == null)
             {
-                var token = await fusionTokenProvider.GetApplicationTokenAsync();
+                var token = await fusionTokenProvider.GetApplicationTokenAsync(scope);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
