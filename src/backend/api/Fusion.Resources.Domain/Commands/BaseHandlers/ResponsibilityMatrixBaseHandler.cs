@@ -47,7 +47,7 @@ namespace Fusion.Resources.Domain.Commands.BaseHandlers
                 Name = orgProject.Name,
                 OrgProjectId = orgProject.ProjectId,
                 DomainId = orgProject.DomainId,
-                State = orgProject.State ?? "ACTIVE",
+                State = orgProject.State.ResolveProjectState(),
             };
             return project;
         }

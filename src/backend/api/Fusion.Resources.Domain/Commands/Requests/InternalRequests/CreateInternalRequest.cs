@@ -209,7 +209,7 @@ namespace Fusion.Resources.Domain.Commands
                         Name = orgProject.Name,
                         OrgProjectId = orgProject.ProjectId,
                         DomainId = orgProject.DomainId,
-                        State = orgProject.State ?? "ACTIVE",
+                        State = orgProject.State.ResolveProjectState(),
                     };
 
                 return project;

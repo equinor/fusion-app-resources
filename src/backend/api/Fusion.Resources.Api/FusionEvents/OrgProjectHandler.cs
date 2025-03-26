@@ -1,6 +1,7 @@
 ﻿using Fusion.Events;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
+using Fusion.Resources.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Threading;
@@ -59,7 +60,7 @@ namespace Fusion.Resources.Api
             {
                 existingProject.Name = orgProject.Name;
                 existingProject.DomainId = orgProject.DomainId;
-                existingProject.State = orgProject.State ?? "ACTIVE";
+                existingProject.State = orgProject.State.ResolveProjectState();
 
                 await db.SaveChangesAsync(cancellationToken);
             }

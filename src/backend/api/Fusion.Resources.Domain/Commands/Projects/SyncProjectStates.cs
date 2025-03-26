@@ -43,7 +43,7 @@ namespace Fusion.Resources.Domain.Commands
 
                     if (orgProject is not null)
                     {
-                        project.State = orgProject.State ?? "ACTIVE";
+                        project.State = orgProject.State.ResolveProjectState();
                     }
                 }
                 await db.SaveChangesAsync(cancellationToken);
