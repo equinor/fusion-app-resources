@@ -7,9 +7,9 @@
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards.Rendering.Html" Version="2.7.3"/>
 		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.4"/>
-		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.5.0"/>
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0"/>
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.5"/>
+		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.6.0"/>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.3"/>
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="host.json">
