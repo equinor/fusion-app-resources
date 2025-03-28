@@ -92,10 +92,11 @@ namespace Fusion.Resources.Api.Controllers
             if (project is null)
                 throw new InvalidOperationException("Could not locate project");
 
-            if (project.Properties.TryGetValue("resourceOwnerRequestsEnabled", out var objectValue) && objectValue is true || objectValue?.ToString() == "true")
+            if (project.Properties.GetProperty<bool>("resourceOwnerRequestsEnabled", false))
                 return (false, null);
 
-            if (project.Properties.TryGetValue("pimsWriteSyncEnabled", out var objectValue2) && objectValue2 is true || objectValue2?.ToString() == "true")
+            var writeEnabled = project.Properties.GetProperty<bool>("pimsWriteSyncEnabled", false);
+            if (writeEnabled)
                 return (false, null);
 
             return (true, ApiErrors.InvalidOperation("ChangeRequestsDisabled", "The project does not currently support change requests from resource owners..."));
