@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands;
@@ -12,6 +11,8 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services.OrgClient;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -184,11 +185,11 @@ namespace Fusion.Resources.Logic.Commands
                     switch (request.Type)
                     {
                         case DbInternalRequestType.Allocation:
-                            return new RequestHeadersScope().WithChangeSource("Resources Allocation", $"{request.RequestNumber}");
+                            return new OrgClientRequestHeadersScope().WithChangeSource("Resources Allocation", $"{request.RequestNumber}");
                         case DbInternalRequestType.ResourceOwnerChange:
-                            return new RequestHeadersScope().WithChangeSource("Resources Change", $"{request.RequestNumber}");
+                            return new OrgClientRequestHeadersScope().WithChangeSource("Resources Change", $"{request.RequestNumber}");
                         default:
-                            return new RequestHeadersScope().WithChangeSource($"Resources {request.Type}", $"{request.RequestNumber}");
+                            return new OrgClientRequestHeadersScope().WithChangeSource($"Resources {request.Type}", $"{request.RequestNumber}");
                             
                     }
                 }

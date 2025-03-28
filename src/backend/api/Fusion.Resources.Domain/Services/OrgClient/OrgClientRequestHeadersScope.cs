@@ -6,18 +6,18 @@ using System.Threading;
 
 namespace Fusion.Resources.Domain.Services.OrgClient;
 
-public class RequestHeadersScope : IDisposable
+public class OrgClientRequestHeadersScope : IDisposable
 {
-    internal static AsyncLocal<RequestHeadersScope?> Current = new AsyncLocal<RequestHeadersScope?>();
+    internal static AsyncLocal<OrgClientRequestHeadersScope?> Current = new AsyncLocal<OrgClientRequestHeadersScope?>();
 
-    public RequestHeadersScope()
+    public OrgClientRequestHeadersScope()
     {
         Current.Value = this;
     }
 
     public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 
-    public RequestHeadersScope WithChangeSource(string source, string? sourceId = null)
+    public OrgClientRequestHeadersScope WithChangeSource(string source, string? sourceId = null)
     {
         if (string.IsNullOrEmpty(sourceId))
             Headers["x-fusion-change-source"] = $"{source}";
@@ -27,13 +27,13 @@ public class RequestHeadersScope : IDisposable
         return this;
     }
 
-    public RequestHeadersScope WithEditMode(bool enableEditMode)
+    public OrgClientRequestHeadersScope WithEditMode(bool enableEditMode)
     {
         Headers["x-pro-edit-mode"] = $"{enableEditMode}";
         return this;
     }
 
-    public RequestHeadersScope WithHeader(string key, string value)
+    public OrgClientRequestHeadersScope WithHeader(string key, string value)
     {
         Headers[key] = value;
         return this;

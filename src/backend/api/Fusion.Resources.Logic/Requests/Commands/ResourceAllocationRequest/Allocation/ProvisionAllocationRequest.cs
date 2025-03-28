@@ -9,6 +9,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Models;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -28,13 +32,13 @@ namespace Fusion.Resources.Logic.Commands
 
                 public class Handler : IRequestHandler<ProvisionAllocationRequest>
                 {
-                    private IOrgApiClient client;
+                    private OrgApiClient client;
                     private readonly TelemetryClient telemetry;
                     private ResourcesDbContext resourcesDb;
 
                     public Handler(TelemetryClient telemetry, ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
                     {
-                        this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                        this.client = orgApiClientFactory.CreateClient();
                         this.telemetry = telemetry;
                         this.resourcesDb = resourcesDb;
                     }
@@ -175,7 +179,7 @@ namespace Fusion.Resources.Logic.Commands
                                 instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AppliesTo, appliesTo);
 
                             if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                                instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                                instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocation>()!);
                         }
                         catch (Exception ex)
                         {
