@@ -1,5 +1,4 @@
-﻿﻿using FluentValidation;
-using Fusion.ApiClients.Org;
+﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
@@ -23,6 +22,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Services.OrgClient.Models;
+using Fusion.Services.Org.ApiModels;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Controllers
@@ -1776,7 +1777,7 @@ namespace Fusion.Resources.Api.Controllers
         // When a resource owner makes a proposal for a request or creates a change request the resulting position instance
         // must have a location. The position is optional when creating a request, so we need to check that a location either
         // was set when creating the request and the proposal does not remove it, or that the proposal adds a location.
-        private static bool LocationWillBeNull(ApiPositionLocationV2? existingLocation, Dictionary<string, object>? proposedChanges)
+        private static bool LocationWillBeNull(ApiPositionLocation? existingLocation, Dictionary<string, object>? proposedChanges)
         {
             var isProposingLocation = proposedChanges?.ContainsKey("location") ?? false;
             var locationWillNotBeSet = existingLocation == null && !isProposingLocation;

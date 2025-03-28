@@ -1,8 +1,7 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database.Entities;
+﻿using Fusion.Resources.Database.Entities;
 using System;
+using Fusion.Services.Org.ApiModels;
 
-#nullable enable
 namespace Fusion.Resources.Domain
 {
     public struct PersonId

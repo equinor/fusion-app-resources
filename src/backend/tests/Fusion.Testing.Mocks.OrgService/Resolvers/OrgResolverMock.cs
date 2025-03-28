@@ -1,10 +1,10 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Org;
+﻿using Fusion.Integration.Org;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService.Resolvers
 {

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using Fusion.Integration.Http.Models;
 using Fusion.Resources.Functions.Common.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Common.Integration.Http;
 
