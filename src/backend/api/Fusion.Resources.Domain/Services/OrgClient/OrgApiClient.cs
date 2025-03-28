@@ -1,23 +1,33 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Http;
+using Fusion.Integration.Http.Models;
 using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
+using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json;
 
 namespace Fusion.Resources.Domain.Services.OrgClient;
 
-public class OrgApiClient
+public class OrgApiClient : IOrgApiClient
 {
     public OrgApiClient(HttpClient httpClient)
     {
-        HttpClient = httpClient;
+        this.HttpClient = httpClient;
     }
 
+    /// <summary>
+    ///     Internal HttpClient used by the org client
+    /// </summary>
     public HttpClient HttpClient { get; }
 
-    public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+    public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
     {
         if (OrgClientRequestHeadersScope.Current.Value != null)
         {
@@ -30,50 +40,16 @@ public class OrgApiClient
         return HttpClient.SendAsync(request, cancellationToken);
     }
 
-    public async Task<RequestResponse<T>> PostAsync<T>(string url, T content, CancellationToken cancellationToken = default)
+    public async Task<ApiPositionV2> GetPositionV2Async(OrgProjectId projectId, Guid positionId, ODataQuery? query = null)
     {
-        var requestContent = JsonConvert.SerializeObject(content);
-        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        var url = ODataQuery.ApplyQueryString($"/projects/{projectId}/positions/{positionId}?api-version=2.0", query);
+        var response = await this.GetAsync<ApiPositionV2>(url);
+
+        if (!response.IsSuccessStatusCode)
         {
-            Content = new StringContent(requestContent, Encoding.UTF8, "application/json")
-        };
+            throw new OrgApiError(response.Response, response.Content);
+        }
 
-        var response = await SendAsync(request, cancellationToken);
-        return await RequestResponse<T>.FromResponseAsync(response);
-    }
-
-    public async Task<RequestResponse<TResponse>> PatchAsync<TResponse>(string url, object data)
-    {
-        var request = new HttpRequestMessage(new HttpMethod("PATCH"), url);
-        request.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-
-        var response = await SendAsync(request);
-        return await RequestResponse<TResponse>.FromResponseAsync(response);
-    }
-
-    public async Task<HttpResponseMessage> DeleteAsync(string url)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Delete, url);
-
-        var response = await SendAsync(request);
-
-        await response.ThrowIfUnsuccessfulAsync(content => { return new OrgApiError(response, content); });
-
-
-        return response;
-    }
-
-    public async Task<RequestResponse<TResponse>> PutAsync<TResponse>(string url, TResponse data)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Put, url);
-        request.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-
-        var response = await SendAsync(request);
-        return await RequestResponse<TResponse>.FromResponseAsync(response);
-    }
-
-    public OrgClientRequestHeadersScope UseRequestHeaders()
-    {
-        return new OrgClientRequestHeadersScope();
+        return response.Value;
     }
 }

@@ -1,14 +1,10 @@
 ﻿using System.Net.Http;
 using Fusion.Integration;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Domain.Services.OrgClient;
 
-public interface IOrgApiClientFactory
-{
-    public OrgApiClient CreateClient();
-}
-
-internal class OrgApiClientFactory : IOrgApiClientFactory
+public class OrgApiClientFactory : IOrgApiClientFactory
 {
     private readonly IHttpClientFactory httpClientFactory;
 
@@ -17,7 +13,7 @@ internal class OrgApiClientFactory : IOrgApiClientFactory
         this.httpClientFactory = httpClientFactory;
     }
 
-    public OrgApiClient CreateClient()
+    public IOrgApiClient CreateClient()
     {
         return new OrgApiClient(httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationOrg()));
     }

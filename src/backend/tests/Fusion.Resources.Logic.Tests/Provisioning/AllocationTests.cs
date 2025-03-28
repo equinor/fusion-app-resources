@@ -22,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json.Serialization;
 using Xunit;
@@ -57,10 +58,13 @@ namespace Fusion.Resources.Logic.Tests
             });
 
             // Must mock the draft & publish
-            orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts"), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts"), CancellationToken.None)).ReturnsAsync(() =>
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, ProjectId = testProjectId }), Encoding.UTF8, "application/json")
+                return new HttpResponseMessage()
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, ProjectId = testProjectId }), Encoding.UTF8, "application/json")
+                };
             });
 
             orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts/{draftId}/publish"), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()

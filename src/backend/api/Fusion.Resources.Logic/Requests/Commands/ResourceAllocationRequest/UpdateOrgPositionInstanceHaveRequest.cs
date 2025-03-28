@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 using Fusion.Services.Org.ApiModels;
 using Microsoft.Extensions.Logging;
 
@@ -31,7 +32,7 @@ namespace Fusion.Resources.Logic.Commands
         public class Handler : IRequestHandler<UpdateOrgPositionInstanceHaveRequest>
         {
             private readonly ILogger<Handler> logger;
-            private readonly OrgApiClient client;
+            private readonly IOrgApiClient client;
 
             public Handler(IOrgApiClientFactory orgApiClientFactory, ILogger<Handler> logger)
             {

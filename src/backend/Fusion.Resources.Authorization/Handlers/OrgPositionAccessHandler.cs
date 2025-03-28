@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {

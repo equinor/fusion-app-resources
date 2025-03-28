@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 using Fusion.Services.Org.ApiModels;
 using Xunit;
 
@@ -309,7 +310,7 @@ namespace Fusion.Resources.Logic.Tests
                 as IRequestHandler<ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest>;
             await handler.Handle(cmd, CancellationToken.None);
 
-            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
+            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.OfType<HttpRequestMessage>())
                 .FirstOrDefault(m => m.Method == HttpMethod.Put);
             var postedPositionJson = await i.Content.ReadAsStringAsync();
             var postedPosition = JsonConvert.DeserializeObject<ApiPositionV2>(postedPositionJson);

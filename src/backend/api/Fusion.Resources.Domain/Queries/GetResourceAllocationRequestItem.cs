@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Fusion.Resources.Domain.Commands.Conversations;
 using Fusion.Resources.Domain.Services;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -110,7 +111,7 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
-            private readonly OrgApiClient orgClient;
+            private readonly IOrgApiClient orgClient;
             private readonly IFusionProfileResolver profileResolver;
 
             public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory, IFusionProfileResolver profileResolver)

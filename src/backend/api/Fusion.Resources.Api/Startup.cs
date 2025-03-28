@@ -18,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Fusion.AspNetCore.Versioning;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 namespace Fusion.Resources.Api
@@ -138,6 +140,7 @@ namespace Fusion.Resources.Api
 
             services.AddMediatRDistributedNotification(setup => setup.ConnectionString = Configuration.GetConnectionString("ServiceBus"));
             services.AddHostedService<ExpiredDelegatedRolesHostedService>();
+            services.AddSingleton<IOrgApiClientFactory, OrgApiClientFactory>();
 
             #endregion Resource services
 

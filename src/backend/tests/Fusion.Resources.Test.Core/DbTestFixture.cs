@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Roles;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Test.Core

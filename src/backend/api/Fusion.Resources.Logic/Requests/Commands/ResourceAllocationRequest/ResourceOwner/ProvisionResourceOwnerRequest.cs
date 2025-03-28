@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 using Fusion.Resources.Domain.Services.OrgClient.Models;
 using Fusion.Services.Org.ApiModels;
 
@@ -31,7 +32,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public class Handler : IRequestHandler<ProvisionResourceOwnerRequest>
                 {
-                    private readonly OrgApiClient client;
+                    private readonly IOrgApiClient client;
                     private readonly ResourcesDbContext resourcesDb;
 
                     public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)

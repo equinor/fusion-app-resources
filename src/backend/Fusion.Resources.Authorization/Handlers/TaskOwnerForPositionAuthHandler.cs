@@ -4,12 +4,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Authorization.Handlers
 {
     public class TaskOwnerForPositionAuthHandler : AuthorizationHandler<TaskOwnerForPositionRequirement>
     {
-        private OrgApiClient orgClient;
+        private IOrgApiClient orgClient;
 
         public TaskOwnerForPositionAuthHandler(IOrgApiClientFactory apiClientFactory)
         {
