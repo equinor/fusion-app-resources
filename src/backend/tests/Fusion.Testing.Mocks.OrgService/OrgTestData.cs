@@ -1,6 +1,6 @@
 ﻿using Bogus;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
@@ -20,10 +20,10 @@ namespace Fusion.Testing.Mocks.OrgService
                     Name = f.Commerce.ProductName(),
                     ProjectType = "PRD",
                     DomainId = f.Random.AlphaNumeric(5),
-                    Dates = new ApiProjectDatesV2() { EndDate = f.Date.Future(), StartDate = f.Date.Past(), Gates = new ApiProjectDecisionGatesV2() { } },
+                    Dates = new ApiProjectDates() { EndDate = f.Date.Future(), StartDate = f.Date.Past(), Gates = new ApiProjectDecisionGates() { } },
                     Director = director,
                     DirectorPositionId = director.Id,
-                    Properties = new ApiPropertiesCollectionV2()
+                    Properties = new Dictionary<string, object>()
                 };
 
                 director.ProjectId = project.ProjectId;
@@ -55,7 +55,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 };
             });
 
-        public static Faker<ApiCompanyV2> Company() => new Faker<ApiCompanyV2>()
+        public static Faker<ApiCompany> Company() => new Faker<ApiCompany>()
             .RuleFor(c => c.Id, f => Guid.NewGuid())
             .RuleFor(c => c.Name, f => f.Company.CompanyName());
     }

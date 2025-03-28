@@ -20,6 +20,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services.OrgClient;
 using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json.Serialization;
 using Xunit;
@@ -49,19 +51,19 @@ namespace Fusion.Resources.Logic.Tests
 
             orgClientMock = new Mock<IOrgApiClient>();
 
-            orgClientMock.Setup(c => c.SendAsync(It.Is<HttpRequestMessage>(m => m.Method == HttpMethod.Patch))).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(It.Is<HttpRequestMessage>(m => m.Method == HttpMethod.Patch), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK
             });
 
             // Must mock the draft & publish
-            orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts"))).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts"), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, ProjectId = testProjectId }), Encoding.UTF8, "application/json")
             });
 
-            orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts/{draftId}/publish"))).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(MockRequest.POST($"/projects/{testProjectId}/drafts/{draftId}/publish"), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(JsonConvert.SerializeObject(new ApiDraftV2() { Id = draftId, Status = "Published" }), Encoding.UTF8, "application/json")
@@ -487,7 +489,7 @@ namespace Fusion.Resources.Logic.Tests
             orgClientMock.Setup(c => c.GetPositionV2Async(It.Is<OrgProjectId>(id => id.ProjectId == testProjectId), testPosition.Id, null)).ReturnsAsync(testPosition);
             
             // Not including the ?api-version=2.0 as this breaks the regex check.
-            orgClientMock.Setup(c => c.SendAsync(MockRequest.GET($"/projects/{testProjectId}/drafts/{draftId}/positions/{testPosition.Id}"))).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(MockRequest.GET($"/projects/{testProjectId}/drafts/{draftId}/positions/{testPosition.Id}"), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(JsonConvert.SerializeObject(testPosition), Encoding.UTF8, "application/json")

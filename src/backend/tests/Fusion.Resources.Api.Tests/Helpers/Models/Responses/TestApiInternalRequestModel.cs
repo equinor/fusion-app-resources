@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fusion.ApiClients.Org;
+using Fusion.Resources.Api.Controllers;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks
 {

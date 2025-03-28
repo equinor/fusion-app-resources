@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Fusion.ApiClients.Org;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 {

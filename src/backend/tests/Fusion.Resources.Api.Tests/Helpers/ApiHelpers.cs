@@ -1,5 +1,4 @@
 ﻿using Bogus;
-using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Helpers.Models.Requests;
@@ -12,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Tests
 {

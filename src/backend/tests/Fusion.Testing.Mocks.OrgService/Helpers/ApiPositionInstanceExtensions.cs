@@ -1,8 +1,8 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Profile.ApiClient;
+﻿using Fusion.Integration.Profile.ApiClient;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -16,7 +16,7 @@ namespace Fusion.Testing.Mocks.OrgService
 
         public static ApiPositionInstanceV2 SetRotation(this ApiPositionInstanceV2 instance, int id)
         {
-            instance.Type = ApiInstanceType.Rotation;
+            instance.Type = ApiPositionInstanceV2.ApiInstanceType.Rotation.ToString();
             instance.RotationId = $"{id}";
 
             return instance;
