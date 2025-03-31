@@ -21,6 +21,8 @@ namespace Fusion.Resources.Api.Controllers
             CreatedDate = responsible.CreatedDate;
             if (responsible.CreatedBy != null)
                 CreatedBy = new ApiPerson(responsible.CreatedBy);
+
+            // TEST
         }
 
         public ApiDepartmentResponsible(QueryDepartmentResponsible responsible, bool limit)
