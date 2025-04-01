@@ -4,8 +4,6 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Queries;
-using Fusion.Services.LineOrg.ApiModels;
-using Fusion.Resources.Domain.Notifications.InternalRequests;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -94,7 +92,7 @@ namespace Fusion.Resources.Domain.Commands
                 var resolvedProject = await EnsureProjectAsync(request);
                 var position = await ResolveOrgPositionAsync(request);
                 var proposedPerson = await ResolveProposedPersonAsync(request);
-                
+
 
                 var instance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
                 if (instance is null)
@@ -210,7 +208,8 @@ namespace Fusion.Resources.Domain.Commands
                     {
                         Name = orgProject.Name,
                         OrgProjectId = orgProject.ProjectId,
-                        DomainId = orgProject.DomainId
+                        DomainId = orgProject.DomainId,
+                        State = orgProject.State.ResolveProjectState(),
                     };
 
                 return project;

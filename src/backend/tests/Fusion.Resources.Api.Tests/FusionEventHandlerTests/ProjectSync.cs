@@ -11,7 +11,6 @@ using System;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
-using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
@@ -80,6 +79,31 @@ namespace Fusion.Resources.Api.Tests.FusionEventHandlerTests
 
             updated.Name.Should().Be(testProject.Project.Name);
             updated.DomainId.Should().Be(testProject.Project.DomainId);
+        }
+
+        [Fact]
+        public async Task UpdatedProjectState_ShouldNotBeNull()
+        {
+            var payload = JsonSerializer.Serialize(new
+            {
+                ItemId = testProject.Project.ProjectId,
+                Type = "ProjectUpdated",
+            });
+
+            var context = (Events.MessageContext)FormatterServices.GetUninitializedObject(typeof(Events.MessageContext));
+            var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(BinaryData.FromBytes(Encoding.UTF8.GetBytes(payload)));
+            context.Message = serviceBusReceivedMessage;
+            context.Event = new Events.CloudEventV1
+            {
+                Data = payload
+            };
+
+            await handler.ProcessMessageAsync(context, payload, CancellationToken.None);
+
+            var updated = await db.Projects
+                .FirstOrDefaultAsync(p => p.OrgProjectId == testProject.Project.ProjectId);
+
+            updated.State.Should().NotBeNullOrEmpty();
         }
     }
 }
