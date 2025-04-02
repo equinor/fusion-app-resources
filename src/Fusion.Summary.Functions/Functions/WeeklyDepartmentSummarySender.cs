@@ -33,7 +33,7 @@ public class WeeklyDepartmentSummarySender
         this.logger = logger;
         this.configuration = configuration;
 
-        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 1;
+        _maxDegreeOfParallelism = int.TryParse(configuration["weekly-department-summary-sender-parallelism"], out var result) ? result : 2;
         _departmentFilter = configuration["departmentFilter"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? ["PRD"];
 
         // Need to explicitly add the configuration key to the app settings to disable sending of notifications
@@ -85,6 +85,8 @@ public class WeeklyDepartmentSummarySender
         {
             MaxDegreeOfParallelism = _maxDegreeOfParallelism
         };
+
+        logger.LogInformation("Running sender with {MaxDegreeOfParallelism} parallel tasks", _maxDegreeOfParallelism);
 
         // Use Parallel.ForEachAsync to easily limit the number of parallel requests
         await Parallel.ForEachAsync(departments, options, async (department, _) => await CreateAndSendNotificationsAsync(department));
