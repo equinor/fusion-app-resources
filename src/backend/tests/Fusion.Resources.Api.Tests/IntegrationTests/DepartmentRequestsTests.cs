@@ -157,6 +157,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeNotFound();
         }
 
+        [Fact]
+        public async Task GetDepartmentRequests_ProjectsShouldHaveState()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/{assignedOrgUnit.SapId}/resources/requests");
+            response.Should().BeSuccessfull();
+            response.Value.Value.All(request => request.Project.State.Length > 0).Should().BeTrue();
+        }
+
         #endregion
 
         [Fact]

@@ -120,7 +120,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Select(p => new { p.OrgProjectId, p.State })
                     .Where(p => orgProjectIds.Contains(p.OrgProjectId))
                     .AsNoTracking()
-                    .ToDictionaryAsync(p => p.OrgProjectId, p => p.State, cancellationToken: cancellationToken);
+                    .ToDictionaryAsync(p => p.OrgProjectId, p => p.State.ResolveProjectState(), cancellationToken: cancellationToken);
 
                 var apiModels = resp.Value.Select(p => new GetTbnPositionResult
                 {

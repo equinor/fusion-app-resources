@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers().RequireAuthorization();
             });
 
             #region Health probes
