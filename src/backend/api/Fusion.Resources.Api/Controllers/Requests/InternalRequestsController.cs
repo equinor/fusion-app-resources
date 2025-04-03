@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
@@ -1797,6 +1798,14 @@ namespace Fusion.Resources.Api.Controllers
                     if (locationDict.TryGetValue("name", out var name))
                     {
                         return name == null || locationWillNotBeSet;
+                    }
+                }
+                // When running tests this is the type of data we get
+                else if (locationData is JsonElement locationJson)
+                {
+                    if (locationJson.TryGetProperty("name", out var name))
+                    {
+                        return name.ValueKind == JsonValueKind.Null || locationWillNotBeSet;
                     }
                 }
 
