@@ -1778,9 +1778,11 @@ namespace Fusion.Resources.Api.Controllers
             return false;
         }
 
-        // When a resource owner makes a proposal for a request or creates a change request the resulting position instance
-        // must have a location. The position is optional when creating a request, so we need to check that a location either
-        // was set when creating the request and the proposal does not remove it, or that the proposal adds a location.
+        /// <summary>
+        ///     When a resource owner makes a proposal for a request or creates a change request the resulting position instance
+        ///     must have a location. The position is optional when creating a request and saving a request, so we need to check
+        ///     that a location either was set when creating the request and the proposal does not remove it, or that the proposal adds a location.
+        /// </summary>
         private static bool LocationWillBeNull(ApiPositionLocationV2? existingLocation, Dictionary<string, object>? proposedChanges)
         {
             var isProposingLocation = proposedChanges?.ContainsKey("location") ?? false;
