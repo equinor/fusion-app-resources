@@ -1040,9 +1040,12 @@ namespace Fusion.Resources.Api.Controllers
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
+            if (result.OrgPosition is null)
+                return ApiErrors.InvalidOperation("InvalidStateTransition", "Request Org Position no longer exists");
+
             // Verify the split has a location, or a non-null location is being proposed
-            if (LocationWillBeNull(result.OrgPosition!.Instances.FirstOrDefault(i => i.Id == result.OrgPositionInstanceId)?.Location, result.ProposedChanges))
-                return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no person is proposed");
+            if (LocationWillBeNull(result.OrgPosition.Instances.FirstOrDefault(i => i.Id == result.OrgPositionInstanceId)?.Location, result.ProposedChanges))
+                return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no location is set");
 
             if (result.ProposedPerson is null)
                 return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no person is proposed. If the request has more than one candidate, please propose only one of them.");
