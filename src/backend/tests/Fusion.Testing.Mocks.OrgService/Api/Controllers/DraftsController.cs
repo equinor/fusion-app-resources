@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Fusion.ApiClients.Org;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 {
@@ -28,7 +28,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
                 Name = request.Name,
                 Description = request.Description,
                 Created = DateTime.UtcNow,
-                Project = new ApiProjectReferenceV2()
+                Project = new ApiProjectReference()
                 {
                     DomainId = project.DomainId,
                     Name = project.Name,

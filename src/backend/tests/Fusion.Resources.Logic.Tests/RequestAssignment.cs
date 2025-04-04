@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Fusion.ApiClients.Org;
 using Fusion.Events;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
@@ -15,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Logic.Tests
                     pos.Instances = new List<ApiPositionInstanceV2> {
                         new ApiPositionInstanceV2 
                         {
-                            Location = new ApiPositionLocationV2 { Id = Guid.NewGuid() },
+                            Location = new ApiPositionLocation() { Id = Guid.NewGuid() },
                             AppliesFrom = new DateTime(2021, 01, 01),
                             AppliesTo = new DateTime(2021, 12, 31),
                             Workload = 50
@@ -190,7 +190,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var position = new ApiPositionV2
             {
-                Project = new ApiProjectReferenceV2 { ProjectId = request.Project.OrgProjectId },
+                Project = new ApiProjectReference() { ProjectId = request.Project.OrgProjectId },
                 BasePosition = new ApiPositionBasePositionV2 { Department = "PDP PRD FE ANE" },
                 Instances = new List<ApiPositionInstanceV2>()
             };
@@ -218,7 +218,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var position = new ApiPositionV2
             {
-                Project = new ApiProjectReferenceV2 { ProjectId = request.Project.Id },
+                Project = new ApiProjectReference() { ProjectId = request.Project.Id },
                 BasePosition = new ApiPositionBasePositionV2 { Department = "" },
                 Instances = new List<ApiPositionInstanceV2>()
             };
@@ -307,7 +307,7 @@ namespace Fusion.Resources.Logic.Tests
             var position = new ApiPositionV2
             {
                 Id = Guid.NewGuid(),
-                Project = new ApiProjectReferenceV2 { ProjectId = request.Project.Id },
+                Project = new ApiProjectReference() { ProjectId = request.Project.Id },
                 BasePosition = new ApiPositionBasePositionV2
                 {
                     Id = Guid.NewGuid(),
