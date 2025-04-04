@@ -11,9 +11,9 @@
         <PackageReference Include="Fusion.AspNetCore.Versioning" Version="8.1.0"/>
       <PackageReference Include="Fusion.Integration.Authorization" Version="8.3.0"/>
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
-        <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="7.3.1"/>
-        <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="7.3.1"/>
-        <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="7.3.1"/>
+      <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="8.1.0"/>
+      <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="8.1.0"/>
+      <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="8.1.0"/>
     </ItemGroup>
     
 
