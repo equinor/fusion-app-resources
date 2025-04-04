@@ -89,6 +89,8 @@ public class DepartmentResourceOwnerSync
         // Set up parallelism
         var threadCount = 2;
 
+        logger.LogInformation("Running sync with {ThreadCount} parallel tasks", threadCount);
+
         await Parallel.ForEachAsync(departments, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, async (orgUnit, cancellationToken) =>
         {
             var resourceOwners = orgUnit.Management.Persons
