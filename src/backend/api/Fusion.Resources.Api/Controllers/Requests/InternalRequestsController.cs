@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Services.OrgClient.Models;
 using Fusion.Services.Org.ApiModels;
@@ -415,9 +416,6 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
             if (HasChanged(request.AdditionalNote, item.AdditionalNote))
                 return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
-            // Verify the split has a location, or a non-null location is being proposed
-            if (LocationWillBeNull(item.OrgPosition!.Instances.FirstOrDefault(i => i.Id == item.OrgPositionInstanceId)?.Location, request.ProposedChanges?.Value))
-                return ApiErrors.InvalidInput("Location is required");
 
             #region Authorization
 
@@ -1043,6 +1041,13 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            if (result.OrgPosition is null)
+                return ApiErrors.InvalidOperation("InvalidStateTransition", "Request Org Position no longer exists");
+
+            // Verify the split has a location, or a non-null location is being proposed
+            if (LocationWillBeNull(result.OrgPosition.Instances.FirstOrDefault(i => i.Id == result.OrgPositionInstanceId)?.Location, result.ProposedChanges))
+                return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no location is set");
 
             if (result.ProposedPerson is null)
                 return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no person is proposed. If the request has more than one candidate, please propose only one of them.");
@@ -1794,6 +1799,14 @@ namespace Fusion.Resources.Api.Controllers
                     if (locationDict.TryGetValue("name", out var name))
                     {
                         return name == null || locationWillNotBeSet;
+                    }
+                }
+                // When running tests this is the type of data we get
+                else if (locationData is JsonElement locationJson)
+                {
+                    if (locationJson.TryGetProperty("name", out var name))
+                    {
+                        return name.ValueKind == JsonValueKind.Null || locationWillNotBeSet;
                     }
                 }
 
