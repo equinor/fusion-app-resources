@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Notification" Version="8.4.0"/>
+    <PackageReference Include="Fusion.Integration.Notification" Version="8.4.1"/>
     <PackageReference Include="MediatR" Version="12.5.0"/>
     <PackageReference Include="Fusion.AspNetCore" Version="8.0.8"/>
-    <PackageReference Include="Fusion.Integration.Org" Version="8.3.0"/>
+    <PackageReference Include="Fusion.Integration.Org" Version="8.3.1"/>
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="8.2.0"/>
     <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="8.2.1"/>
 

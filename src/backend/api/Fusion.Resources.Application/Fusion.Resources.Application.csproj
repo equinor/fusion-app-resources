@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.4"/>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.19.0"/>
     <PackageReference Include="Fusion.Integration.Profile" Version="8.2.2"/>
-    <PackageReference Include="Fusion.Integration.LineOrg" Version="8.2.2"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.3"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.3"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3"/>
+    <PackageReference Include="Fusion.Integration.LineOrg" Version="8.2.3"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.4"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.4"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4"/>
 
   </ItemGroup>
 
