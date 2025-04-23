@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Fusion.Resources.Application.Summary;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -16,6 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IQueueSender, ServiceBusQueueSender>();
             services.AddScoped<IPeopleIntegration, PeopleIntegration>();
             services.AddScoped<ILineOrgClient, LineOrgClient>();
+            services.AddScoped<ISummaryClient, SummaryClient>();
             return services;
         }
     }
