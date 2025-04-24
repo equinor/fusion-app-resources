@@ -7,5 +7,6 @@ namespace Fusion.Resources.Application.SummaryClient;
 
 public interface ISummaryClient
 {
-    public Task<ResourceOwnerWeeklySummaryReportDto?> GetSummaryReportForPeriodStartAsync(string departmentSapId, DateTime periodStart, CancellationToken cancellationToken = default);
+    public Task<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>> GetSummaryReportForPeriodStartAsync(string departmentSapId, DateTime periodStart, CancellationToken cancellationToken = default);
+    public Task<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>> GetSummaryReportsAsync(string departmentSapId, int? top, int? skip, CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,6 @@
 ﻿namespace Fusion.Resources.Application.SummaryClient.Models;
 
-internal class SummaryApiCollection<T>
+public class SummaryApiCollectionDto<T>
 {
     public int? Top { get; set; }
 

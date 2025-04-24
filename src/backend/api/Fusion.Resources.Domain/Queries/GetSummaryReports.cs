@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Application.SummaryClient;
@@ -8,43 +7,44 @@ using MediatR;
 
 namespace Fusion.Resources.Domain.Queries;
 
-public class GetSummaryReport : IRequest<ResourceOwnerWeeklySummaryReportDto?>
+public class GetSummaryReports : IRequest<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>>
 {
     public required string DepartmentSapId { get; init; }
 
-    [MemberNotNullWhen(false, nameof(PeriodStart))]
-    public bool GetLatest { get; private init; }
-
     public DateTime? PeriodStart { get; private init; }
 
-    private GetSummaryReport()
+    public int? Top { get; private init; }
+    public int? Skip { get; private init; }
+
+    private GetSummaryReports()
     {
     }
 
-    public static GetSummaryReport Latest(string departmentSapId)
+
+    public static GetSummaryReports ForPeriodStart(string departmentSapId, DateTime periodStart)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(departmentSapId);
 
-        return new GetSummaryReport
+        return new GetSummaryReports
         {
-            GetLatest = true,
-            DepartmentSapId = departmentSapId
-        };
-    }
-
-    public static GetSummaryReport ForPeriodStart(string departmentSapId, DateTime periodStart)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(departmentSapId);
-
-        return new GetSummaryReport
-        {
-            GetLatest = false,
             PeriodStart = periodStart,
             DepartmentSapId = departmentSapId
         };
     }
 
-    public class Handler : IRequestHandler<GetSummaryReport, ResourceOwnerWeeklySummaryReportDto?>
+    public static GetSummaryReports GetWithTopAndSkip(string departmentSapId, int? top, int? skip)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(departmentSapId);
+
+        return new GetSummaryReports
+        {
+            Top = top,
+            Skip = skip,
+            DepartmentSapId = departmentSapId
+        };
+    }
+
+    public class Handler : IRequestHandler<GetSummaryReports, SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>>
     {
         private readonly ISummaryClient summaryClient;
 
@@ -53,26 +53,27 @@ public class GetSummaryReport : IRequest<ResourceOwnerWeeklySummaryReportDto?>
             this.summaryClient = summaryClient;
         }
 
-        public async Task<ResourceOwnerWeeklySummaryReportDto?> Handle(GetSummaryReport request, CancellationToken cancellationToken)
+        public async Task<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>> Handle(GetSummaryReports request, CancellationToken cancellationToken)
         {
-            if (request.GetLatest)
+            if (request.PeriodStart != null)
             {
-                var lastWeekMondayDate = GetPreviousWeeksMondayDate(DateTime.UtcNow.Date);
-                return await summaryClient.GetSummaryReportForPeriodStartAsync(request.DepartmentSapId, lastWeekMondayDate, cancellationToken);
+                var resolvedDate = GetPreviousWeeksMondayOrTodayDate(request.PeriodStart.Value);
+
+                return await summaryClient.GetSummaryReportForPeriodStartAsync(request.DepartmentSapId, resolvedDate, cancellationToken);
             }
 
-            return await summaryClient.GetSummaryReportForPeriodStartAsync(request.DepartmentSapId, request.PeriodStart.Value, cancellationToken);
+            return await summaryClient.GetSummaryReportsAsync(request.DepartmentSapId, request.Top, request.Skip, cancellationToken);
         }
 
 
-        private static DateTime GetPreviousWeeksMondayDate(DateTime date)
+        private static DateTime GetPreviousWeeksMondayOrTodayDate(DateTime date)
         {
             switch (date.DayOfWeek)
             {
                 case DayOfWeek.Sunday:
                     return date.AddDays(-6);
                 case DayOfWeek.Monday:
-                    return date.AddDays(-7);
+                    return date;
                 case DayOfWeek.Tuesday:
                 case DayOfWeek.Wednesday:
                 case DayOfWeek.Thursday:

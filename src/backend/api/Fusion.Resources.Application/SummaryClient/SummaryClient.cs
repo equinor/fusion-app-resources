@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Configuration;
+using Fusion.Integration.Http.Models;
 using Fusion.Resources.Application.SummaryClient.Models;
 using Microsoft.Extensions.Configuration;
 
@@ -32,7 +33,7 @@ internal class SummaryClient : ISummaryClient
         summaryClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    public async Task<ResourceOwnerWeeklySummaryReportDto?> GetSummaryReportForPeriodStartAsync(string departmentSapId, DateTime periodStart, CancellationToken cancellationToken = default)
+    public async Task<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>> GetSummaryReportForPeriodStartAsync(string departmentSapId, DateTime periodStart, CancellationToken cancellationToken = default)
     {
         await SetAuthToken();
 
@@ -47,8 +48,42 @@ internal class SummaryClient : ISummaryClient
         }
 
 
-        var resultContent = await response.Content.ReadFromJsonAsync<SummaryApiCollection<ResourceOwnerWeeklySummaryReportDto>>(cancellationToken: cancellationToken);
+        var resultContent = await response.Content.ReadFromJsonAsync<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>>(cancellationToken: cancellationToken);
 
-        return resultContent?.Items.FirstOrDefault();
+        return resultContent ?? throw new SummaryIntegrationException("Summary Api returned null content", "null");
+    }
+
+    public async Task<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>> GetSummaryReportsAsync(string departmentSapId, int? top, int? skip, CancellationToken cancellationToken = default)
+    {
+        var url = $"/resource-owners-summary-reports/{departmentSapId}/weekly";
+
+        if (top != null || skip != null)
+        {
+            url += "?";
+            if (top != null)
+            {
+                url += $"$top={top}";
+            }
+
+            if (skip != null)
+            {
+                url += $"&$skip={skip}";
+            }
+        }
+
+        await SetAuthToken();
+        using var response = await summaryClient.GetAsync(url, cancellationToken);
+
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new SummaryIntegrationException($"Summary Api returned status code: {response.StatusCode} - {response.ReasonPhrase}", content);
+        }
+
+
+        var resultContent = await response.Content.ReadFromJsonAsync<SummaryApiCollectionDto<ResourceOwnerWeeklySummaryReportDto>>(cancellationToken: cancellationToken);
+
+        return resultContent ?? throw new SummaryIntegrationException("Summary Api returned null content", "null");
     }
 }
