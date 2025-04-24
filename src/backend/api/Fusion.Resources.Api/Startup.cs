@@ -152,7 +152,6 @@ namespace Fusion.Resources.Api
             // Enable AI sql dependency telemetry to include sql commands in data
             services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) => { module.EnableSqlCommandTextInstrumentation = true; });
 
-            services.AddCommonLibHttpClient();
             services.AddSummaryHttpClient(Configuration);
             services.AddMemoryCache();
         }
