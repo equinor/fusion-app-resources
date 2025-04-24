@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Fusion.Resources.Application.Summary.Models;
+namespace Fusion.Resources.Application.SummaryClient.Models;
 
 /// <summary>
 ///     This represents the DTO/ApiModel returned from the summary api.
 /// </summary>
-public class ResourceOwnerWeeklySummaryReport
+public class ResourceOwnerWeeklySummaryReportDto
 {
     public required Guid Id { get; set; }
     public string DepartmentSapId { get; set; } = string.Empty;

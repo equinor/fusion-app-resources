@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Fusion.Resources.Application.Summary.Models;
+using Fusion.Resources.Application.SummaryClient.Models;
 
 namespace Fusion.Resources.Api.Controllers;
 
@@ -24,33 +24,33 @@ public class ApiSummaryReport
 
     public required ApiPersonnelMoreThan100PercentFTE[] PersonnelMoreThan100PercentFTE { get; set; }
 
-    public static ApiSummaryReport FromQuerySummaryReport(ResourceOwnerWeeklySummaryReport weeklyWeeklySummaryReport)
+    public static ApiSummaryReport FromSummaryReportDto(ResourceOwnerWeeklySummaryReportDto weeklyWeeklySummaryReportDto)
     {
         return new ApiSummaryReport
         {
-            Id = weeklyWeeklySummaryReport.Id,
-            DepartmentSapId = weeklyWeeklySummaryReport.DepartmentSapId,
-            Period = weeklyWeeklySummaryReport.Period,
-            NumberOfPersonnel = weeklyWeeklySummaryReport.NumberOfPersonnel,
-            CapacityInUse = weeklyWeeklySummaryReport.CapacityInUse,
-            NumberOfRequestsLastPeriod = weeklyWeeklySummaryReport.NumberOfRequestsLastPeriod,
-            NumberOfOpenRequests = weeklyWeeklySummaryReport.NumberOfOpenRequests,
+            Id = weeklyWeeklySummaryReportDto.Id,
+            DepartmentSapId = weeklyWeeklySummaryReportDto.DepartmentSapId,
+            Period = weeklyWeeklySummaryReportDto.Period,
+            NumberOfPersonnel = weeklyWeeklySummaryReportDto.NumberOfPersonnel,
+            CapacityInUse = weeklyWeeklySummaryReportDto.CapacityInUse,
+            NumberOfRequestsLastPeriod = weeklyWeeklySummaryReportDto.NumberOfRequestsLastPeriod,
+            NumberOfOpenRequests = weeklyWeeklySummaryReportDto.NumberOfOpenRequests,
             NumberOfRequestsStartingInLessThanThreeMonths =
-                weeklyWeeklySummaryReport.NumberOfRequestsStartingInLessThanThreeMonths,
+                weeklyWeeklySummaryReportDto.NumberOfRequestsStartingInLessThanThreeMonths,
             NumberOfRequestsStartingInMoreThanThreeMonths =
-                weeklyWeeklySummaryReport.NumberOfRequestsStartingInMoreThanThreeMonths,
-            AverageTimeToHandleRequests = weeklyWeeklySummaryReport.AverageTimeToHandleRequests,
+                weeklyWeeklySummaryReportDto.NumberOfRequestsStartingInMoreThanThreeMonths,
+            AverageTimeToHandleRequests = weeklyWeeklySummaryReportDto.AverageTimeToHandleRequests,
             AllocationChangesAwaitingTaskOwnerAction =
-                weeklyWeeklySummaryReport.AllocationChangesAwaitingTaskOwnerAction,
-            ProjectChangesAffectingNextThreeMonths = weeklyWeeklySummaryReport.ProjectChangesAffectingNextThreeMonths,
-            PositionsEnding = weeklyWeeklySummaryReport.PositionsEnding
+                weeklyWeeklySummaryReportDto.AllocationChangesAwaitingTaskOwnerAction,
+            ProjectChangesAffectingNextThreeMonths = weeklyWeeklySummaryReportDto.ProjectChangesAffectingNextThreeMonths,
+            PositionsEnding = weeklyWeeklySummaryReportDto.PositionsEnding
                 .Select(pe => new ApiEndingPosition
                 {
                     FullName = pe.FullName,
                     EndDate = pe.EndDate
                 })
                 .ToArray(),
-            PersonnelMoreThan100PercentFTE = weeklyWeeklySummaryReport.PersonnelMoreThan100PercentFTE
+            PersonnelMoreThan100PercentFTE = weeklyWeeklySummaryReportDto.PersonnelMoreThan100PercentFTE
                 .Select(pe => new ApiPersonnelMoreThan100PercentFTE
                 {
                     FullName = pe.FullName,

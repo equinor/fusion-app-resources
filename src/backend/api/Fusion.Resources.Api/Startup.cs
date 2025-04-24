@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Fusion.AspNetCore.Versioning;
+using Fusion.Resources.Application.SummaryClient;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 namespace Fusion.Resources.Api
@@ -152,7 +153,7 @@ namespace Fusion.Resources.Api
             services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) => { module.EnableSqlCommandTextInstrumentation = true; });
 
             services.AddCommonLibHttpClient();
-            services.AddSummaryHttpClient();
+            services.AddSummaryHttpClient(Configuration);
             services.AddMemoryCache();
         }
 

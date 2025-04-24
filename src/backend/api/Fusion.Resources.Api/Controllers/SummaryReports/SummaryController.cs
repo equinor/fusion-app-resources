@@ -51,7 +51,7 @@ public class SummaryController : ResourceControllerBase
         if (latestSummaryReport == null)
             return FusionApiError.NotFound(orgUnit.OriginalIdentifier, "No summary report found for the last week for the given department");
 
-        return Ok(ApiSummaryReport.FromQuerySummaryReport(latestSummaryReport));
+        return Ok(ApiSummaryReport.FromSummaryReportDto(latestSummaryReport));
     }
 
 
@@ -95,7 +95,7 @@ public class SummaryController : ResourceControllerBase
         if (summaryReport == null)
             return FusionApiError.NotFound(orgUnit.OriginalIdentifier, "No summary report found for the given period and department");
 
-        var result = new ApiCollection<ApiSummaryReport>([ApiSummaryReport.FromQuerySummaryReport(summaryReport)]);
+        var result = new ApiCollection<ApiSummaryReport>([ApiSummaryReport.FromSummaryReportDto(summaryReport)]);
 
         return Ok(result);
     }

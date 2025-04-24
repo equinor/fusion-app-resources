@@ -1,4 +1,4 @@
-﻿namespace Fusion.Resources.Application.Summary;
+﻿namespace Fusion.Resources.Application;
 
 public class HttpClientNames
 {

@@ -2,13 +2,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Application.Summary;
-using Fusion.Resources.Application.Summary.Models;
+using Fusion.Resources.Application.SummaryClient;
+using Fusion.Resources.Application.SummaryClient.Models;
 using MediatR;
 
 namespace Fusion.Resources.Domain.Queries;
 
-public class GetSummaryReport : IRequest<ResourceOwnerWeeklySummaryReport?>
+public class GetSummaryReport : IRequest<ResourceOwnerWeeklySummaryReportDto?>
 {
     public required string DepartmentSapId { get; init; }
 
@@ -44,7 +44,7 @@ public class GetSummaryReport : IRequest<ResourceOwnerWeeklySummaryReport?>
         };
     }
 
-    public class Handler : IRequestHandler<GetSummaryReport, ResourceOwnerWeeklySummaryReport?>
+    public class Handler : IRequestHandler<GetSummaryReport, ResourceOwnerWeeklySummaryReportDto?>
     {
         private readonly ISummaryClient summaryClient;
 
@@ -53,7 +53,7 @@ public class GetSummaryReport : IRequest<ResourceOwnerWeeklySummaryReport?>
             this.summaryClient = summaryClient;
         }
 
-        public async Task<ResourceOwnerWeeklySummaryReport?> Handle(GetSummaryReport request, CancellationToken cancellationToken)
+        public async Task<ResourceOwnerWeeklySummaryReportDto?> Handle(GetSummaryReport request, CancellationToken cancellationToken)
         {
             if (request.GetLatest)
             {

@@ -44,34 +44,5 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return services;
         }
-
-        public static IServiceCollection AddSummaryHttpClient(this IServiceCollection services)
-        {
-            services.AddTransient<SummaryClientMessageHandler>();
-
-            // Timeout for an individual try
-            var timeoutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(10);
-
-            services.AddHttpClient(Fusion.Resources.Application.Summary.HttpClientNames.Summary, client =>
-                {
-                    // This is just to allow relative urls on the http client 
-                    // - the actual endpoint is resolved by the handler
-                    client.BaseAddress = new Uri("https://not-configured.summary.fusion.equinor.com");
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                })
-                .AddHttpMessageHandler<SummaryClientMessageHandler>()
-                .AddTransientHttpErrorPolicy(policyBuilder =>
-                    policyBuilder
-                        .Or<TimeoutRejectedException>()
-                        .WaitAndRetryAsync(new[]
-                        {
-                            TimeSpan.FromSeconds(5),
-                            TimeSpan.FromSeconds(30),
-                            TimeSpan.FromSeconds(60)
-                        }))
-                .AddPolicyHandler(timeoutPolicy);
-
-            return services;
-        }        
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Fusion.Resources.Application.Summary.Models;
+﻿namespace Fusion.Resources.Application.SummaryClient.Models;
 
 internal class SummaryApiCollection<T>
 {
