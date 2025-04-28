@@ -18,7 +18,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Fusion.AspNetCore.Versioning;
-using Fusion.Resources.Application.SummaryClient;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 namespace Fusion.Resources.Api
@@ -152,7 +151,7 @@ namespace Fusion.Resources.Api
             // Enable AI sql dependency telemetry to include sql commands in data
             services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) => { module.EnableSqlCommandTextInstrumentation = true; });
 
-            services.AddSummaryHttpClient(Configuration);
+            services.AddCommonLibHttpClient();
             services.AddMemoryCache();
         }
 

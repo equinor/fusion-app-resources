@@ -2,6 +2,10 @@
 using Fusion.Resources.Application.LineOrg;
 using Fusion.Resources.Application.People;
 using Fusion.Resources.ServiceBus;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
