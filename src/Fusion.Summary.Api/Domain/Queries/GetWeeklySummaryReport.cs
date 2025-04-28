@@ -42,7 +42,7 @@ public class GetWeeklySummaryReport : IRequest<QueryWeeklySummaryReport?>
 
             if (request.GetLatestReport)
             {
-                var resolvedDate = GetPreviousWeeksMondayOrTodayDate(DateTime.UtcNow).Date;
+                var resolvedDate = GetPreviousWeeksMonday(DateTime.UtcNow).Date;
                 query = query.Where(r => r.Period == resolvedDate);
             }
             else
@@ -58,7 +58,7 @@ public class GetWeeklySummaryReport : IRequest<QueryWeeklySummaryReport?>
             return QueryWeeklySummaryReport.FromDbSummaryReport(dbReport);
         }
 
-        private static DateTime GetPreviousWeeksMondayOrTodayDate(DateTime date)
+        private static DateTime GetPreviousWeeksMonday(DateTime date)
         {
             switch (date.DayOfWeek)
             {
