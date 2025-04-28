@@ -167,7 +167,7 @@ public class ResourceOwnerReportsController : BaseController
         var report = await DispatchAsync(GetWeeklySummaryReport.Latest(sapDepartmentId));
 
         if (report is null)
-            return FusionApiError.NotFound("latest", "Weekly summary report not found");
+            return FusionApiError.NotFound("latest", "Latest weekly summary report for this week not found");
 
         return Ok(ApiWeeklySummaryReport.FromQuerySummaryReport(report));
     }
