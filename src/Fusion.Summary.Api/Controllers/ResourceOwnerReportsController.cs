@@ -140,7 +140,7 @@ public class ResourceOwnerReportsController : BaseController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiWeeklySummaryReport>> GetWeeklySummaryReportByIdV1(
+    public async Task<ActionResult<ApiWeeklySummaryReport>> GetLatestWeeklySummaryReportV1(
         [FromRoute] string sapDepartmentId)
     {
         #region Authorization
