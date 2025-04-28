@@ -3,6 +3,7 @@ using FluentValidation;
 using Fusion.AspNetCore.Versioning;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api;
+using Fusion.Summary.Api.Authorization;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

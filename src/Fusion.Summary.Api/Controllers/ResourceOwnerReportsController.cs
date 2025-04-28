@@ -1,6 +1,8 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
+using Fusion.Summary.Api.Authorization;
 using Fusion.Summary.Api.Authorization.Extensions;
 using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Controllers.Filter;
@@ -36,7 +38,7 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.BeResourceOwnerForDepartment(sapDepartmentId, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                 });
             });
 
@@ -74,7 +76,7 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.BeResourceOwnerForDepartment(sapDepartmentId, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                 });
             });
 
@@ -98,7 +100,7 @@ public class ResourceOwnerReportsController : BaseController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiWeeklySummaryReport>> GetWeeklySummaryReportByIdV1(
-        [FromRoute] string sapDepartmentId, Guid reportId)
+        [FromRoute] string sapDepartmentId, [FromRoute] Guid reportId)
     {
         #region Authorization
 
@@ -109,7 +111,7 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.BeResourceOwnerForDepartment(sapDepartmentId, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                 });
             });
 
@@ -150,7 +152,7 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.BeResourceOwnerForDepartment(sapDepartmentId, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                 });
             });
 
@@ -174,7 +176,7 @@ public class ResourceOwnerReportsController : BaseController
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [EmulatedUserSupport]
-    public async Task<IActionResult> OptionsWeeklySummary([FromRoute] string sapDepartmentId)
+    public async Task<IActionResult> OptionsWeeklySummary([FromRoute] string sapDepartmentId, [FromQuery] string? emulatedUserId)
     {
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
@@ -184,7 +186,7 @@ public class ResourceOwnerReportsController : BaseController
                     or.BeTrustedApplication();
                     or.ResourcesFullControl();
                 });
-                r.LimitedAccessWhen(or => { or.BeResourceOwnerForDepartment(sapDepartmentId, includeDescendants: true); });
+                r.LimitedAccessWhen(or => { or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles); });
             });
 
         var headers = new HashSet<HttpMethod>();
