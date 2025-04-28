@@ -45,9 +45,6 @@ public class ResourceOwnerReportsController : BaseController
 
         #endregion
 
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
-
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
 
@@ -86,9 +83,6 @@ public class ResourceOwnerReportsController : BaseController
 
         #endregion
 
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
-
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
 
@@ -123,9 +117,6 @@ public class ResourceOwnerReportsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion
-
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
@@ -167,9 +158,6 @@ public class ResourceOwnerReportsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion
-
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
@@ -242,9 +230,6 @@ public class ResourceOwnerReportsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion
-
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
 
         if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
             return DepartmentNotFound(sapDepartmentId);
