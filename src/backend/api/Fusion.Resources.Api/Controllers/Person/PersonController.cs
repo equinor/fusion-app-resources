@@ -28,6 +28,7 @@ namespace Fusion.Resources.Api.Controllers
     /// </summary>
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
+    [ApiVersion("1.1")]
     [Authorize]
     [ApiController]
     public class PersonController : ResourceControllerBase
@@ -100,8 +101,6 @@ namespace Fusion.Resources.Api.Controllers
 
 
             var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
-            if (relevantOrgUnits is null)
-                return ApiErrors.NotFound($"No relevant OrgUnits found for user {personId}.");
 
             var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
             return collection;

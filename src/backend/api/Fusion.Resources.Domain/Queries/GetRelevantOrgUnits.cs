@@ -29,7 +29,7 @@ namespace Fusion.Resources.Domain.Queries
         public PersonId ProfileId { get; set; }
         public ODataQueryParams Query { get; }
 
-        public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>?>
+        public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>>
         {
             private readonly IMediator mediator;
             private readonly IFusionProfileResolver profileResolver;
@@ -42,7 +42,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.orgUnitCache = orgUnitCache;
             }
 
-            public async Task<QueryRangedList<QueryRelevantOrgUnit>?> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
+            public async Task<QueryRangedList<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
                 var cachedOrgUnits = await orgUnitCache.GetOrgUnitsAsync();
                 var orgUnits = cachedOrgUnits.Select(x => new QueryRelevantOrgUnit
@@ -81,11 +81,6 @@ namespace Fusion.Resources.Domain.Queries
                 orgUnitAccessReason.ApplyRole(readClaims, ReasonRoles.Read);
 
                 orgUnitAccessReason.ApplyParentManager(orgUnits, user);
-
-                if (orgUnitAccessReason is null)
-                {
-                    return null;
-                }
 
                 List<QueryRelevantOrgUnit> populatedOrgUnitResult = GetRelevantOrgUnits(orgUnits, orgUnitAccessReason);
 
