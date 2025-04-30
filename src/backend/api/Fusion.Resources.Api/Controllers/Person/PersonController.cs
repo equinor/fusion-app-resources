@@ -75,9 +75,15 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
 
+        /// <summary>
+        ///     Api version 1.0 and 1.1 are almost identical. 1.0 only returns the departments that the user has access to. While
+        ///     1.1 returns all departments independent of the users access. For the departments the user does not have access to, the reasons list will be empty.
+        /// </summary>
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("1.1")]
+        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams odataQuery)
         {
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
                 personId = $"{User.GetAzureUniqueId()}";
@@ -100,7 +106,11 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
+            var query = new GetRelevantOrgUnits(personId, odataQuery);
+            if (HttpContext.GetRequestedApiVersion()?.ToString() is null or "1.0")
+                query.WhereUserHasAccess();
+
+            var relevantOrgUnits = await DispatchAsync(query);
 
             var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
             return collection;

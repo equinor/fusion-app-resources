@@ -23,10 +23,18 @@ namespace Fusion.Resources.Domain.Queries
             Query = query;
         }
 
+        public GetRelevantOrgUnits WhereUserHasAccess()
+        {
+            OnlyIncludeOrgUnitsWhereUserHasAccess = true;
+            return this;
+        }
+
         /// <summary>
         /// Mail or azure unique id
         /// </summary>
         public PersonId ProfileId { get; set; }
+
+        public bool OnlyIncludeOrgUnitsWhereUserHasAccess { get; private set; }
         public ODataQueryParams Query { get; }
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>>
@@ -68,7 +76,7 @@ namespace Fusion.Resources.Domain.Queries
 
 
                 // Filter out only active roles
-                var activeRoles = user.Roles.Where(x => x.IsActive && (x.OnDemandSupport == false || x.ActiveToUtc > DateTime.UtcNow));
+                var activeRoles = user.Roles.Where(x => x.IsActive && (x.OnDemandSupport == false || x.ActiveToUtc > DateTime.UtcNow)).ToArray();
 
                 var delegatedManagerClaims = activeRoles.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Where(x => x.Scope?.Value is not null).Select(x => x.Scope?.Value!);
                 orgUnitAccessReason.ApplyRole(delegatedManagerClaims, ReasonRoles.DelegatedManager);
@@ -82,9 +90,12 @@ namespace Fusion.Resources.Domain.Queries
 
                 orgUnitAccessReason.ApplyParentManager(orgUnits, user);
 
-                List<QueryRelevantOrgUnit> populatedOrgUnitResult = GetRelevantOrgUnits(orgUnits, orgUnitAccessReason);
+                PopulateOrgUnitReasons(orgUnits, orgUnitAccessReason);
 
-                var filteredOrgUnits = ApplyOdataFilters(request.Query, populatedOrgUnitResult.OrderBy(x => x.FullDepartment));
+                if (request.OnlyIncludeOrgUnitsWhereUserHasAccess)
+                    orgUnits = orgUnits.Where(i => i.Reasons.Any()).ToList();
+
+                var filteredOrgUnits = ApplyOdataFilters(request.Query, orgUnits.OrderBy(x => x.FullDepartment));
                 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(100);
@@ -119,7 +130,7 @@ namespace Fusion.Resources.Domain.Queries
                 return managerFor;
             }
 
-            private static List<QueryRelevantOrgUnit> GetRelevantOrgUnits(IEnumerable<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
+            private static void PopulateOrgUnitReasons(IEnumerable<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
             {
 
                 orgUnitAccessReason.GroupBy(i => i.FullDepartment)
@@ -132,8 +143,6 @@ namespace Fusion.Resources.Domain.Queries
                             orgUnit.Reasons = d.Select(i => i.Reason).ToList();
                         }
                     });
-
-                return cachedOrgUnits.Where(i => i.Reasons.Any()).ToList();
             }
 
             private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, IEnumerable<QueryRelevantOrgUnit> orgUnits)
@@ -182,7 +191,7 @@ namespace Fusion.Resources.Domain.Queries
             reasons.AddRange(departments.Select(d => new QueryOrgUnitReason(d, role)));
         }
 
-        internal static void ApplyParentManager(this List<QueryOrgUnitReason> reasons, IEnumerable<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
+        internal static void ApplyParentManager(this List<QueryOrgUnitReason> reasons, List<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
         {
             var managerResposibility = new List<QueryOrgUnitReason>();
 
