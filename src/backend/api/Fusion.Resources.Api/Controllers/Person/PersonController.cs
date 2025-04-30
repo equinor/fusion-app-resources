@@ -15,7 +15,6 @@ using Fusion.AspNetCore.OData;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
     [ApiVersion("1.1")]
     [Authorize]
@@ -31,6 +30,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/persons/me/resources/profile")]
         [HttpGet("/persons/{personId}/resources/profile")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiResourceOwnerProfile>> GetResourceProfile(string? personId)
         {
 
@@ -64,7 +64,7 @@ namespace Fusion.Resources.Api.Controllers
 
         /// <summary>
         ///     Api version 1.0 and 1.1 are almost identical. 1.0 only returns the departments that the user has access to. While
-        ///     1.1 returns all departments independent of the users access. For the departments the user does not have access to, the reasons list will be empty.
+        ///     1.1 returns all departments independent of the user's access. For the departments the user does not have access to, the reasons list will be empty.
         /// </summary>
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
@@ -104,8 +104,8 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
-
         [HttpGet("/persons/{personId}/resources/notes")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<List<ApiPersonNote>>> GetPersonNotes(string personId)
         {
             var user = await EnsureUserAsync(personId);
@@ -144,6 +144,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/persons/{personId}/resources/notes/{noteId}")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiPersonNote>> UpdatePersonalNote(string personId, Guid noteId, [FromBody] PersonNotesRequest request)
         {
 
@@ -183,6 +184,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/persons/{personId}/resources/notes")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiPersonNote>> CreateNewPersonalNote(string personId, [FromBody] PersonNotesRequest request)
         {
             var user = await EnsureUserAsync(personId);
@@ -217,6 +219,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/persons/{personId}/resources/notes/{noteId}")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult> DeletePersonalNote(string personId, Guid noteId)
         {
 
@@ -254,8 +257,9 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        [EmulatedUserSupport]
         [HttpOptions("/persons/{personId}/resources/notes")]
+        [MapToApiVersion("1.0")]
+        [EmulatedUserSupport]
         public async Task<ActionResult> GetPersonNoteOptions(string personId)
         {
             var user = await EnsureUserAsync(personId);
@@ -294,6 +298,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="personId">Azure unique id or upn/mail</param>
         /// <returns></returns>
         [HttpGet("/persons/{personId}/resources/allocation-request-status")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiPersonAllocationRequestStatus>> GetPersonRequestAllocationStatus(string personId)
         {
             var user = await EnsureUserAsync(personId);
