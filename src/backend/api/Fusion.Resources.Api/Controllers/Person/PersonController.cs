@@ -6,26 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Integration.Profile;
 using Fusion.Integration.LineOrg;
 using Fusion.AspNetCore.OData;
-using Microsoft.VisualBasic;
-using NodaTime.TimeZones;
-using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    /// <summary>
-    /// 
-    /// NOTE: Prototype endpoint with lot of hard coded data as we are waiting for proper data set.
-    /// 
-    /// This should be refactored when dependent datasets like sector/department overview has been set.
-    /// 
-    /// </summary>
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
     [ApiVersion("1.1")]
@@ -33,12 +22,10 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class PersonController : ResourceControllerBase
     {
-        private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionProfileResolver profileResolver;
 
-        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver)
+        public PersonController(IFusionProfileResolver profileResolver)
         {
-            this.httpClientFactory = httpClientFactory;
             this.profileResolver = profileResolver;
         }
 
