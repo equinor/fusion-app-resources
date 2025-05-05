@@ -270,8 +270,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using (var adminScope = fixture.AdminScope())
             {
                 var client = fixture.ApiFactory.CreateClient();
-                await client.AddDelegatedDepartmentOwner(testUser, delegatedOrgUnit.fullDepartment, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
-                await client.AddDelegatedDepartmentOwner(testUser, seconddelegatedOrgUnit.fullDepartment, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+                await client.AddDelegatedDepartmentOwner(testUser, delegatedOrgUnit.fullDepartment, DateTime.Now.AddHours(-1), DateTime.Now.AddDays(7));
+                await client.AddDelegatedDepartmentOwner(testUser, seconddelegatedOrgUnit.fullDepartment, DateTime.Now.AddHours(-1), DateTime.Now.AddDays(7));
             }
 
             using (var userScope = fixture.UserScope(testUser))
@@ -356,8 +356,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using (var adminScope = fixture.AdminScope())
             {
                 var client = fixture.ApiFactory.CreateClient();
-                await client.AddDelegatedDepartmentOwner(testUser, delegatedOrgUnit.fullDepartment, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
-                await client.AddDelegatedDepartmentOwner(testUser, seconddelegatedOrgUnit.fullDepartment, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+                await client.AddDelegatedDepartmentOwner(testUser, delegatedOrgUnit.fullDepartment, DateTime.Now.AddHours(-1), DateTime.Now.AddDays(7));
+                await client.AddDelegatedDepartmentOwner(testUser, seconddelegatedOrgUnit.fullDepartment, DateTime.Now.AddHours(-1), DateTime.Now.AddDays(7));
             }
 
             using (var userScope = fixture.UserScope(testUser))
