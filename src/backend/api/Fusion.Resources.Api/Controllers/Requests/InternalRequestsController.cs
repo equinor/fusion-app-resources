@@ -247,10 +247,11 @@ namespace Fusion.Resources.Api.Controllers
             if (!assignedPersonProfile?.FullDepartment?.Equals(departmentString.FullDepartment, StringComparison.OrdinalIgnoreCase) == true)
                 return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentString.FullDepartment}'");
 
-            // Verify the split has a location, or a non-null location is being proposed
-            if (LocationWillBeNull(
-                position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)?.Location,
-                request.ProposedChanges))
+            // Verify the split has a location, or a non-null location is being proposed for adjustment requests.
+            if (request.SubType.Equals("Adjustment", StringComparison.OrdinalIgnoreCase) &&
+                LocationWillBeNull(
+                    position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)?.Location,
+                    request.ProposedChanges))
             {
                 return ApiErrors.InvalidInput("Location is required");
             }
@@ -415,6 +416,10 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
             if (HasChanged(request.AdditionalNote, item.AdditionalNote))
                 return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
+            // Verify the split has a location, or a non-null location is being proposed for adjustment requests.
+            if (item.SubType?.Equals("Adjustment", StringComparison.OrdinalIgnoreCase) is true &&
+                LocationWillBeNull(item.OrgPosition!.Instances.FirstOrDefault(i => i.Id == item.OrgPositionInstanceId)?.Location, request.ProposedChanges?.Value))
+                return ApiErrors.InvalidInput("Location is required");
 
             #region Authorization
 
