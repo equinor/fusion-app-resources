@@ -1,5 +1,9 @@
-﻿using Fusion.Summary.Api.Database;
+﻿using Fusion.Integration;
+using Fusion.Summary.Api.Database;
 using Fusion.Testing;
+using Fusion.Testing.Mocks.LineOrg;
+using Fusion.Testing.Mocks.Org;
+using Fusion.Testing.Mocks.People;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -73,7 +77,32 @@ public class SummaryWebAppFactory : WebApplicationFactory<Program>
             services.TryRemoveImplementationService("ContextEventReceiver");
 
             services.OverrideFusionContextIntegration(_fusionFixture);
-            services.OverrideFusionHttpClientFactory(_fusionFixture);
+            services.AddSingleton<IHttpClientFactory>(
+                new FakeHttpClientFactoryWrapper(
+                    _fusionFixture.OrgServiceMock,
+                    _fusionFixture.LineOrgServiceMock,
+                    _fusionFixture.PeopleServiceMock));
+
         });
+    }
+}
+
+// This class wraps the default FakeHttpClientFactory provided by the FusionTest library.
+// Possibly due to mismatching package versions, it cannot resolve the named client from IntegrationConfig.HttpClients.ApplicationLineOrg()
+public class FakeHttpClientFactoryWrapper : IHttpClientFactory
+{
+    private readonly FakeHttpClientFactory baseFactory;
+
+    public FakeHttpClientFactoryWrapper(OrgServiceMock orgServiceMock, LineOrgMock lineOrgMock, PeopleServiceMock peopleServiceMock)
+    {
+        baseFactory = new FakeHttpClientFactory(orgServiceMock, lineOrgMock, peopleServiceMock);
+    }
+
+    public HttpClient CreateClient(string name)
+    {
+        if (name == IntegrationConfig.HttpClients.ApplicationLineOrg())
+            return new HttpClient(baseFactory.LineOrg) { BaseAddress = new Uri("http://fusion-xh4as7qVN1X.local") };
+
+        return baseFactory.CreateClient(name);
     }
 }

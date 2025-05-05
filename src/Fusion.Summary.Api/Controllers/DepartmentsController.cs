@@ -63,9 +63,6 @@ public class DepartmentsController : BaseController
 
         #endregion Authorization
 
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
-
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 
         // Check if department is null
@@ -96,9 +93,6 @@ public class DepartmentsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion Authorization
-
-        if (string.IsNullOrWhiteSpace(sapDepartmentId))
-            return SapDepartmentIdRequired();
 
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
 

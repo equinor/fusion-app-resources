@@ -67,4 +67,14 @@ public static class SummaryReportHelpers
         return await client.TestClientPutAsync<object>($"resource-owners-summary-reports/{sapDepartmentId}/weekly",
             request);
     }
+
+    public static async Task<TestClientHttpResponse<object>> GetLatestWeeklySummaryReportAsync(this HttpClient client,
+        string sapDepartmentId)
+    {
+        var response =
+            await client.TestClientGetAsync<object>(
+                $"resource-owners-summary-reports/{sapDepartmentId}/weekly/latest");
+
+        return response;
+    }
 }
