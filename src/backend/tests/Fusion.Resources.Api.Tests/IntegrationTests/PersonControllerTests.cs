@@ -316,9 +316,19 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 fullDepartment = "TDI OG FOS FOIT PDP"
             };
 
+            var noAccessDepartment = new
+            {
+                name = "Some Department",
+                sapId = "73525219",
+                shortName = "FEII",
+                department = "FOS FOIT FEII",
+                fullDepartment = "TDI OG FOS FOIT FEII"
+            };
+
             fixture.EnsureDepartment(assignedOrgUnit.fullDepartment);
             fixture.EnsureDepartment(delegatedOrgUnit.fullDepartment);
             fixture.EnsureDepartment(seconddelegatedOrgUnit.fullDepartment);
+            fixture.EnsureDepartment(noAccessDepartment.fullDepartment);
             testUser.IsResourceOwner = true;
 
             testUser.Roles = new List<ApiPersonRoleV3>
@@ -342,7 +352,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddOrgUnit(assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
             LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment, delegatedOrgUnit.shortName);
             LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment, seconddelegatedOrgUnit.shortName);
-
+            
             using (var adminScope = fixture.AdminScope())
             {
                 var client = fixture.ApiFactory.CreateClient();
@@ -357,13 +367,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 var resp = await client.TestClientGetAsync<ApiCollection<TestApiRelevantOrgUnitModel>>(
                     $"/persons/{testUser.AzureUniqueId}/resources/relevant-departments?api-version=1.1"
                 );
-
-                var lineOrgClient = fixture.ApiFactory.lineOrgServiceMock.CreateHttpClient();
-                var allDepartmentsResp = await lineOrgClient.TestClientGetAsync<ApiCollection<object>>("org-units");
-                allDepartmentsResp.Should().BeSuccessfull();
+                
 
                 resp.Should().BeSuccessfull();
-                resp.Value.Value.Count().Should().Be(allDepartmentsResp.Value.Value.Count());
+                resp.Value.Value.Should().ContainSingle(c => c.FullDepartment == noAccessDepartment.fullDepartment && c.Reasons.Count == 0);
+
                 resp.Value.Value.Should().ContainSingle(c => c.FullDepartment == delegatedOrgUnit.fullDepartment &&
                                                              c.Reasons.Any(reason => reason == "DelegatedManager"));
 
