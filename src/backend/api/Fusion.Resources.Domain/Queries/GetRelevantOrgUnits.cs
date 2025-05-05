@@ -23,9 +23,12 @@ namespace Fusion.Resources.Domain.Queries
             Query = query;
         }
 
-        public GetRelevantOrgUnits WhereUserHasAccess()
+        /// <summary>
+        ///     Also return departments where the user has no access instead of filtering them out.
+        /// </summary>
+        public GetRelevantOrgUnits IncludeDepartmentsWithNoAccess()
         {
-            OnlyIncludeOrgUnitsWhereUserHasAccess = true;
+            OnlyIncludeOrgUnitsWhereUserHasAccess = false;
             return this;
         }
 
@@ -34,7 +37,7 @@ namespace Fusion.Resources.Domain.Queries
         /// </summary>
         public PersonId ProfileId { get; set; }
 
-        public bool OnlyIncludeOrgUnitsWhereUserHasAccess { get; private set; }
+        public bool OnlyIncludeOrgUnitsWhereUserHasAccess { get; private set; } = true;
         public ODataQueryParams Query { get; }
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>>

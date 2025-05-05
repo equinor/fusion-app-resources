@@ -94,8 +94,8 @@ namespace Fusion.Resources.Api.Controllers
 
 
             var query = new GetRelevantOrgUnits(personId, odataQuery);
-            if (HttpContext.GetRequestedApiVersion()?.ToString() is null or "1.0")
-                query.WhereUserHasAccess();
+            if (HttpContext.GetRequestedApiVersion()?.ToString() is "1.1")
+                query.IncludeDepartmentsWithNoAccess();
 
             var relevantOrgUnits = await DispatchAsync(query);
 
