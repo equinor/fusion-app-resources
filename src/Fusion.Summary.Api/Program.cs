@@ -3,13 +3,11 @@ using FluentValidation;
 using Fusion.AspNetCore.Versioning;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api;
-using Fusion.Summary.Api.Authorization;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
