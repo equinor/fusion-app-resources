@@ -211,7 +211,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [InlineData("sapId eq '52752459'", 1)]
         [InlineData("sapId neq '52752459'", 2)]
         [InlineData("name eq 'Construction %26 Commissioning'", 1)]
-        public async Task ShouldReturnCorectCountGetRelevantDepartments_ShouldReturnCorrectCount(string filter, int count)
+        public async Task GetRelevantDepartmentsV10_ShouldReturnCorrectCount(string filter, int count)
         {
             var assignedOrgUnit = new
             {
