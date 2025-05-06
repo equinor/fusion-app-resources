@@ -49,6 +49,41 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiDepartment(department!));
         }
 
+        /// <summary>
+        ///     Helper endpoint for frontend to check if the user has access to the department and to get department info.
+        /// </summary>
+        [HttpGet("/departments/{departmentString}/personnel-allocation-access")]
+        [MapToApiVersion("1.0-preview")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<ApiPersonnelAllocationAccess>> GetPersonnelAllocationAccess([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                });
+                r.LimitedAccessWhen(x => { x.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true); });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+
+            var department = await DispatchAsync(new GetDepartment(departmentString.SapId).ExpandDelegatedResourceOwners());
+
+            return Ok(new ApiPersonnelAllocationAccess(department!));
+        }
+
         [HttpGet("/departments/{departmentString}/related")]
         public async Task<ActionResult<ApiRelatedDepartments>> GetRelevantDepartments([FromRoute] OrgUnitIdentifier departmentString)
         {
