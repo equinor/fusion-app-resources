@@ -6,13 +6,16 @@ public class ApiReportMetaData
 {
     public Guid Id { get; set; }
     public DateTime Period { get; set; }
+    public DateTime PeriodEnd { get; set; }
+
 
     public static ApiReportMetaData FromQueryReportMetaData(QueryReportMetaData queryReportMetaData)
     {
         return new ApiReportMetaData
         {
             Id = queryReportMetaData.Id,
-            Period = queryReportMetaData.Period
+            Period = queryReportMetaData.Period,
+            PeriodEnd = queryReportMetaData.PeriodEnd
         };
     }
 }
