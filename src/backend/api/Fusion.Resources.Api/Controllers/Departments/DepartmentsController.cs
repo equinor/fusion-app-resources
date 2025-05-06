@@ -30,6 +30,24 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForAnyDepartment();
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
+                    or.BeEmployee();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+            
             var request = new GetDepartments()
                 .ExpandDelegatedResourceOwners()
                 .WhereResourceOwnerMatches(query);
@@ -40,10 +58,29 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/departments/{departmentString}")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments([FromRoute] OrgUnitIdentifier departmentString)
         {
             if (!departmentString.Exists)
                 return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                });
+                r.LimitedAccessWhen(x => { x.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true); });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
 
             var department = await DispatchAsync(new GetDepartment(departmentString.SapId).ExpandDelegatedResourceOwners());
 
@@ -93,6 +130,24 @@ namespace Fusion.Resources.Api.Controllers
         {
             if (!departmentString.Exists)
                 return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForAnyDepartment();
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
+                    or.BeEmployee();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
 
             var departments = await DispatchAsync(new GetRelatedDepartments(departmentString.SapId));
 
