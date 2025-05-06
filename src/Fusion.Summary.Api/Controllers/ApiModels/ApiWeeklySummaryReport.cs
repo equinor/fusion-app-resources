@@ -8,6 +8,7 @@ public class ApiWeeklySummaryReport
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
     public required DateTime Period { get; set; }
+    public required DateTime PeriodEnd { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
     public required string NumberOfRequestsLastPeriod { get; set; }
@@ -33,6 +34,7 @@ public class ApiWeeklySummaryReport
             Id = queryWeeklySummaryReport.Id,
             DepartmentSapId = queryWeeklySummaryReport.DepartmentSapId,
             Period = queryWeeklySummaryReport.Period,
+            PeriodEnd = queryWeeklySummaryReport.PeriodEnd,
             NumberOfPersonnel = queryWeeklySummaryReport.NumberOfPersonnel,
             CapacityInUse = queryWeeklySummaryReport.CapacityInUse,
             NumberOfRequestsLastPeriod = queryWeeklySummaryReport.NumberOfRequestsLastPeriod,
