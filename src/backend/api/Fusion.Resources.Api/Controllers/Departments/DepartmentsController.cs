@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -47,6 +48,44 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(new GetDepartment(departmentString.SapId).ExpandDelegatedResourceOwners());
 
             return Ok(new ApiDepartment(department!));
+        }
+
+        [HttpOptions("/departments/{departmentString}")]
+        [MapToApiVersion("1.0")]
+        [EmulatedUserSupport]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> GetDepartmentAccess([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                });
+                r.LimitedAccessWhen(x => { x.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true); });
+            });
+
+            #endregion Authorization
+
+            var allowedMethods = new List<string>();
+
+
+            if (authResult.Success)
+            {
+                allowedMethods.Add("GET");
+            }
+
+            Response.Headers.Allow = string.Join(',', allowedMethods);
+
+            return NoContent();
         }
 
         [HttpGet("/departments/{departmentString}/related")]
