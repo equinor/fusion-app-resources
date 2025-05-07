@@ -76,13 +76,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwnerForDepartment(departmentPath);
-                    or.BeResourceOwnerForDepartment(departmentPath.Parent());
-                    or.BeSiblingResourceOwner(departmentPath);
-
-                    // Delegated resource owners
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath.Parent()), AccessRoles.ResourceOwner);
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });
             });
 

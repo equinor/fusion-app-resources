@@ -34,12 +34,35 @@ namespace Fusion.Resources.Api.Authentication
 
         public async Task<IEnumerable<Claim>> TransformUserAsync(ClaimsPrincipal principal, FusionFullPersonProfile profile)
         {
-
             var claims = new List<Claim>();
             await ApplySharedRequestClaimsIfAnyAsync(profile, claims);
             await ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(profile, claims);
+            await ApplyDelegatedResourceOwnerForDepartmentClaimIfUserIsDelegatedResourceOwnerAsync(profile, claims);
 
             return claims;
+        }
+
+        private async Task ApplyDelegatedResourceOwnerForDepartmentClaimIfUserIsDelegatedResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)
+        {
+            if (profile.Roles is null)
+            {
+                throw new InvalidOperationException("Roles must be loaded on the profile for the claims transformer to work.");
+            }
+
+            var delegatedRoles = profile.Roles
+                .Where(x => string.Equals(x.Name, AccessRoles.ResourceOwner, StringComparison.OrdinalIgnoreCase))
+                .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
+                .Select(x => x.Scope?.Value!)
+                .ToList();
+
+            foreach (var delegatedRole in delegatedRoles)
+            {
+                var orgUnit = await mediator.Send(new ResolveLineOrgUnit(delegatedRole));
+                if (orgUnit?.FullDepartment != null)
+                {
+                    claims.Add(new Claim(ResourcesClaimTypes.DelegatedResourceOwnerForDepartment, orgUnit.FullDepartment));
+                }
+            }
         }
 
         private async Task ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)

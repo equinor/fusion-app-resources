@@ -8,12 +8,14 @@ namespace Fusion.Resources.Authorization.Requirements;
 
 public class BeSiblingResourceOwnerRequirement : FusionAuthorizationRequirement, IAuthorizationHandler
 {
-    public BeSiblingResourceOwnerRequirement(DepartmentPath departmentPath)
+    public BeSiblingResourceOwnerRequirement(DepartmentPath departmentPath, bool includeDelegatedResourceOwners)
     {
         DepartmentPath = departmentPath;
+        IncludeDelegatedResourceOwners = includeDelegatedResourceOwners;
     }
 
     public DepartmentPath DepartmentPath { get; }
+    public bool IncludeDelegatedResourceOwners { get; }
 
 
     public override string Description => ToString();
@@ -21,16 +23,26 @@ public class BeSiblingResourceOwnerRequirement : FusionAuthorizationRequirement,
 
     public override string ToString()
     {
-        return "User is a sibling resource owner. Two departments are siblings if they share the same parent department.";
+        var siblingText = IncludeDelegatedResourceOwners ? " or delegated resource owner" : string.Empty;
+
+        return $"User is a sibling resource owner{siblingText} for the department '{DepartmentPath}'";
     }
 
     public Task HandleAsync(AuthorizationHandlerContext context)
     {
         var resourceOwnerForDepartments = context.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
             .Select(c => c.Value)
-            .ToArray();
+            .ToList();
 
-        if (resourceOwnerForDepartments.Length == 0)
+        if (IncludeDelegatedResourceOwners)
+        {
+            var delegatedDepartments = context.User.FindAll(ResourcesClaimTypes.DelegatedResourceOwnerForDepartment)
+                .Select(c => c.Value)
+                .ToList();
+            resourceOwnerForDepartments.AddRange(delegatedDepartments);
+        }
+
+        if (resourceOwnerForDepartments.Count == 0)
         {
             SetEvaluation("User is not resource owner in any departments");
             return Task.CompletedTask;
