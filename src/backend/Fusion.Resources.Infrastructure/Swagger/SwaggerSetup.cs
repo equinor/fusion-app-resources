@@ -47,19 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // To fix this swagger gen error
                 // System.InvalidOperationException: Can't use schemaId "$ApiPerson" for type "$Fusion.Services.LineOrg.ApiModels.ApiPerson". The same schemaId is already used for type "$Fusion.Resources.Api.Controllers.ApiPerson"
                 // TODO: This is a quick fix, makes the schema models have very long name, for example: Fusion.AspNetCore.Api.PatchProperty`1[Fusion.Resources.Api.Controllers.ApiPropertiesCollection]
-                c.CustomSchemaIds(type => type.ToString());
-
-                // Only add endpoints that belongs to the version spec
-                c.DocInclusionPredicate((version, desc) =>
-                {
-                    var latestApiVersion = desc.GetApiVersion() ?? new ApiVersion(1, 0);
-
-                    var hasMajorVersion = int.TryParse(version.Split("-")[1].Substring(1), out int majorVersion);
-
-                    if (hasMajorVersion)
-                    {
-                        return desc.ImplementsMajorVersion(majorVersion); 
-                    }
+                c.CustomSchemaIds(type => type.ToString().Replace("+", "."));
 
                     if (version == "api-beta")
                     {
