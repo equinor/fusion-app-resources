@@ -1,6 +1,8 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Resources.Api.Authorization.Requirements;
 using Fusion.Resources.Authorization.Requirements;
+using Fusion.Resources.Domain;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Fusion.Resources
 {
@@ -35,6 +37,13 @@ namespace Fusion.Resources
         public static IAuthorizationRequirementRule BeResourceOwnerForDepartment(this IAuthorizationRequirementRule builder, string department, bool includeParents = false, bool includeDescendants = false)
         {
             builder.AddRule(new BeResourceOwnerRequirement(department, includeParents, includeDescendants));
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule BeSiblingResourceOwner(this IAuthorizationRequirementRule builder, DepartmentPath path)
+        {
+            builder.AddRule(new BeSiblingResourceOwnerRequirement(path));
+
             return builder;
         }
     }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -69,15 +70,20 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
+            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
+                    or.BeResourceOwnerForDepartment(departmentPath);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent());
+                    or.BeSiblingResourceOwner(departmentPath);
+
+                    // Delegated resource owners
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath.Parent()), AccessRoles.ResourceOwner);
                 });
-                r.LimitedAccessWhen(x => { x.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true); });
             });
 
             if (authResult.Unauthorized)
