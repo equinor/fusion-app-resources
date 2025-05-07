@@ -60,6 +60,8 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         [HttpGet("/departments/{departmentString}")]
         [MapToApiVersion("1.1")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<ApiDepartment>> GetDepartmentsV11([FromRoute] OrgUnitIdentifier departmentString)
         {
             if (!departmentString.Exists)
