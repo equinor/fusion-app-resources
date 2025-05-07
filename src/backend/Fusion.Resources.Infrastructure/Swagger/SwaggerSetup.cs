@@ -33,6 +33,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSwaggerGen(c =>
             {
+                // Resolve conflicting apiDescriptions
+                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 
                 foreach (var version in setupBuilder.EnabledVersions)
                     c.SwaggerDoc($"api-v{version}", new OpenApiInfo { Title = title, Version = $"{version}.0" });
