@@ -10,14 +10,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration config)
         {
-
-            services.AddSwagger(config, "Fusion Resources API", swagger => swagger
-                .AddApiVersion(1)
-
-                // When promoting endpoints, add new version to update the version dropdown 
-                .AddApiVersion(2)
-
-                .AddApiPreview()
+            services.AddSwagger(config, "Fusion Resources API", swagger =>
+                swagger
                 .ForceStringConverter<PathProjectIdentifier>()
                 .ForceStringConverter<OrgUnitIdentifier>()
                 .ForceStringConverter<RequestIdentifier>()

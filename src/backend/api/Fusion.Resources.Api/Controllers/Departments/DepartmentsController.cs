@@ -54,6 +54,10 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiDepartment(department!));
         }
 
+        /// <summary>
+        ///     This endpoint compared to 1.0 has authorization for the department.
+        ///     This can be used to check if the user has access to the org-unit.
+        /// </summary>
         [HttpGet("/departments/{departmentString}")]
         [MapToApiVersion("1.1")]
         public async Task<ActionResult<ApiDepartment>> GetDepartmentsV11([FromRoute] OrgUnitIdentifier departmentString)
