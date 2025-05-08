@@ -125,10 +125,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Success)
             {
                 allowedMethods.Add("GET");
-                if (authResult.LimitedAuth == false)
-                {
-                    allowedMethods.Add("PUT");
-                }
+                allowedMethods.Add("PUT");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
