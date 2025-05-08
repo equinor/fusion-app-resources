@@ -32,12 +32,19 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetRelevantOrgUnits SetSiblingDepartmentsAsRelevant()
+        {
+            IsSiblingDepartmentRelevant = true;
+            return this;
+        }
+
         /// <summary>
         /// Mail or azure unique id
         /// </summary>
         public PersonId ProfileId { get; set; }
 
         public bool OnlyIncludeOrgUnitsWhereUserHasAccess { get; private set; } = true;
+        public bool IsSiblingDepartmentRelevant { get; private set; }
         public ODataQueryParams Query { get; }
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>>
@@ -94,6 +101,12 @@ namespace Fusion.Resources.Domain.Queries
                 orgUnitAccessReason.ApplyParentManager(orgUnits, user);
 
                 PopulateOrgUnitReasons(orgUnits, orgUnitAccessReason);
+
+                if (!request.IsSiblingDepartmentRelevant)
+                {
+                    foreach (var orgUnit in orgUnits)
+                        orgUnit.Reasons.RemoveAll(reason => reason is ReasonRoles.SiblingManager or ReasonRoles.DelegatedSiblingManager);
+                }
 
                 if (request.OnlyIncludeOrgUnitsWhereUserHasAccess)
                     orgUnits = orgUnits.Where(i => i.Reasons.Any()).ToList();
@@ -189,6 +202,14 @@ namespace Fusion.Resources.Domain.Queries
             return item.FullDepartment.StartsWith(unit.FullDepartment) && distance == 1;
         }
 
+        public static bool IsSiblingOf(this QueryRelevantOrgUnit orgUnit, QueryOrgUnitReason unit)
+        {
+            var orgUnitPath = new DepartmentPath(orgUnit.FullDepartment);
+            var unitPath = new DepartmentPath(unit.FullDepartment);
+
+            return orgUnitPath.IsSibling(unitPath);
+        }
+
         internal static void ApplyRole(this List<QueryOrgUnitReason> reasons, IEnumerable<string> departments, string role)
         {
             reasons.AddRange(departments.Select(d => new QueryOrgUnitReason(d, role)));
@@ -198,7 +219,7 @@ namespace Fusion.Resources.Domain.Queries
         {
             var managerResposibility = new List<QueryOrgUnitReason>();
 
-            // Process locations where user is natural manager. We want to grant the user access to all child departments.
+            // Process locations where user is natural manager. We want to grant the user access to all child and siblings departments.
             foreach (var managerUnit in reasons.Where(x => x.Reason == ReasonRoles.Manager))
             {
                 var childDepartments = orgUnits
@@ -206,6 +227,11 @@ namespace Fusion.Resources.Domain.Queries
                     .Where(x => x.IsDirectChildOf(managerUnit)); // Include trailing space so we do not include the actual unit where user is manager.
 
                 managerResposibility.AddRange(childDepartments.Select(d => new QueryOrgUnitReason(d.FullDepartment, ReasonRoles.ParentManager)));
+
+                var siblingDepartments = orgUnits
+                    .Where(x => x.IsSiblingOf(managerUnit));
+
+                managerResposibility.AddRange(siblingDepartments.Select(d => new QueryOrgUnitReason(d.FullDepartment, ReasonRoles.SiblingManager)));
             }
 
             // Process delegate manager.
@@ -223,6 +249,10 @@ namespace Fusion.Resources.Domain.Queries
                     // Add just direct children
                     managerResposibility.AddRange(childDepartments.Where(d => d.IsDirectChildOf(delegatedManager)).Select(d => new QueryOrgUnitReason(d.FullDepartment, ReasonRoles.DelegatedParentManager)));
                 }
+
+                var siblingDepartments = orgUnits
+                    .Where(x => x.IsSiblingOf(delegatedManager));
+                managerResposibility.AddRange(siblingDepartments.Select(d => new QueryOrgUnitReason(d.FullDepartment, ReasonRoles.DelegatedSiblingManager)));
             }
 
             // Process read/write roles
