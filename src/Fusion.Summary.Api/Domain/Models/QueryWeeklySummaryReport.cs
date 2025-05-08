@@ -7,6 +7,7 @@ public class QueryWeeklySummaryReport
     public required Guid Id { get; set; }
     public required string DepartmentSapId { get; set; }
     public required DateTime Period { get; set; }
+    public required DateTime PeriodEnd { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
     public required string NumberOfRequestsLastPeriod { get; set; }
@@ -28,6 +29,7 @@ public class QueryWeeklySummaryReport
             Id = dbWeeklySummaryReport.Id,
             DepartmentSapId = dbWeeklySummaryReport.DepartmentSapId,
             Period = dbWeeklySummaryReport.Period,
+            PeriodEnd = dbWeeklySummaryReport.Period.AddDays(7),
             NumberOfPersonnel = dbWeeklySummaryReport.NumberOfPersonnel,
             CapacityInUse = dbWeeklySummaryReport.CapacityInUse,
             NumberOfRequestsLastPeriod = dbWeeklySummaryReport.NumberOfRequestsLastPeriod,
