@@ -141,6 +141,16 @@ namespace Fusion.Resources.Api.Controllers
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
 
+        [HttpGet("/departmentslugs")]
+        public async Task<ActionResult<List<ApiDepartment>>> SearchForSlugs([FromQuery(Name = "$search")] string query)
+        {
+            var request = new GetDepartmentSlugs();
+
+            var result = await DispatchAsync(request);
+
+            return Ok(result.Select(x => new ApiDepartment(x)));
+        }
+
         [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
         [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult<ApiDepartmentResponsible>> AddDelegatedResourceOwner([FromRoute] OrgUnitIdentifier departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
