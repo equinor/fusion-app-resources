@@ -92,6 +92,50 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiDepartment(department!));
         }
 
+        [HttpOptions("/departments/{departmentString}")]
+        [MapToApiVersion("1.1")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> GetDepartmentAccessV11([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+
+
+            var allowedMethods = new List<string>();
+            if (authResult.Success)
+            {
+                allowedMethods.Add("GET");
+                if (authResult.LimitedAuth == false)
+                {
+                    allowedMethods.Add("PUT");
+                }
+            }
+
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
+
+            return NoContent();
+        }
+
         [HttpGet("/departments/{departmentString}/related")]
         [MapToApiVersion("1.0-preview")]
         [MapToApiVersion("1.0")]
