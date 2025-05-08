@@ -54,6 +54,17 @@ namespace Fusion.Resources.Domain
             return path.StartsWith(fullDepartmentPath, StringComparison.OrdinalIgnoreCase);
         }
 
+        public bool IsSibling(DepartmentPath? other)
+        {
+            if (other is null)
+                return false;
+
+            if (other.IsDepartment(this))
+                return false;
+
+            return other.Level == Level && other.Parent().Equals(Parent(), StringComparison.OrdinalIgnoreCase);
+        }
+
         public bool IsDepartment(string? path)
         {
             if (path is null)
