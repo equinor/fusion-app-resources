@@ -179,12 +179,14 @@ namespace Fusion.Resources.Api.Tests
 
         public static async Task AddDelegatedDepartmentOwner(this HttpClient client, ApiPersonProfileV3 testUser, string department, DateTime dateFrom, DateTime dateTo)
         {
-            await client.TestClientPostAsync($"/departments/{department}/delegated-resource-owner", new
+            var resp = await client.TestClientPostAsync($"/departments/{department}/delegated-resource-owner", new
             {
                 responsibleAzureUniqueId = testUser.AzureUniqueId,
                 dateFrom,
                 dateTo
             });
+
+            resp.Should().BeSuccessfull();
         }
 
         public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, string responsible = "TaskOwner", Dictionary<string, object> props = null)

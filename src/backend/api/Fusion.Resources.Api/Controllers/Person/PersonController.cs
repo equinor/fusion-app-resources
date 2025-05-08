@@ -6,43 +6,31 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Integration.Profile;
 using Fusion.Integration.LineOrg;
 using Fusion.AspNetCore.OData;
-using Microsoft.VisualBasic;
-using NodaTime.TimeZones;
-using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    /// <summary>
-    /// 
-    /// NOTE: Prototype endpoint with lot of hard coded data as we are waiting for proper data set.
-    /// 
-    /// This should be refactored when dependent datasets like sector/department overview has been set.
-    /// 
-    /// </summary>
-    [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
+    [ApiVersion("1.1")]
     [Authorize]
     [ApiController]
     public class PersonController : ResourceControllerBase
     {
-        private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionProfileResolver profileResolver;
 
-        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver)
+        public PersonController(IFusionProfileResolver profileResolver)
         {
-            this.httpClientFactory = httpClientFactory;
             this.profileResolver = profileResolver;
         }
 
         [HttpGet("/persons/me/resources/profile")]
         [HttpGet("/persons/{personId}/resources/profile")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiResourceOwnerProfile>> GetResourceProfile(string? personId)
         {
 
@@ -74,9 +62,15 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
 
+        /// <summary>
+        ///     Api version 1.0 and 1.1 are almost identical. 1.0 only returns the departments that the user has access to. While
+        ///     1.1 returns all departments independent of the user's access. For the departments the user does not have access to, the reasons list will be empty.
+        /// </summary>
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("1.1")]
+        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams odataQuery)
         {
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
                 personId = $"{User.GetAzureUniqueId()}";
@@ -99,17 +93,19 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
-            if (relevantOrgUnits is null)
-                return ApiErrors.NotFound($"No relevant OrgUnits found for user {personId}.");
+            var query = new GetRelevantOrgUnits(personId, odataQuery);
+            if (HttpContext.GetRequestedApiVersion()?.ToString() is "1.1")
+                query.IncludeDepartmentsWithNoAccess();
+
+            var relevantOrgUnits = await DispatchAsync(query);
 
             var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
             return collection;
 
         }
 
-
         [HttpGet("/persons/{personId}/resources/notes")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<List<ApiPersonNote>>> GetPersonNotes(string personId)
         {
             var user = await EnsureUserAsync(personId);
@@ -148,6 +144,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/persons/{personId}/resources/notes/{noteId}")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiPersonNote>> UpdatePersonalNote(string personId, Guid noteId, [FromBody] PersonNotesRequest request)
         {
 
@@ -187,6 +184,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/persons/{personId}/resources/notes")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiPersonNote>> CreateNewPersonalNote(string personId, [FromBody] PersonNotesRequest request)
         {
             var user = await EnsureUserAsync(personId);
@@ -221,6 +219,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/persons/{personId}/resources/notes/{noteId}")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult> DeletePersonalNote(string personId, Guid noteId)
         {
 
@@ -258,8 +257,9 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        [EmulatedUserSupport]
         [HttpOptions("/persons/{personId}/resources/notes")]
+        [MapToApiVersion("1.0")]
+        [EmulatedUserSupport]
         public async Task<ActionResult> GetPersonNoteOptions(string personId)
         {
             var user = await EnsureUserAsync(personId);
@@ -298,6 +298,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="personId">Azure unique id or upn/mail</param>
         /// <returns></returns>
         [HttpGet("/persons/{personId}/resources/allocation-request-status")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiPersonAllocationRequestStatus>> GetPersonRequestAllocationStatus(string personId)
         {
             var user = await EnsureUserAsync(personId);
