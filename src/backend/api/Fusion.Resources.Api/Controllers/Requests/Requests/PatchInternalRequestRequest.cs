@@ -53,31 +53,9 @@ namespace Fusion.Resources.Api.Controllers
                     .WithName("assignedDepartment")
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);
 
-                RuleFor(x => x.ProposedChanges)
-                    .Custom((x, context) =>
-                    {
-                        if (x.HasValue && x.Value != null)
-                        {
-                            string[] allowedProperties = ["appliesFrom", "appliesTo", "location", "workload", "basePosition"];
-
-                            var isInvalid = false;
-                            foreach (var key in x.Value.Keys)
-                            {
-                                if (!allowedProperties.Any(p => string.Equals(p, key, StringComparison.OrdinalIgnoreCase)))
-                                {
-                                    context.AddFailure($"Key '{key}' is not valid");
-                                    isInvalid = true;
-                                }
-                            }
-
-                            if (isInvalid)
-                            {
-                                context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.ToLowerFirstChar()))}");
-                            }
-
-
-                        }
-                    });
+                RuleFor(x => x.ProposedChanges.Value)
+                    .BeValidProposedChanges()
+                    .When(x => x.ProposedChanges.HasValue && x.ProposedChanges.Value != null);
 
                 RuleFor(x => x.ProposalParameters.Value).SetValidator(new ProposalParametersRequest.Validator())
                     .OverridePropertyName(x => x.ProposalParameters)

@@ -89,25 +89,80 @@ namespace Fusion.Resources.Api.Controllers
 
         public static IRuleBuilderOptionsConditions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
         {
-            return ruleBuilder.Custom((prop, context) =>
+            return ruleBuilder.Custom((proposedChanges, context) =>
             {
-                if (prop is null)
+                if (proposedChanges is null)
                 {
                     context.AddFailure("Value not provided");
                     return;
                 }
 
-                var serialized = JsonConvert.SerializeObject(prop);
-                if (serialized.Length > 5000)
-                    context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
-                
-                foreach (var k in prop.Keys.Where(k => k.Length > 100))
-                {
-                    context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
-                        "Key cannot exceed 100 characters", k));
-                }
+                ValidateSerializedSize(proposedChanges, context);
+                ValidateKeyLengths(proposedChanges, context);
+                ValidateAllowedKeysAndValues(proposedChanges, context);
             });
         }
+
+        #region BeValidProposedChangesHelpers
+
+        private static void ValidateSerializedSize<T>(Dictionary<string, object> prop, ValidationContext<T> context)
+        {
+            var serialized = JsonConvert.SerializeObject(prop);
+            if (serialized.Length > 5000)
+            {
+                context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
+            }
+        }
+
+        private static void ValidateKeyLengths<T>(Dictionary<string, object> prop, ValidationContext<T> context)
+        {
+            foreach (var key in prop.Keys.Where(k => k.Length > 100))
+            {
+                context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
+                    "Key cannot exceed 100 characters", key));
+            }
+        }
+
+        private static void ValidateAllowedKeysAndValues<T>(Dictionary<string, object> prop, ValidationContext<T> context)
+        {
+            string[] allowedProperties = ["appliesFrom", "appliesTo", "location", "workload", "basePosition"];
+            var isInvalid = false;
+
+            foreach (var key in prop.Keys)
+            {
+                if (allowedProperties.Any(p => string.Equals(p, key, StringComparison.OrdinalIgnoreCase)))
+                {
+                    ValidateKeySpecificRules(key, prop[key], context);
+                }
+                else
+                {
+                    context.AddFailure($"Key '{key}' is not valid");
+                    isInvalid = true;
+                }
+            }
+
+            if (isInvalid)
+            {
+                context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.ToLowerFirstChar()))}");
+            }
+        }
+
+        private static void ValidateKeySpecificRules<T>(string key, object? value, ValidationContext<T> context)
+        {
+            if (key.Equals("appliesFrom", StringComparison.OrdinalIgnoreCase) || key.Equals("appliesTo", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!DateTime.TryParse(value?.ToString(), out var date))
+                {
+                    context.AddFailure($"Key '{key}' value must be a valid date");
+                }
+                else if (date.TimeOfDay != TimeSpan.Zero)
+                {
+                    context.AddFailure($"Key '{key}' value must be a date without time or time set to 00:00:00");
+                }
+            }
+        }
+
+        #endregion
 
         public static IRuleBuilderOptionsConditions<T, ApiPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, ApiPositionInstance?> ruleBuilder)
         {
