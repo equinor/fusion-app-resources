@@ -43,9 +43,19 @@ namespace Fusion.Resources.Api.Controllers
                     .WithMessage("To date cannot be before from date")
                     .When(x => x.ChangeDateFrom != null && x.ChangeDateTo != null);
 
+                RuleFor(x => x.ChangeDateTo)
+                    .Must(x => x!.Value.TimeOfDay == TimeSpan.Zero)
+                    .WithMessage("To date must be a date without time or time set to 00:00:00")
+                    .When(x => x.ChangeDateTo != null);
+
                 RuleFor(x => x.ChangeDateFrom)
                     .NotNull()
                     .WithMessage("From date must be defined when to date is specified")
+                    .When(x => x.ChangeDateTo != null);
+
+                RuleFor(x => x.ChangeDateFrom)
+                    .Must(x => x!.Value.TimeOfDay == TimeSpan.Zero)
+                    .WithMessage("From date must be a date without time or time set to 00:00:00")
                     .When(x => x.ChangeDateTo != null);
             }
         }
