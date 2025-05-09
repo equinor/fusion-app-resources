@@ -87,7 +87,8 @@ namespace Fusion.Resources.Api.Controllers
             return (IRuleBuilderOptions<T, Guid?>)result;
         }
 
-        public static IRuleBuilderOptionsConditions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(
+            this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder, string? propertyName = null)
         {
             return ruleBuilder.Custom((proposedChanges, context) =>
             {
@@ -97,33 +98,34 @@ namespace Fusion.Resources.Api.Controllers
                     return;
                 }
 
-                ValidateSerializedSize(proposedChanges, context);
-                ValidateKeyLengths(proposedChanges, context);
-                ValidateAllowedKeysAndValues(proposedChanges, context);
+                propertyName = propertyName?.ToLowerFirstChar() ?? context.JsPropertyName();
+                ValidateSerializedSize(proposedChanges, context, propertyName);
+                ValidateKeyLengths(proposedChanges, context, propertyName);
+                ValidateAllowedKeysAndValues(proposedChanges, context, propertyName);
             });
         }
 
         #region BeValidProposedChangesHelpers
 
-        private static void ValidateSerializedSize<T>(Dictionary<string, object> prop, ValidationContext<T> context)
+        private static void ValidateSerializedSize<T>(Dictionary<string, object> prop, ValidationContext<T> context, string propertyName)
         {
             var serialized = JsonConvert.SerializeObject(prop);
             if (serialized.Length > 5000)
             {
-                context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
+                context.AddFailure(propertyName, "Total size of change dictionary cannot be larger than 5000 characters");
             }
         }
 
-        private static void ValidateKeyLengths<T>(Dictionary<string, object> prop, ValidationContext<T> context)
+        private static void ValidateKeyLengths<T>(Dictionary<string, object> prop, ValidationContext<T> context, string propertyName)
         {
             foreach (var key in prop.Keys.Where(k => k.Length > 100))
             {
-                context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
+                context.AddFailure(new ValidationFailure($"{propertyName}.{key}",
                     "Key cannot exceed 100 characters", key));
             }
         }
 
-        private static void ValidateAllowedKeysAndValues<T>(Dictionary<string, object> prop, ValidationContext<T> context)
+        private static void ValidateAllowedKeysAndValues<T>(Dictionary<string, object> prop, ValidationContext<T> context, string propertyName)
         {
             string[] allowedProperties = ["appliesFrom", "appliesTo", "location", "workload", "basePosition"];
             var isInvalid = false;
@@ -132,32 +134,32 @@ namespace Fusion.Resources.Api.Controllers
             {
                 if (allowedProperties.Any(p => string.Equals(p, key, StringComparison.OrdinalIgnoreCase)))
                 {
-                    ValidateKeySpecificRules(key, prop[key], context);
+                    ValidateKeySpecificRules(key, prop[key], context, propertyName);
                 }
                 else
                 {
-                    context.AddFailure($"Key '{key}' is not valid");
+                    context.AddFailure($"{propertyName}.{key}", $"Is not an allowed property");
                     isInvalid = true;
                 }
             }
 
             if (isInvalid)
             {
-                context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.ToLowerFirstChar()))}");
+                context.AddFailure($"{propertyName}", $"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.ToLowerFirstChar()))}");
             }
         }
 
-        private static void ValidateKeySpecificRules<T>(string key, object? value, ValidationContext<T> context)
+        private static void ValidateKeySpecificRules<T>(string key, object? value, ValidationContext<T> context, string propertyName)
         {
             if (key.Equals("appliesFrom", StringComparison.OrdinalIgnoreCase) || key.Equals("appliesTo", StringComparison.OrdinalIgnoreCase))
             {
                 if (!DateTime.TryParse(value?.ToString(), out var date))
                 {
-                    context.AddFailure($"Key '{key}' value must be a valid date");
+                    context.AddFailure($"{propertyName}.{key}", $"Value '{value}' must be a valid date");
                 }
                 else if (date.TimeOfDay != TimeSpan.Zero)
                 {
-                    context.AddFailure($"Key '{key}' value must be a date without time or time set to 00:00:00");
+                    context.AddFailure($"{propertyName}.{key}", $"Value '{value}' must be a date without time or time set to 00:00:00");
                 }
             }
         }

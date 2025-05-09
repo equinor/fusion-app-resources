@@ -54,7 +54,7 @@ namespace Fusion.Resources.Api.Controllers
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);
 
                 RuleFor(x => x.ProposedChanges.Value)
-                    .BeValidProposedChanges()
+                    .BeValidProposedChanges(propertyName: nameof(ProposedChanges))
                     .When(x => x.ProposedChanges.HasValue && x.ProposedChanges.Value != null);
 
                 RuleFor(x => x.ProposalParameters.Value).SetValidator(new ProposalParametersRequest.Validator())
