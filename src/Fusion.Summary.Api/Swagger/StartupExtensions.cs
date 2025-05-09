@@ -4,9 +4,7 @@ public static class StartupExtensions
 {
     public static IServiceCollection AddSwagger(this IServiceCollection services, IConfiguration config)
     {
-        services.AddSwagger(config, "Fusion Summary API", swagger => swagger
-            .AddApiVersion(1)
-            .AddApiPreview());
+        services.AddSwagger(config, "Fusion Summary API", swagger => { });
 
         return services;
     }

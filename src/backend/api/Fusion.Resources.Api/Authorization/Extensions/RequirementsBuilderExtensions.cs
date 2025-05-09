@@ -84,24 +84,6 @@ namespace Fusion.Resources.Api.Controllers
             return builder.AddRule((auth, user) => auth.AuthorizeAsync(user,policy));
         }
 
-        public static IAuthorizationRequirementRule BeSiblingResourceOwner(this IAuthorizationRequirementRule builder, DepartmentPath path)
-        {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(c =>
-                {
-                    // User has access if the parent department matches..
-                    var resourceParent = path.ParentDeparment;
-                    var userDepartments = c.User.GetManagerForDepartments();
-
-                    return userDepartments.Any(d => resourceParent.IsDepartment(new DepartmentPath(d).Parent()));
-                })
-                .Build();
-
-            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
-
-            return builder;
-        }
-
         /// <summary>
         /// User has access if the user is resource owner for any department which has the specified department as parent.
         /// </summary>

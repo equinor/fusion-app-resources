@@ -8,26 +8,14 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static bool UseFusionSwaggerSetup = false;
 
         internal Action<SwaggerGenOptions>? SetupAction { get; private set; }
-        internal List<int> EnabledVersions { get; } = new List<int>();
-        internal bool AddPreviewEndpoints { get; private set; }
+
+        internal string Description { get; private set; } = string.Empty;
 
         internal FusionSwaggerConfig()
         {
             UseFusionSwaggerSetup = true;
         }
-
-
-        public FusionSwaggerConfig AddApiVersion(int majorVersion)
-        {
-            EnabledVersions.Add(majorVersion);
-            return this;
-        }
-
-        public FusionSwaggerConfig AddApiPreview()
-        {
-            AddPreviewEndpoints = true;
-            return this;
-        }
+        
 
         public FusionSwaggerConfig ConfigureSwaggerGen(Action<SwaggerGenOptions> swaggerSetup)
         {
@@ -40,6 +28,12 @@ namespace Microsoft.Extensions.DependencyInjection
             TypeConverterAttribute typeConverterAttribute = new TypeConverterAttribute(typeof(ToStringTypeConverter));
             TypeDescriptor.AddAttributes(typeof(TModel), typeConverterAttribute);
 
+            return this;
+        }
+
+        public FusionSwaggerConfig AddDescription(string description)
+        {
+            Description = description;
             return this;
         }
     }
