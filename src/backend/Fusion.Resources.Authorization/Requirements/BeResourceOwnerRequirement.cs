@@ -13,9 +13,12 @@ namespace Fusion.Resources.Authorization.Requirements
     /// </summary>
     public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAuthorizationHandler
     {
-        public BeResourceOwnerRequirement(string departmentPath, bool includeParents = false, bool includeDescendants = false)
+        public BeResourceOwnerRequirement(string departmentPath,
+            bool includeParents = false, bool includeDescendants = false,
+            bool includeDelegatedResourceOwners = false)
         {
             DepartmentPath = departmentPath;
+            IncludeDelegatedResourceOwners = includeDelegatedResourceOwners;
             IncludeParents = includeParents;
             IncludeDescendants = includeDescendants;
         }
@@ -33,10 +36,21 @@ namespace Fusion.Resources.Authorization.Requirements
         public bool IncludeParents { get; }
         public bool IncludeDescendants { get; }
 
+        public bool IncludeDelegatedResourceOwners { get; }
+
         public Task HandleAsync(AuthorizationHandlerContext context)
         {
             var departments = context.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
-                .Select(c => c.Value);
+                .Select(c => c.Value)
+                .ToList();
+
+            if (IncludeDelegatedResourceOwners)
+            {
+                var delegatedDepartments = context.User.FindAll(ResourcesClaimTypes.DelegatedResourceOwnerForDepartment)
+                    .Select(c => c.Value)
+                    .ToList();
+                departments.AddRange(delegatedDepartments);
+            }
 
             if (!departments.Any())
             {
@@ -73,19 +87,24 @@ namespace Fusion.Resources.Authorization.Requirements
 
         public override string ToString()
         {
+            var prefix = "User must be resource owner";
+
+            if (IncludeDelegatedResourceOwners)
+                prefix = $"{prefix} or delegated resource owner";
+            
             if (string.IsNullOrEmpty(DepartmentPath))
-                return "User must be resource owner of a department";
+                return $"{prefix} of a department";
 
             if (IncludeParents && IncludeDescendants)
-                return $"User must be resource owner in department '{DepartmentPath}' or any departments above or below";
+                return $"{prefix} in department '{DepartmentPath}' or any departments above or below";
 
             if (IncludeParents)
-                return $"User must be resource owner in department '{DepartmentPath}' or any departments above";
+                return $"{prefix} in department '{DepartmentPath}' or any departments above";
 
             if (IncludeDescendants)
-                return $"User must be resource owner in department '{DepartmentPath}' or any sub departments";
+                return $"{prefix} in department '{DepartmentPath}' or any sub departments";
 
-            return $"User must be resource owner in department '{DepartmentPath}'";
+            return $"{prefix} in department '{DepartmentPath}'";
         }
     }
 }

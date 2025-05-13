@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Authentication
 {
@@ -34,12 +35,45 @@ namespace Fusion.Resources.Api.Authentication
 
         public async Task<IEnumerable<Claim>> TransformUserAsync(ClaimsPrincipal principal, FusionFullPersonProfile profile)
         {
-
             var claims = new List<Claim>();
             await ApplySharedRequestClaimsIfAnyAsync(profile, claims);
             await ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(profile, claims);
+            await ApplyDelegatedResourceOwnerForDepartmentClaimIfUserIsDelegatedResourceOwnerAsync(profile, claims);
 
             return claims;
+        }
+
+        private async Task ApplyDelegatedResourceOwnerForDepartmentClaimIfUserIsDelegatedResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)
+        {
+            if (profile.Roles is null)
+            {
+                throw new InvalidOperationException("Roles must be loaded on the profile for the claims transformer to work.");
+            }
+
+            var delegatedRoles = profile.Roles
+                .Where(x => string.Equals(x.Name, AccessRoles.ResourceOwner, StringComparison.OrdinalIgnoreCase))
+                .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
+                .Select(x => x.Scope?.Value!)
+                .ToList();
+
+            foreach (var delegatedRole in delegatedRoles)
+            {
+                ApiOrgUnit? orgUnit;
+                try
+                {
+                    orgUnit = await mediator.Send(new ResolveLineOrgUnit(delegatedRole));
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to resolve org unit {DelegatedRoleValue} for delegated resource owner", delegatedRole);
+                    continue;
+                }
+
+                if (orgUnit?.FullDepartment != null)
+                {
+                    claims.Add(new Claim(ResourcesClaimTypes.DelegatedResourceOwnerForDepartment, orgUnit.FullDepartment));
+                }
+            }
         }
 
         private async Task ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)
@@ -51,7 +85,8 @@ namespace Fusion.Resources.Api.Authentication
             //    claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, profile.FullDepartment));
             //}
 
-            if (profile.Roles is null) {
+            if (profile.Roles is null)
+            {
                 throw new InvalidOperationException("Roles must be loaded on the profile for the claims transformer to work.");
             }
 
@@ -62,18 +97,28 @@ namespace Fusion.Resources.Api.Authentication
                 .ToList();
 
             // Got a list of sap id's, need to resolve them to the full department to keep consistent.
-            logger.LogInformation($"Found user responsible for [{managerRoles.Count}] org units [{string.Join(",", managerRoles)}]");
+            logger.LogDebug("Found user responsible for [{ManagerRolesCount}] org units [{Roles}]", managerRoles.Count, string.Join(",", managerRoles));
 
             foreach (var orgUnitId in managerRoles)
             {
-                var orgUnit = await mediator.Send(new ResolveLineOrgUnit(orgUnitId));
+                ApiOrgUnit? orgUnit;
+                try
+                {
+                    orgUnit = await mediator.Send(new ResolveLineOrgUnit(orgUnitId));
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to resolve org unit {OrgUnitId} for resource owner", orgUnitId);
+                    continue;
+                }
+                
                 if (orgUnit?.FullDepartment != null)
                 {
                     claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, orgUnit.FullDepartment));
-                    logger.LogInformation($"Adding claim for {orgUnitId} -> [{orgUnit.FullDepartment}]");
+                    logger.LogDebug("Adding claim for {OrgUnitId} -> [{OrgUnitFullDepartment}]", orgUnitId, orgUnit.FullDepartment);
                 }
             }
-        }        
+        }
 
         private async Task ApplySharedRequestClaimsIfAnyAsync(FusionFullPersonProfile profile, List<Claim> claims)
         {
