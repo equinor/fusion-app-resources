@@ -38,6 +38,19 @@ public class GetWeeklySummaryReportsMetaData : IRequest<QueryCollection<QueryRep
 
             var totalCount = await getReportQuery.CountAsync(cancellationToken: cancellationToken);
 
+            if (request.Query.HasFilter)
+            {
+                getReportQuery = getReportQuery.ApplyODataFilters(request.Query,
+                    m => { m.MapField(nameof(QueryReportMetaData.Period), r => r.Period); });
+            }
+
+            getReportQuery = getReportQuery.ApplyODataSorting(request.Query, m =>
+            {
+                m.MapField(nameof(QueryReportMetaData.Period), r => r.Period);
+                m.MapField(nameof(QueryReportMetaData.Id), r => r.Id);
+            }, q => q.OrderByDescending(p => p.Period).ThenBy(p => p.Id));
+
+
             var skip = request.Query.Skip.GetValueOrDefault(0);
             var top = request.Query.Top.GetValueOrDefault(10);
             var reports = await getReportQuery
