@@ -1,11 +1,15 @@
-﻿using Fusion.ApiClients.Org;
-using MediatR;
+﻿using MediatR;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
+using Fusion.Services.Org.ApiModels;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Logic.Commands
@@ -33,7 +37,7 @@ namespace Fusion.Resources.Logic.Commands
             public Handler(IOrgApiClientFactory orgApiClientFactory, ILogger<Handler> logger)
             {
                 this.logger = logger;
-                this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                this.client = orgApiClientFactory.CreateClient();
             }
 
             public async Task Handle(UpdateOrgPositionInstanceHaveRequest request, CancellationToken cancellationToken)
@@ -77,9 +81,10 @@ namespace Fusion.Resources.Logic.Commands
                     }
                 }
             }
-            private static ApiPropertiesCollectionV2 EnsureHasRequestProperty(ApiPropertiesCollectionV2? properties, bool value)
+
+            private static Dictionary<string, object> EnsureHasRequestProperty(Dictionary<string, object>? properties, bool value)
             {
-                properties ??= new ApiPropertiesCollectionV2();
+                properties ??= new Dictionary<string, object>();
                 if (properties.ContainsKey("hasRequest", true))
                 {
                     properties["hasRequest"] = value;

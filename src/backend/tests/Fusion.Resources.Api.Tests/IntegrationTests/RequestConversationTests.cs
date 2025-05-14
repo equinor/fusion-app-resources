@@ -13,6 +13,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,9 +28,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel normalRequest;
         private ApiPersonProfileV3 taskOwner;
-        private ApiClients.Org.ApiPositionV2 taskOwnerPosition;
+        private ApiPositionV2 taskOwnerPosition;
         private OrgRequestInterceptor orgInterceptor;
-        private ApiClients.Org.ApiPositionV2 testPosition;
+        private ApiPositionV2 testPosition;
 
         public RequestConversationTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
