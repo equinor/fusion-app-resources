@@ -1,0 +1,67 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+
+pr: none
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest  
+
+variables:
+    imageTag: $(Build.BuildNumber)
+    fusionAcr: 'crfsharedhostingall.azurecr.io'
+    imageRepo: fra/resouces-api
+    imageName: $(imageRepo):$(imageTag)
+    subscriptionServiceNonProd: 'FRA Automation Non-Prod'
+    subscriptionServiceProd: 'FRA Automation Prod'
+    deploymentManifestFolder: '$(Pipeline.Workspace)/k8s-deployment'
+    fullImageName: $(fusionAcr)/$(imageName)
+    dbTagPrefix: resources
+  
+stages:
+  - stage: BuildDockerImage
+    displayName: 'Build docker image'
+    variables:
+      sqlOwner: 'b6dc16db-85f7-41e4-afad-5f1a07c5961c'
+    jobs:
+    - deployment: DeployPR
+      displayName: 'Deploy API to PR'
+      environment: fra-pr
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - script: |
+                dotnet tool install --global --add-source "https://statoil-proview.pkgs.visualstudio.com/Fusion%20-%20Packages/_packaging/Fusion-Public/nuget/v3/index.json" Fusion.Infra.Cli --version 0.5.1
+              displayName: "Install Fusion Infra CLI"
+
+            - task: AzureCLI@2
+              displayName: Ensure database
+              inputs:
+                azureSubscription: ${{parameters.serviceConnection}}
+                scriptType: pscore
+                scriptLocation: inlineScript
+                inlineScript: |
+                  $url = "https://infrasupport.api.fusion.equinor.com"
+                  $token = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
+                  $environment = "ci"
+
+                  $config = @{
+                      "name" = "fra-resources"
+                      "metadata" = @{
+                          "application" = "Fusion Resource Allocation"
+                          "team" = "FRA"
+                      }
+                      "accessControl" = @{
+                          "administratorGroupName" = "acg-fusion-resource-allocation"
+                          "developerGroupName" = "acg-fusion-resource-allocation"
+                      }
+                      "configuration" = @{
+                        "databaseFullyQualifiedName"= "Fusion-Apps-Resources-DEV-HD"
+                      }
+                  }
+                  
+                  $config | ConvertTo-Json | Out-File .\db-config.json
+                  
+                  ## -t $token
+
+                  finf database provision --url $url -f .\db-config.json -e $environment  -c "ci" --sql-owner-client-id $(sqlOwner) --sql-contributor-client-id '5a842df8-3238-415d-b168-9f16a6a6031b' --timeout 500 -o "response.json"
