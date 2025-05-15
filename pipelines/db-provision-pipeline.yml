@@ -37,7 +37,7 @@ stages:
             - task: AzureCLI@2
               displayName: Ensure database
               inputs:
-                azureSubscription: ${{parameters.serviceConnection}}
+                azureSubscription: $(subscriptionServiceNonProd)
                 scriptType: pscore
                 scriptLocation: inlineScript
                 inlineScript: |

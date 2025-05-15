@@ -98,6 +98,12 @@ stages:
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
 
             ## MUST RUN THIS AS THE CORE SERVICE PRINCIPAL, UNTILL NEW DB DEPLOY IS ESTABLISHED
+            - script: |
+                dotnet tool install --global --add-source "https://statoil-proview.pkgs.visualstudio.com/Fusion%20-%20Packages/_packaging/Fusion-Public/nuget/v3/index.json" Fusion.Infra.Cli --version 0.5.1
+              displayName: "Install Fusion Infra CLI"
+
+              
+
             - task: AzurePowerShell@5
               displayName: 'Provision database'
               inputs: 
