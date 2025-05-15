@@ -41,8 +41,7 @@ stages:
                 scriptType: pscore
                 scriptLocation: inlineScript
                 inlineScript: |
-                  $url = "https://infrasupport.api.fusion.equinor.com"
-                  $token = az account get-access-token --scope=8ab89850-219a-4929-a726-5a7a496efac2/.default --query accessToken -o tsv
+                  $url = "https://infrasupport.api.fusion.equinor.com"                  
                   $environment = "ci"
 
                   $config = @{
@@ -68,4 +67,4 @@ stages:
                   
                   ## -t $token
 
-                  finf database provision --url $url -f ./db-config.json -e $environment --sql-contributor-client-id '5a842df8-3238-415d-b168-9f16a6a6031b' --timeout 500 -o "response.json"
+                  finf database provision --url $url -f ./db-config.json -e $environment --sql-owner-client-id 'b6dc16db-85f7-41e4-afad-5f1a07c5961c' --sql-contributor-client-id '5a842df8-3238-415d-b168-9f16a6a6031b' --timeout 500 -o "response.json"
