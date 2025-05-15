@@ -45,7 +45,7 @@ stages:
                   $environment = "ci"
 
                   $config = @{
-                      "name" = "fra-resources"
+                      "name" = "fra-am-test"
                       "metadata" = @{
                           "application" = "Fusion Resource Allocation"
                           "team" = "FRA"
@@ -53,9 +53,6 @@ stages:
                       "accessControl" = @{
                           "administratorGroupName" = "acg-fusion-resource-allocation"
                           "developerGroupName" = "acg-fusion-resource-allocation"
-                      }
-                      "configuration" = @{
-                        "databaseFullyQualifiedName"= "Fusion-Apps-Resources-DEV-HD"
                       }
                   }
                   
@@ -68,3 +65,11 @@ stages:
                   ## -t $token
 
                   finf database provision --url $url -f ./db-config.json -e $environment --sql-owner-client-id 'b6dc16db-85f7-41e4-afad-5f1a07c5961c' --sql-contributor-client-id '5a842df8-3238-415d-b168-9f16a6a6031b' --timeout 500 -o "response.json"
+
+                  $response = Get-Content "response.json" | ConvertFrom-Json
+
+                  ## Write to key vault, or compare?
+                  ## Write as config variable
+                  
+                  $resp.database.connectionString
+
