@@ -64,4 +64,4 @@ stages:
                   
                   ## -t $token
 
-                  finf database provision --url $url -f .\db-config.json -e $environment  -c "ci" --sql-owner-client-id $(sqlOwner) --sql-contributor-client-id '5a842df8-3238-415d-b168-9f16a6a6031b' --timeout 500 -o "response.json"
+                  finf database provision --url $url -f .\db-config.json -e $environment  -c "ci" --sql-contributor-client-id '5a842df8-3238-415d-b168-9f16a6a6031b' --timeout 500 -o "response.json"
