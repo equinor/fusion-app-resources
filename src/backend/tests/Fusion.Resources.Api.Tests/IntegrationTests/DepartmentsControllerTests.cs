@@ -13,6 +13,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Services.LineOrg.ApiModels;
+using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,6 +49,129 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/NOT EXI ST ING");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Theory]
+        [InlineData("ResourceOwner")]
+        [InlineData("DelegatedResourceOwner")]
+        public async Task GetDepartmentV11_BeOk_ForRelevantDepartments(string role)
+        {
+            var assignedOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "75283211",
+                name: "bla bla",
+                department: "LKA PRD",
+                fullDepartment: "LKA PRD",
+                shortname: "PRD"
+            );
+
+            var childOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "75283221",
+                name: "bla bla bla",
+                department: "LKA PRD FE",
+                fullDepartment: "LKA PRD FE",
+                shortname: "FE"
+            );
+
+            var siblingOrgUnit1 = LineOrgServiceMock.AddOrgUnit(
+                sapId: "75283231",
+                name: "bla bla bla",
+                department: "LKA OIS",
+                fullDepartment: "LKA OIS",
+                shortname: "OIS"
+            );
+
+            var siblingOrgUnit2 = LineOrgServiceMock.AddOrgUnit(
+                sapId: "75283241",
+                name: "bla bla bla",
+                department: "LKA AIS",
+                fullDepartment: "LKA AIS",
+                shortname: "AIS"
+            );
+
+            // Irrelevant org units
+            {
+                LineOrgServiceMock.AddOrgUnit(
+                    sapId: "75283251",
+                    name: "Irrelevant: Child of sibling",
+                    department: "LKA OIS FE2",
+                    fullDepartment: "LKA OIS FE2",
+                    shortname: "OIS"
+                );
+
+                LineOrgServiceMock.AddOrgUnit(
+                    sapId: "7522322",
+                    name: "Irrelevant: Child of child",
+                    department: "PRD FE CC",
+                    fullDepartment: "LKA PRD FE CC",
+                    shortname: "CC"
+                );
+
+                LineOrgServiceMock.AddOrgUnit(
+                    sapId: "75223231",
+                    name: "Irrelevant: Similar name,but different department",
+                    department: "LOI PRD",
+                    fullDepartment: "LOI PRD",
+                    shortname: "PRD"
+                );
+            }
+
+
+            var responsiblePerson = fixture.AddProfile(s =>
+            {
+                s.WithAccountType(FusionAccountType.Employee);
+                s.WithFullDepartment("LKA"); // Is in parent department, but is manager of child department
+            });
+
+            switch (role)
+            {
+                case "ResourceOwner":
+                    LineOrgServiceMock.AddOrgUnitManager(assignedOrgUnit.FullDepartment, responsiblePerson);
+                    break;
+
+                case "DelegatedResourceOwner":
+                    PeopleServiceMock.AddRole(responsiblePerson.AzureUniqueId!.Value, new ApiPersonRoleV3
+                    {
+                        Name = AccessRoles.ResourceOwner,
+                        Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = assignedOrgUnit.FullDepartment! },
+                        SourceSystem = "Department.Test",
+                        IsActive = true,
+                        OnDemandSupport = false
+                    });
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Invalid test case '{role}' not supported");
+            }
+
+            var relevant = new List<ApiOrgUnit>
+            {
+                assignedOrgUnit,
+                childOrgUnit,
+                siblingOrgUnit1,
+                siblingOrgUnit2
+            };
+
+            var irrelevantSapIds = new List<string>
+            {
+                "75283251",
+                "7522322",
+                "75223231"
+            };
+
+            using (fixture.UserScope(responsiblePerson))
+            {
+                foreach (var apiOrgUnit in relevant)
+                {
+                    var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{apiOrgUnit.SapId}?api-version=1.1");
+                    resp.Should().BeSuccessfull();
+                }
+
+                foreach (var sapId in irrelevantSapIds)
+                {
+                    var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{sapId}?api-version=1.1");
+                    resp.Response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+                }
+            }
         }
 
         [Fact]

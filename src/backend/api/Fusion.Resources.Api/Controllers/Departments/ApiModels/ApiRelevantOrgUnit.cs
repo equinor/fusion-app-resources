@@ -1,5 +1,7 @@
-﻿using Fusion.Resources.Domain.Models;
-using System.Collections.Generic;
+﻿using System;
+using Fusion.Resources.Domain.Models;
+using System.Linq;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -7,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
     {
         public ApiRelevantOrgUnit(QueryRelevantOrgUnit relevantOrgUnit)
         {
-            Reasons = relevantOrgUnit.Reasons;
+            Reasons = relevantOrgUnit.Reasons.Select(reason => Enum.Parse<ApiRelevantOrgUnitReasons>(reason, true)).ToArray();
             Name = relevantOrgUnit.Name;
             SapId = relevantOrgUnit.SapId;
             ParentSapId = relevantOrgUnit.ParentSapId;
@@ -22,7 +24,22 @@ namespace Fusion.Resources.Api.Controllers
         public string? ShortName { get; set; }
         public string? Department { get; set; }
         public string? FullDepartment { get; set; }
-        public List<string> Reasons { get; set; } = new();
+        public ApiRelevantOrgUnitReasons[] Reasons { get; set; }
     }
 
+    /// Based on
+    /// <see cref="ReasonRoles" />
+    [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+    public enum ApiRelevantOrgUnitReasons
+    {
+        Manager,
+        ParentManager,
+        SiblingManager,
+        DelegatedManager,
+        DelegatedParentManager,
+        DelegatedSiblingManager,
+        Write,
+        Read
+    }
 }
