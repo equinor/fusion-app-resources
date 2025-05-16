@@ -1,6 +1,7 @@
 ﻿using System;
 using Fusion.Resources.Domain.Models;
 using System.Linq;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -26,6 +27,8 @@ namespace Fusion.Resources.Api.Controllers
         public ApiRelevantOrgUnitReasons[] Reasons { get; set; }
     }
 
+    /// Based on
+    /// <see cref="ReasonRoles" />
     [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum ApiRelevantOrgUnitReasons
@@ -35,6 +38,8 @@ namespace Fusion.Resources.Api.Controllers
         SiblingManager,
         DelegatedManager,
         DelegatedParentManager,
-        DelegatedSiblingManager
+        DelegatedSiblingManager,
+        Write,
+        Read
     }
 }
