@@ -33,6 +33,12 @@ namespace Fusion.Testing.Mocks.LineOrgService
             return client;
         }
 
+        /// Be careful not to mutate the original data by accident
+        public static ApiDepartment[] GetDepartments()
+        {
+            return Departments.ToArray();
+        }
+        
         public static FusionTestUserBuilder AddTestUser() => new FusionTestUserBuilder();
         public static void AddDepartment(string fullName, string[] children = null)
         {
@@ -112,7 +118,10 @@ namespace Fusion.Testing.Mocks.LineOrgService
     
         public static void AddOrgUnitManager(string fullDepartment, ApiPersonProfileV3 user)
         {
-            var orgUnit = LineOrgServiceMock.AddOrgUnit(fullDepartment);
+            var orgUnit = OrgUnits.FirstOrDefault(x => x.FullDepartment == fullDepartment);
+
+            if (orgUnit == null)
+                orgUnit = AddOrgUnit(fullDepartment);
             
             // Add user to the management list for the org unit
             if (orgUnit.Management is null)
@@ -139,6 +148,20 @@ namespace Fusion.Testing.Mocks.LineOrgService
                 OfficeLocation = user.OfficeLocation,
             });
 
+            var managerRole = new ApiPersonRoleV3
+            {
+                Name = "Fusion.LineOrg.Manager",
+                Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = orgUnit.SapId },
+                IsActive = true,
+                OnDemandSupport = false,
+                Type = ApiFusionRoleType.Scoped,
+                SourceSystem = "FusionRoleService"
+            };
+
+            if (user.Roles is null)
+                user.Roles = [managerRole];
+            else
+                user.Roles.Add(managerRole);
         }
     }
 
