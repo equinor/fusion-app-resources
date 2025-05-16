@@ -26,48 +26,20 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Configure<SwaggerApiConfig>(c =>
             {
                 c.Title = title;
-                c.EnabledVersions.AddRange(setupBuilder.EnabledVersions);
-                c.EnablePreview = setupBuilder.AddPreviewEndpoints;
+                c.Description = setupBuilder.Description;
             });
 
 
             services.AddSwaggerGen(c =>
             {
-
-                foreach (var version in setupBuilder.EnabledVersions)
-                    c.SwaggerDoc($"api-v{version}", new OpenApiInfo { Title = title, Version = $"{version}.0" });
-
-                if (setupBuilder.AddPreviewEndpoints)
-                    c.SwaggerDoc($"api-beta", new OpenApiInfo { Title = title, Version = $"Previews" });
-
                 setupBuilder.SetupAction?.Invoke(c);
 
                 // To fix this swagger gen error
                 // System.InvalidOperationException: Can't use schemaId "$ApiPerson" for type "$Fusion.Services.LineOrg.ApiModels.ApiPerson". The same schemaId is already used for type "$Fusion.Resources.Api.Controllers.ApiPerson"
                 // TODO: This is a quick fix, makes the schema models have very long name, for example: Fusion.AspNetCore.Api.PatchProperty`1[Fusion.Resources.Api.Controllers.ApiPropertiesCollection]
-                c.CustomSchemaIds(type => type.ToString());
+                c.CustomSchemaIds(type => type.ToString().Replace("+", "."));
 
-                // Only add endpoints that belongs to the version spec
-                c.DocInclusionPredicate((version, desc) =>
-                {
-                    var latestApiVersion = desc.GetApiVersion() ?? new ApiVersion(1, 0);
-
-                    var hasMajorVersion = int.TryParse(version.Split("-")[1].Substring(1), out int majorVersion);
-
-                    if (hasMajorVersion)
-                    {
-                        return desc.ImplementsMajorVersion(majorVersion); 
-                    }
-
-                    if (version == "api-beta")
-                    {
-                        return latestApiVersion.Status != null;
-                    }
-
-                    return true;
-                });
                 c.OperationFilter<SecurityRequirementsOperationFilter>();
-                c.OperationFilter<AddApiVersionParameter>();
                 c.SchemaFilter<PatchPropertySchemaFilter>();
                 c.SchemaFilter<EnumSchemaFilter>();
                 c.OperationFilter<ODataFilterParamSwaggerFilter>();
@@ -112,10 +84,11 @@ namespace Microsoft.Extensions.DependencyInjection
                     c.IncludeXmlComments(xmlPath);
             });
 
+            
             TypeConverterAttribute typeConverterAttribute = new TypeConverterAttribute(typeof(ToStringTypeConverter));
             TypeDescriptor.AddAttributes(typeof(ODataQueryParams), typeConverterAttribute);
 
-
+            services.AddSwaggerApiVersioning();
             services.AddSwaggerAuthorizationScheme(configuration);
 
 
@@ -153,7 +126,6 @@ namespace Microsoft.Extensions.DependencyInjection
             if (FusionSwaggerConfig.UseFusionSwaggerSetup == false)
                 return app;
 
-            var instanceConfig = app.ApplicationServices.GetService<IOptions<SwaggerApiConfig>>();
             var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
 
 
@@ -162,15 +134,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 b.UseSwagger();
                 b.UseSwaggerUI(c =>
                 {
-                    if (instanceConfig != null)
-                    {
-                        foreach (var version in instanceConfig.Value.EnabledVersions)
-                            c.SwaggerEndpoint($"/swagger/api-v{version}/swagger.json", $"v{version}.0");
-
-                        if (instanceConfig.Value.EnablePreview)
-                            c.SwaggerEndpoint($"/swagger/api-beta/swagger.json", $"Previews");
-                    }
-
+                    c.AddApiVersioning(app);
                     c.OAuthAppName(configuration.GetValue<string>("Swagger:OAuthAppName"));
                     c.OAuthClientId(configuration.GetValue<string>("Swagger:ClientId"));
                     c.OAuthRealm(configuration.GetValue<string>("Swagger:TenantId"));
@@ -180,43 +144,6 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             return app;
-        }
-
-
-        public static IEnumerable<ApiVersion> GetSupportedVersions(this ApiDescription apiDescription)
-        {
-            var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
-            var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
-
-            if (thisVersionValue is not null && thisVersionValue.DeclaredApiVersions.Any())
-                return thisVersionValue.DeclaredApiVersions;
-
-            return thisVersionValue?.ImplementedApiVersions ?? new List<ApiVersion>();
-        }
-
-        public static ApiVersion? GetApiVersion(this ApiDescription apiDescription)
-        {
-            var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
-            var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
-            var thisDeclaredVersion = thisVersionValue?.DeclaredApiVersions.OrderByDescending(p => p).FirstOrDefault();
-
-            if (thisDeclaredVersion != null)
-                return thisDeclaredVersion;
-
-            return thisVersionValue?.ImplementedApiVersions.OrderByDescending(p => p).FirstOrDefault();
-        }
-
-        public static bool ImplementsMajorVersion(this ApiDescription apiDescription, int version)
-        {
-            var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
-            var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
-
-            if (thisVersionValue != null && thisVersionValue.DeclaredApiVersions.Any())
-            {
-                return thisVersionValue.DeclaredApiVersions.Any(v => v.MajorVersion == version && v.Status == null);
-            }
-
-            return thisVersionValue?.ImplementedApiVersions.OrderByDescending(p => p).Any(v => v.MajorVersion == version && v.Status == null) == true;
         }
     }
 }

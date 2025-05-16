@@ -30,13 +30,19 @@ public class GetWeeklySummaryReportsMetaData : IRequest<QueryCollection<QueryRep
 
         public async Task<QueryCollection<QueryReportMetaData>> Handle(GetWeeklySummaryReportsMetaData request, CancellationToken cancellationToken)
         {
-            var getReportQuery = dbContext.WeeklySummaryReports
-                .Where(r => r.DepartmentSapId == request.SapDepartmentId)
-                .OrderByDescending(r => r.Period).ThenBy(r => r.Id)
-                .Select(r => new { r.Id, r.Period });
+            var getReportQuery = dbContext.WeeklySummaryReports.Where(r => r.DepartmentSapId == request.SapDepartmentId);
 
+            if (request.Query.HasFilter)
+            {
+                getReportQuery = getReportQuery.ApplyODataFilters(request.Query,
+                    m => { m.MapField(nameof(QueryReportMetaData.Period), r => r.Period); });
+            }
 
-            var totalCount = await getReportQuery.CountAsync(cancellationToken: cancellationToken);
+            getReportQuery = getReportQuery.ApplyODataSorting(request.Query, m =>
+            {
+                m.MapField(nameof(QueryReportMetaData.Period), r => r.Period);
+                m.MapField(nameof(QueryReportMetaData.Id), r => r.Id);
+            }, q => q.OrderByDescending(p => p.Period).ThenBy(p => p.Id));
 
             var skip = request.Query.Skip.GetValueOrDefault(0);
             var top = request.Query.Top.GetValueOrDefault(10);
@@ -46,6 +52,8 @@ public class GetWeeklySummaryReportsMetaData : IRequest<QueryCollection<QueryRep
                 .ToListAsync(cancellationToken: cancellationToken);
 
             var reportMetaData = reports.Select(r => new QueryReportMetaData(r.Id, r.Period));
+
+            var totalCount = await getReportQuery.CountAsync(cancellationToken: cancellationToken);
 
             return new QueryCollection<QueryReportMetaData>(reportMetaData)
             {

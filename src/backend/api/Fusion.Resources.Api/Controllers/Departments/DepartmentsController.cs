@@ -10,11 +10,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
+    [ApiVersion("1.1")]
     [Authorize]
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
@@ -27,6 +29,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/departments")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
             var request = new GetDepartments()
@@ -39,6 +43,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/departments/{departmentString}")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments([FromRoute] OrgUnitIdentifier departmentString)
         {
             if (!departmentString.Exists)
@@ -49,7 +55,87 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiDepartment(department!));
         }
 
+        /// <summary>
+        ///     This endpoint compared to 1.0 has authorization for the department.
+        ///     This can be used to check if the user has access to the org-unit.
+        /// </summary>
+        [HttpGet("/departments/{departmentString}")]
+        [MapToApiVersion("1.1")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiDepartment>> GetDepartmentsV11([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+
+            var department = await DispatchAsync(new GetDepartment(departmentString.SapId).ExpandDelegatedResourceOwners());
+
+            return Ok(new ApiDepartment(department!));
+        }
+
+        [HttpOptions("/departments/{departmentString}")]
+        [MapToApiVersion("1.1")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> GetDepartmentAccessV11([FromRoute] OrgUnitIdentifier departmentString)
+        {
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+
+            #region Authorization
+
+            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion Authorization
+
+
+            var allowedMethods = new List<string>();
+            if (authResult.Success)
+            {
+                allowedMethods.Add("GET");
+                allowedMethods.Add("PUT");
+            }
+
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
+
+            return NoContent();
+        }
+
         [HttpGet("/departments/{departmentString}/related")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiRelatedDepartments>> GetRelevantDepartments([FromRoute] OrgUnitIdentifier departmentString)
         {
             if (!departmentString.Exists)
@@ -61,6 +147,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/departments/{departmentString}/delegated-resource-owners")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         [EmulatedUserSupport]
         public async Task<ActionResult> GetDelegatedResourceOwnersOptions([FromRoute] OrgUnitIdentifier departmentString)
         {
@@ -104,6 +192,8 @@ namespace Fusion.Resources.Api.Controllers
         }
         
         [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment([FromRoute] OrgUnitIdentifier departmentString, bool shouldIgnoreDateFilter)
         {
             if (!departmentString.Exists)
@@ -143,6 +233,8 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
         [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiDepartmentResponsible>> AddDelegatedResourceOwner([FromRoute] OrgUnitIdentifier departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
             if (!departmentString.Exists)
@@ -193,6 +285,8 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
         [HttpDelete("/departments/{departmentString}/delegated-resource-owners/{azureUniqueId}")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<IActionResult> DeleteDelegatedResourceOwner([FromRoute] OrgUnitIdentifier departmentString, Guid azureUniqueId)
         {
             if (!departmentString.Exists)
@@ -220,6 +314,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
+        [MapToApiVersion("1.0-preview")]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
             Guid projectId, Guid positionId, Guid instanceId, CancellationToken cancellationToken)
         {
