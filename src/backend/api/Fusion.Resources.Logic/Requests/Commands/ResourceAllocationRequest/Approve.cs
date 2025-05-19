@@ -123,7 +123,6 @@ namespace Fusion.Resources.Logic.Commands
                             {
                                 var changesCount = proposedChanges.Children().Count();
                                 var containsLocation = proposedChanges.ContainsKey("location");
-                                var changesRequireApproval = containsLocation ? changesCount > 1 : changesCount > 0;
                                 hasProposedChanges = containsLocation
                                     // proposed changes other than setting the location
                                     ? changesCount > 1
