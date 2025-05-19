@@ -112,23 +112,29 @@ namespace Fusion.Resources.Logic.Commands
                                                         ||
                                                         dbRequest.InitialProposedPerson.Mail !=
                                                        dbRequest.ProposedPerson.Mail;
-                    bool hasProposedChanges;
+                    bool hasProposedChanges = false;
                     try
                     {
-                        var proposedChanges = JObject.Parse(dbRequest.ProposedChanges ?? "");
-                        // if the task did not set any location, it can be ignored in terms of proposed changes.
-                        if (dbRequest.OrgPositionInstance.LocationId is null)
+                        if (!string.IsNullOrWhiteSpace(dbRequest.ProposedChanges))
                         {
-                            var changesCount = proposedChanges.Children().Count();
-                            var containsLocation = proposedChanges.ContainsKey("location");
-                            var changesRequireApproval = containsLocation ? changesCount > 1 : changesCount > 0;
-                            hasProposedChanges = !string.IsNullOrWhiteSpace(dbRequest.ProposedChanges) &&
-                                                 changesRequireApproval;
-                        }
-                        else
-                        {
-                            hasProposedChanges = !string.IsNullOrWhiteSpace(dbRequest.ProposedChanges) &&
-                                                 proposedChanges.HasValues;
+                            var proposedChanges = JObject.Parse(dbRequest.ProposedChanges ?? "");
+                            // if the task did not set any location, it can be ignored in terms of proposed changes.
+                            if (dbRequest.OrgPositionInstance.LocationId is null)
+                            {
+                                var changesCount = proposedChanges.Children().Count();
+                                var containsLocation = proposedChanges.ContainsKey("location");
+                                var changesRequireApproval = containsLocation ? changesCount > 1 : changesCount > 0;
+                                hasProposedChanges = containsLocation
+                                    // proposed changes other than setting the location
+                                    ? changesCount > 1
+                                    // location is not changed, return any proposed changes
+                                    : changesCount > 0;
+                            }
+                            else
+                            {
+                                // the position has a location, so changes need to be approved
+                                hasProposedChanges = proposedChanges.HasValues;
+                            }
                         }
                     }
                     catch (Exception e)

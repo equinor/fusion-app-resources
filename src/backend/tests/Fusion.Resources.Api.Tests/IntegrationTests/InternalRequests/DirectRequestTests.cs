@@ -38,6 +38,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         // Created by the async lifetime
         private TestApiInternalRequestModel directRequest = null!;
+        private TestApiInternalRequestModel directRequestWithoutLocation = null!;
         private FusionTestProjectBuilder testProject = null!;
 
         private Guid projectId => testProject.Project.ProjectId;
@@ -76,12 +77,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(testUser.FullDepartment).SaveProfile();
-            
+
             // Create a default request we can work with
             directRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r
                 .AsTypeDirect()
                 .WithProposedPerson(testUser)
                 .WithAssignedDepartment(testUser.FullDepartment!));
+
+            directRequestWithoutLocation = await adminClient.CreateDefaultRequestAsync(testProject,
+                r => r
+                    .AsTypeDirect()
+                    .WithProposedPerson(testUser)
+                    .WithAssignedDepartment(testUser.FullDepartment!),
+                p => p
+                    .Instances.ForEach(i => i.Location = null));
         }
 
         public Task DisposeAsync()
@@ -724,6 +733,55 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Times.Once);
         }
 
+        [Fact]
+        public async Task DirectRequest_Propose_WithOnlyLocationChanged_ShouldAutoAccept_WhenLocationWasNull()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await FastForward_ProposedRequest(
+                withProposedChanges: new()
+                {
+                    { "location", new { name = "Stavanger" } },
+                },
+                request: directRequestWithoutLocation);
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>(
+                $"/projects/{projectId}/requests/{directRequestWithoutLocation.Id}");
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Workflow.Should().NotBeNull();
+            resp.Value.Workflow!.State.Should().Be("Running");
+
+            resp.Value.Workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
+
+            fixture.ApiFactory.queueMock.Verify(
+                q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition,
+                    It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequestWithoutLocation.Id), It.IsAny<int>()),
+                    Times.Once);
+        }
+
+        [Fact]
+        public async Task DirectRequest_Propose_WithOnlyLocationChanged_ShouldRequireApproval_WhenLocationWasSet()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await FastForward_ProposedRequest(withProposedChanges: new()
+            {
+                { "location", new { name = "Stavanger" } },
+            });
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>(
+                $"/projects/{projectId}/requests/{directRequest.Id}");
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Workflow.Should().NotBeNull();
+            resp.Value.Workflow!.State.Should().Be("Running");
+
+            resp.Value.Workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
+        }
+
         #endregion
         
         
@@ -786,20 +844,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// Perform steps required to end up with a proposed request
         /// </summary>
         /// <returns></returns>
-        private async Task FastForward_ProposedRequest(Dictionary<string, object>? withProposedChanges = null)
+        private async Task FastForward_ProposedRequest(Dictionary<string, object>? withProposedChanges = null, TestApiInternalRequestModel? request = null)
         {
+            request ??= directRequest;
+
             if (withProposedChanges != null)
             {
                 await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                    $"/resources/requests/internal/{directRequest.Id}", new
+                    $"/resources/requests/internal/{request.Id}", new
                     {
                         proposedChanges = withProposedChanges
                     });
             }
 
-            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
 
-            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{directRequest.AssignedDepartment}/requests/{directRequest.Id}/approve", null);
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{request.AssignedDepartment}/requests/{request.Id}/approve", null);
             resp.Should().BeSuccessfull();
         }
 
