@@ -39,7 +39,15 @@ namespace Fusion.Resources.Api.Controllers
         DelegatedManager,
         DelegatedParentManager,
         DelegatedSiblingManager,
+
+        /// <summary>
+        ///     Has some write role for the org unit
+        /// </summary>
         Write,
+
+        /// <summary>
+        ///     Has some read role for the org unit
+        /// </summary>
         Read
     }
 }
