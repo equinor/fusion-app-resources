@@ -112,7 +112,6 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
                     or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
                     or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(departmentPath), AccessRoles.ResourceOwner);
                 });
             });
 
