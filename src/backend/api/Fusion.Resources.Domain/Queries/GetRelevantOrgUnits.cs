@@ -98,7 +98,7 @@ namespace Fusion.Resources.Domain.Queries
                 var readClaims = activeRoles.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value ?? "*");
                 orgUnitAccessReason.ApplyRole(readClaims, ReasonRoles.Read);
 
-                orgUnitAccessReason.ApplyParentManager(orgUnits, user);
+                orgUnitAccessReason.ApplyParentAndSiblingManagers(orgUnits, user);
 
                 PopulateOrgUnitReasons(orgUnits, orgUnitAccessReason);
 
@@ -215,7 +215,7 @@ namespace Fusion.Resources.Domain.Queries
             reasons.AddRange(departments.Select(d => new QueryOrgUnitReason(d, role)));
         }
 
-        internal static void ApplyParentManager(this List<QueryOrgUnitReason> reasons, List<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
+        internal static void ApplyParentAndSiblingManagers(this List<QueryOrgUnitReason> reasons, List<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
         {
             var managerResposibility = new List<QueryOrgUnitReason>();
 
