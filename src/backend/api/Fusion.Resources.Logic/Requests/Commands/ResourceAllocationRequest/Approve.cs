@@ -10,6 +10,7 @@ using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -71,8 +72,8 @@ namespace Fusion.Resources.Logic.Commands
                     if (!string.Equals(dbRequest.State.State, WorkflowDefinition.APPROVAL, StringComparison.OrdinalIgnoreCase))
                         return;
 
-                    // For a direct allocation, we can auto complete the request if no changes has been proposed.
-                    if (workflow is AllocationDirectWorkflowV1 directWorkflow && AnyProposedChanges(dbRequest) == false)
+                    // For a direct allocation, we can auto complete the request if no changes have been proposed that require approval from the task.
+                    if (workflow is AllocationDirectWorkflowV1 directWorkflow && !AnyProposedChanges(dbRequest))
                     {
                         var systemAccount = await profileService.EnsureSystemAccountAsync();
                         currentStep = directWorkflow.AutoAcceptedUnchangedRequest(systemAccount);
@@ -95,7 +96,7 @@ namespace Fusion.Resources.Logic.Commands
                 }
 
                 /// <summary>
-                ///     AnyProposedChanges for a direct allocation
+                ///     AnyProposedChanges for a direct allocation that require task approval
                 /// </summary>
                 private static bool AnyProposedChanges(DbResourceAllocationRequest dbRequest)
                 {
@@ -111,11 +112,29 @@ namespace Fusion.Resources.Logic.Commands
                                                         ||
                                                         dbRequest.InitialProposedPerson.Mail !=
                                                        dbRequest.ProposedPerson.Mail;
-                    bool hasProposedChanges;
+                    bool hasProposedChanges = false;
                     try
                     {
-                        hasProposedChanges = !string.IsNullOrWhiteSpace(dbRequest.ProposedChanges) &&
-                                             JObject.Parse(dbRequest.ProposedChanges).HasValues;
+                        if (!string.IsNullOrWhiteSpace(dbRequest.ProposedChanges))
+                        {
+                            var proposedChanges = JObject.Parse(dbRequest.ProposedChanges ?? "");
+                            // if the task did not set any location, it can be ignored in terms of proposed changes.
+                            if (dbRequest.OrgPositionInstance.LocationId is null)
+                            {
+                                var changesCount = proposedChanges.Children().Count();
+                                var containsLocation = proposedChanges.ContainsKey("location");
+                                hasProposedChanges = containsLocation
+                                    // proposed changes other than setting the location
+                                    ? changesCount > 1
+                                    // location is not changed, return any proposed changes
+                                    : changesCount > 0;
+                            }
+                            else
+                            {
+                                // the position has a location, so changes need to be approved
+                                hasProposedChanges = proposedChanges.HasValues;
+                            }
+                        }
                     }
                     catch (Exception e)
                     {
