@@ -1,7 +1,7 @@
-﻿using Fusion.ApiClients.Org;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -145,7 +145,7 @@ namespace Fusion.Testing.Mocks.OrgService
         public static ApiPositionV2 WithLocation(this ApiPositionV2 position)
         {
             var faker = new Bogus.Faker();
-            position.Instances.ForEach(i => i.Location = new ApiPositionLocationV2
+            position.Instances.ForEach(i => i.Location = new ApiPositionLocation()
             {
                 Name = faker.Address.City(),
                 Country = faker.Address.Country(),
