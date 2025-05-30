@@ -506,6 +506,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task RelevantDepartments_ShouldGetDataFromLineOrg()
         {
             var department = "PDP TST ABC";
+            var parent = "PDP TST";
             var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
 
@@ -517,13 +518,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 fixture.EnsureDepartment(child);
             }
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings.Union(new[] { department }).ToArray());
-            LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
+            LineOrgServiceMock.AddDepartment(parent, siblings.Union(new[] { department }).ToArray());
+            LineOrgServiceMock.AddDepartment(department, children);
 
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related");
             resp.Should().BeSuccessfull();
 
+            resp.Value.Parent.Name.Should().Be(parent);
             resp.Value.Siblings.Select(x => x.Name).Should().BeEquivalentTo(siblings);
             resp.Value.Children.Select(x => x.Name).Should().BeEquivalentTo(children);
         }
@@ -689,6 +691,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         private class TestApiRelevantDepartments
         {
+            public TestDepartment Parent { get; set; }
             public List<TestDepartment> Children { get; set; }
             public List<TestDepartment> Siblings { get; set; }
         }

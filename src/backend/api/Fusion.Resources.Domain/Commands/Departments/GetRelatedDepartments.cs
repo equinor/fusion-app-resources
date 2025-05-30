@@ -68,13 +68,15 @@ namespace Fusion.Resources.Domain
                 relevantDepartments.Children = orgUnit.Children!.Select(o => new QueryDepartment(o)).ToList(); 
 
 
-                // Add siblings
+                // Add parent and siblings
 
                 if (orgUnit.Parent is not null)
                 {
                     var parentOrg = await lineOrg.ResolveOrgUnitAsync(orgUnit.Parent.SapId, a => a.ExpandChildren());
 
                     if (parentOrg is null) throw new InvalidOperationException($"Parent org unit of {orgUnit.FullDepartment}, using sap id '{orgUnit.Parent.SapId}', does not seem to exist, got null.");
+
+                    relevantDepartments.Parent = new QueryDepartment(parentOrg);
 
                     if (parentOrg.Children is null)
                         throw new NullReferenceException($"Child org unit should have been expanded and not be null for org unit {orgUnit?.FullDepartment}");
