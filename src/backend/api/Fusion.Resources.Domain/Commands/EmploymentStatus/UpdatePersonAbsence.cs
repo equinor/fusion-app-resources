@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
-using Fusion.ApiClients.Org;
 using Fusion.Integration.Org;
 
 namespace Fusion.Resources.Domain.Commands

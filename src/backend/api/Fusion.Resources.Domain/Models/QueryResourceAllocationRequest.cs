@@ -1,9 +1,9 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database.Entities;
+﻿using Fusion.Resources.Database.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain
 {

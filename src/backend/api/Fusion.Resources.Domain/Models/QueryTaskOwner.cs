@@ -1,4 +1,5 @@
 ﻿using System;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain
 {
@@ -16,6 +17,6 @@ namespace Fusion.Resources.Domain
         public Guid? PositionId { get; set; }
         public Guid[]? InstanceIds { get; set; }
 
-        public ApiClients.Org.ApiPersonV2[]? Persons { get; set; }
+        public ApiPersonV2[]? Persons { get; set; }
     }
 }

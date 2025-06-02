@@ -1,9 +1,9 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
