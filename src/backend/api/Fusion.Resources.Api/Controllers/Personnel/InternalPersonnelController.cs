@@ -38,8 +38,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
-            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
-            var sector = departmentPath.Parent();
+            var sector = new DepartmentPath(departmentString.FullDepartment).Parent();
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AnyOf(or =>
@@ -50,7 +49,6 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControlInternal();
                     or.BeResourceOwnerForDepartment(sector, includeParents: false, includeDescendants: true);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
-                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
                 });
                 r.LimitedAccessWhen(x =>
@@ -102,8 +100,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
-            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
-            var sector = departmentPath.Parent();
+            var sector = new DepartmentPath(departmentString.FullDepartment).Parent();
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AnyOf(or =>
@@ -114,7 +111,6 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControlInternal();
                     or.BeResourceOwnerForDepartment(sector, includeParents: false, includeDescendants: true);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
-                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
                 });
                 r.LimitedAccessWhen(x =>

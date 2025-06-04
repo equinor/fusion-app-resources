@@ -35,7 +35,7 @@ namespace Fusion.Resources
         /// <param name="includeDescendants">Should anyone that is a resource owner in any of the sub departments have access</param>
         /// <param name="includeDelegatedResourceOwners">Should delegate resources owners be included/valid</param>
         public static IAuthorizationRequirementRule BeResourceOwnerForDepartment(this IAuthorizationRequirementRule builder,
-            string department, bool includeParents = false, bool includeDescendants = false, bool includeDelegatedResourceOwners = false)
+            string department, bool includeParents = false, bool includeDescendants = false, bool includeDelegatedResourceOwners = true)
         {
             builder.AddRule(new BeResourceOwnerRequirement(department, includeParents, includeDescendants, includeDelegatedResourceOwners));
             return builder;

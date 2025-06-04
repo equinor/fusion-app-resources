@@ -221,16 +221,13 @@ namespace Fusion.Resources.Api.Controllers.Requests
         {
             #region Authorization
 
-            var departmentPath = new DepartmentPath(departmentString.FullDepartment);
-
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwnerForDepartment(departmentPath.GoToLevel(2), includeDescendants: true);
+                    or.BeResourceOwnerForDepartment(new DepartmentPath(departmentString.FullDepartment).GoToLevel(2), includeDescendants: true);
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
-                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });
             });
             if (authResult.Unauthorized)
