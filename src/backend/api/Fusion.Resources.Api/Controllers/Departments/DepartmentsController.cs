@@ -153,7 +153,9 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult> GetDelegatedResourceOwnersOptions([FromRoute] OrgUnitIdentifier departmentString)
         {
             if (!departmentString.Exists)
+            {
                 return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department not found");
+            }
 
             #region Authorization
 
