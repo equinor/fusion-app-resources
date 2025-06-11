@@ -124,7 +124,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync($"/departments?$search=MY TEST", new[] { new { sapId = string.Empty }});
+            var resp = await Client.TestClientGetAsync($"/departments?$search=MY TEST", new[] { new { sapId = string.Empty } });
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             resp.Value.Should().Contain(i => i.sapId.EqualsIgnCase(testOrgUnit.SapId));
@@ -240,7 +240,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var orgUnit = fixture.SetAsResourceOwner(fakeResourceOwner, fakeResourceOwner.FullDepartment);
-            
+
 
             using var adminScope = fixture.AdminScope();
 
@@ -293,6 +293,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.CheckAllowHeader(expectingAccess ? "OPTIONS, DELETE, POST, GET" : "OPTIONS, !DELETE, !POST, !GET");
         }
+
+        [Fact]
+        public async Task OptionsDepartmentResponsible_CanDelegateAccess_WhenResourceOwnerForMultiple()
+        {
+            var firstDepartment = "AAA BBB CCC";
+            var secondDepartment = "XXX YYY ZZZ";
+            fixture.EnsureDepartment(firstDepartment);
+            fixture.EnsureDepartment(secondDepartment);
+
+            var resourceOwner = fixture.AddResourceOwner(firstDepartment);
+            fixture.SetAsResourceOwner(resourceOwner, secondDepartment);
+            using var adminScope = fixture.UserScope(resourceOwner);
+
+            var firstResult = await Client.TestClientOptionsAsync($"/departments/{firstDepartment}/delegated-resource-owners");
+            firstResult.Should().BeSuccessfull();
+            firstResult.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+
+            var secondResult = await Client.TestClientOptionsAsync($"/departments/{secondDepartment}/delegated-resource-owners");
+            secondResult.Should().BeSuccessfull();
+            secondResult.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+
         [Theory]
         [InlineData("AAA BBB", false)]
         [InlineData("AAA BBB CCC", false)]
