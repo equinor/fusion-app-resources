@@ -19,7 +19,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             }
 
             requirement.SetEvaluation(isResponsibleForDepartment != null
-                ? $"User is resource owner for department '{isResponsibleForDepartment}', but do not have access to delegate access for department '{requirement.Department}'"
+                ? $"User is resource owner for department(s) {string.Join(", ", isResponsibleForDepartment)}, but do not have access to delegate access for department '{requirement.Department}'"
                 : $"User is not resource owner for any department, and cannot delegate access for department '{requirement.Department}'");
 
             return Task.CompletedTask;
