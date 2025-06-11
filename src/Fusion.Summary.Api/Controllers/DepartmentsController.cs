@@ -59,7 +59,9 @@ public class DepartmentsController : BaseController
         });
 
         if (authResult.Unauthorized)
+        {
             return authResult.CreateForbiddenResponse();
+        }
 
         #endregion Authorization
 
