@@ -10,9 +10,9 @@ namespace Fusion.Resources.Api.Authorization.Handlers
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, CanDelegateAccessToDepartmentRequirement requirement)
         {
-            var isResponsibleForDepartment = context.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment).Select(c => c.Value).FirstOrDefault();
+            var isResponsibleForDepartment = context.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment).Select(c => c.Value);
 
-            if (isResponsibleForDepartment != null && requirement.Department.StartsWith(isResponsibleForDepartment, StringComparison.OrdinalIgnoreCase))
+            if (isResponsibleForDepartment.Any(dep => requirement.Department.StartsWith(dep, StringComparison.OrdinalIgnoreCase)))
             {
                 context.Succeed(requirement);
                 return Task.CompletedTask;
