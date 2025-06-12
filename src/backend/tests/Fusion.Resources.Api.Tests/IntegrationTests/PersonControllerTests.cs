@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fusion.Resources.Api.Tests.FusionMocks;
+using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -289,94 +291,150 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetRelevantDepartmentsV11_ShouldReturnAllDepartments()
+        public async Task GetRelevantDepartmentsV10_ShouldReturn_AssignedOrgUnit()
         {
-            var assignedOrgUnit = new
-            {
-                name = "Const & Commissioning 7",
-                sapId = "52827379",
-                shortName = "CCM7",
-                department = "FE CC CCM7",
-                fullDepartment = "PDP PRD FE CC CCM7"
-            };
-            var delegatedOrgUnit = new
-            {
-                name = "Construction & Commissioning",
-                sapId = "52752459",
-                shortName = "CC",
-                department = "PRD FE CC",
-                fullDepartment = "PDP PRD FE CC"
-            };
-            var seconddelegatedOrgUnit = new
-            {
-                name = "Project Dev & Plant Main",
-                sapId = "52525936",
-                shortName = "PDP",
-                department = "FOS FOIT PDP",
-                fullDepartment = "TDI OG FOS FOIT PDP"
-            };
+            var assignedOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "7228321",
+                name: "bla bla",
+                department: "KAGA PRD",
+                fullDepartment: "KAGA PRD",
+                shortname: "PRD"
+            );
 
-            var noAccessDepartment = new
+            var manager = fixture.AddProfile(s =>
             {
-                name = "Some Department",
-                sapId = "73525219",
-                shortName = "FEII",
-                department = "FOS FOIT FEII",
-                fullDepartment = "TDI OG FOS FOIT FEII"
-            };
+                s.WithAccountType(FusionAccountType.Employee);
+                s.WithFullDepartment("KAGA"); // Is in parent department, but is manager of child department
+            });
+            LineOrgServiceMock.AddOrgUnitManager(assignedOrgUnit.FullDepartment, manager);
 
-            fixture.EnsureDepartment(assignedOrgUnit.fullDepartment);
-            fixture.EnsureDepartment(delegatedOrgUnit.fullDepartment);
-            fixture.EnsureDepartment(seconddelegatedOrgUnit.fullDepartment);
-            fixture.EnsureDepartment(noAccessDepartment.fullDepartment);
-            testUser.IsResourceOwner = true;
-
-            testUser.Roles = new List<ApiPersonRoleV3>
+            using (var userScope = fixture.UserScope(manager))
             {
-                new ApiPersonRoleV3
-                {
-                    Name = AccessRoles.ResourceOwner,
-                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = delegatedOrgUnit.fullDepartment },
-                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
-                    IsActive = true
-                },
-                new ApiPersonRoleV3
-                {
-                    Name = AccessRoles.ResourceOwner,
-                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = seconddelegatedOrgUnit.fullDepartment },
-                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
-                    IsActive = true
-                }
-            };
-
-            LineOrgServiceMock.AddOrgUnit(assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
-            LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment, delegatedOrgUnit.shortName);
-            LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment, seconddelegatedOrgUnit.shortName);
-            
-            using (var adminScope = fixture.AdminScope())
-            {
-                var client = fixture.ApiFactory.CreateClient();
-                await client.AddDelegatedDepartmentOwner(testUser, delegatedOrgUnit.fullDepartment, DateTime.Now.AddHours(-1), DateTime.Now.AddDays(7));
-                await client.AddDelegatedDepartmentOwner(testUser, seconddelegatedOrgUnit.fullDepartment, DateTime.Now.AddHours(-1), DateTime.Now.AddDays(7));
-            }
-
-            using (var userScope = fixture.UserScope(testUser))
-            {
-                testUser.FullDepartment = assignedOrgUnit.fullDepartment;
                 var client = fixture.ApiFactory.CreateClient();
                 var resp = await client.TestClientGetAsync<ApiCollection<TestApiRelevantOrgUnitModel>>(
-                    $"/persons/{testUser.AzureUniqueId}/resources/relevant-departments?api-version=1.1"
+                    $"/persons/{manager.AzureUniqueId}/resources/relevant-departments?api-version=1.0"
                 );
-                
 
                 resp.Should().BeSuccessfull();
-                resp.Value.Value.Should().ContainSingle(c => c.FullDepartment == noAccessDepartment.fullDepartment && c.Reasons.Count == 0);
+                resp.Value.Value.Should().OnlyContain(d => d.SapId == assignedOrgUnit.SapId && d.Reasons.Count != 0,
+                    "Assigned org unit should be returned with reasons");
+            }
+        }
 
-                resp.Value.Value.Should().ContainSingle(c => c.FullDepartment == delegatedOrgUnit.fullDepartment &&
-                                                             c.Reasons.Any(reason => reason == "DelegatedManager"));
+        [Theory]
+        [InlineData("ResourceOwner")]
+        [InlineData("DelegatedResourceOwner")]
+        public async Task GetRelevantDepartmentsV11_ReasonsShouldBePopulatedFor_Assigned_Children_SiblingOrgUnits(string role)
+        {
+            var assignedOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "7528321",
+                name: "bla bla",
+                department: "KRA PRD",
+                fullDepartment: "KRA PRD",
+                shortname: "PRD"
+            );
 
-                resp.Value.Value.Should().ContainSingle(c => c.FullDepartment == assignedOrgUnit.fullDepartment &&
-                                                             c.Reasons.Any(reason => reason == "DelegatedParentManager"));
+            var childOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "7528322",
+                name: "bla bla bla",
+                department: "KRA PRD FE",
+                fullDepartment: "KRA PRD FE",
+                shortname: "FE"
+            );
+
+            var siblingOrgUnit1 = LineOrgServiceMock.AddOrgUnit(
+                sapId: "7528323",
+                name: "bla bla bla",
+                department: "KRA OIS",
+                fullDepartment: "KRA OIS",
+                shortname: "OIS"
+            );
+
+            var siblingOrgUnit2 = LineOrgServiceMock.AddOrgUnit(
+                sapId: "7528324",
+                name: "bla bla bla",
+                department: "KRA AIS",
+                fullDepartment: "KRA AIS",
+                shortname: "AIS"
+            );
+
+            // Irrelevant org units
+            {
+                LineOrgServiceMock.AddOrgUnit(
+                    sapId: "7528325",
+                    name: "Irrelevant: Child of sibling",
+                    department: "KRA OIS FE2",
+                    fullDepartment: "KRA OIS FE2",
+                    shortname: "OIS"
+                );
+
+                LineOrgServiceMock.AddOrgUnit(
+                    sapId: "7522322",
+                    name: "Irrelevant: Child of child",
+                    department: "PRD FE CC",
+                    fullDepartment: "KRA PRD FE CC",
+                    shortname: "CC"
+                );
+
+                LineOrgServiceMock.AddOrgUnit(
+                    sapId: "7522323",
+                    name: "Irrelevant: Similar name,but different department",
+                    department: "LOI PRD",
+                    fullDepartment: "LOI PRD",
+                    shortname: "PRD"
+                );
+            }
+
+
+            var responsiblePerson = fixture.AddProfile(s =>
+            {
+                s.WithAccountType(FusionAccountType.Employee);
+                s.WithFullDepartment("KRA"); // Is in parent department, but is manager of child department
+            });
+
+            switch (role)
+            {
+                case "ResourceOwner":
+                    LineOrgServiceMock.AddOrgUnitManager(assignedOrgUnit.FullDepartment, responsiblePerson);
+                    break;
+
+                case "DelegatedResourceOwner":
+                    PeopleServiceMock.AddRole(responsiblePerson.AzureUniqueId!.Value, new ApiPersonRoleV3
+                    {
+                        Name = AccessRoles.ResourceOwner,
+                        Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = assignedOrgUnit.FullDepartment! },
+                        SourceSystem = "Department.Test",
+                        IsActive = true,
+                        OnDemandSupport = false
+                    });
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Invalid test case '{role}' not supported");
+            }
+
+            using (fixture.UserScope(responsiblePerson))
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var resp = await client.TestClientGetAsync<ApiCollection<TestApiRelevantOrgUnitModel>>(
+                    $"/persons/{responsiblePerson.AzureUniqueId}/resources/relevant-departments?api-version=1.1"
+                );
+
+                resp.Should().BeSuccessfull();
+
+                var relevantOrgUnits = resp.Value.Value
+                    .Where(r => r.Reasons.Count != 0)
+                    .ToList();
+
+                relevantOrgUnits.Should().HaveCount(4, "Only 4 org units should be returned with reasons");
+                relevantOrgUnits.Should().ContainSingle(d => d.SapId == assignedOrgUnit.SapId,
+                    "Assigned org unit should be returned with reasons");
+                relevantOrgUnits.Should().ContainSingle(d => d.SapId == childOrgUnit.SapId,
+                    "Child org unit should be returned with reasons");
+                relevantOrgUnits.Should().ContainSingle(d => d.SapId == siblingOrgUnit1.SapId,
+                    "Sibling org unit 1 should be returned with reasons");
+                relevantOrgUnits.Should().ContainSingle(d => d.SapId == siblingOrgUnit2.SapId,
+                    "Sibling org unit 2 should be returned with reasons");
             }
         }
     }
