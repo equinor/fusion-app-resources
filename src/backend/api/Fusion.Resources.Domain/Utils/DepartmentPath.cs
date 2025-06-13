@@ -5,6 +5,7 @@ using static System.Math;
 
 namespace Fusion.Resources.Domain
 {
+    // comment to trigger pr rebuilding
 
     /// <summary>
     /// Wrapper object for working with department paths. 
