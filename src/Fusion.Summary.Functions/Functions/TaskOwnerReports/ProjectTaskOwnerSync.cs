@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
+using Fusion.Integration.Http.Models;
 using Fusion.Resources.Functions.Common.ApiClients;
 using Fusion.Resources.Functions.Common.Extensions;
 using Fusion.Services.Org.ApiModels;
