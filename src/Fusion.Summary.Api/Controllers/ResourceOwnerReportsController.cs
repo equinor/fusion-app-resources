@@ -69,6 +69,10 @@ public class ResourceOwnerReportsController : BaseController
     {
         #region Authorization
 
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
+        if (department is null)
+            return DepartmentNotFound(sapDepartmentId);
+
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
@@ -76,7 +80,9 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
+                    or.BeResourceOwnerForDepartment(department.FullDepartmentName, includeParents: true,
+                            includeDescendants: true, includeDelegatedResourceOwners: true);
+                    // or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                 });
             });
 
@@ -84,9 +90,6 @@ public class ResourceOwnerReportsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion
-
-        if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
-            return DepartmentNotFound(sapDepartmentId);
 
         var queryReports = await DispatchAsync(new GetWeeklySummaryReports(sapDepartmentId, query));
 
