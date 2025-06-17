@@ -11,13 +11,12 @@ namespace Fusion.Summary.Api.Authorization.Requirements;
 public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAuthorizationHandler
 {
     public BeResourceOwnerRequirement(string departmentPath,
-            bool includeParents = false, bool includeSiblings = false, bool includeDescendants = false,
+            bool includeParents = false, bool includeDescendants = false,
             bool includeDelegatedResourceOwners = false)
     {
         DepartmentPath = departmentPath.Trim();
         IncludeDelegatedResourceOwners = includeDelegatedResourceOwners;
         IncludeParents = includeParents;
-        IncludeSiblings = includeSiblings;
         IncludeDescendants = includeDescendants;
     }
 
@@ -31,7 +30,6 @@ public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAutho
 
     public string? DepartmentPath { get; }
     public bool IncludeParents { get; }
-    public bool IncludeSiblings { get; }
     public bool IncludeDescendants { get; }
 
     public bool IncludeDelegatedResourceOwners { get; }
@@ -50,7 +48,7 @@ public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAutho
             departments.AddRange(delegatedDepartments);
         }
 
-        if (!departments.Any())
+        if (departments.Count == 0)
         {
             SetEvaluation("User is not resource owner in any departments");
             return Task.CompletedTask;
@@ -64,21 +62,15 @@ public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAutho
         var directResponsibility = departments.Any(d => d.Equals(DepartmentPath, StringComparison.OrdinalIgnoreCase));
         var descendantResponsibility = departments.Any(d => d.StartsWith(DepartmentPath, StringComparison.OrdinalIgnoreCase));
         var parentResponsibility = departments.Any(d => DepartmentPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
-        var path = DepartmentPath.Split(" ");
-        var parentPath = string.Join(" ", path.SkipLast(1));
-        var siblingResponsibility = departments.Any(d =>
-            d.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase) &&
-            d.Split(" ").Length == path.Length);
 
         var hasAccess = directResponsibility
             || IncludeParents && parentResponsibility
-            || IncludeSiblings && siblingResponsibility
             || IncludeDescendants && descendantResponsibility;
 
         if (hasAccess)
         {
             SetEvaluation($"User has access through responsibility in {string.Join(", ", departments)}. " +
-                $"[owner in department={directResponsibility}, parents={parentResponsibility}, siblings={siblingResponsibility}, descendants={descendantResponsibility}]");
+                $"[owner in department={directResponsibility}, parents={parentResponsibility}, descendants={descendantResponsibility}]");
 
             context.Succeed(this);
         }

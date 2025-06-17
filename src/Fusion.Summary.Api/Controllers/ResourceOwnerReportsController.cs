@@ -9,6 +9,7 @@ using Fusion.Summary.Api.Controllers.Filter;
 using Fusion.Summary.Api.Controllers.Requests;
 using Fusion.Summary.Api.Domain.Commands;
 using Fusion.Summary.Api.Domain.Queries;
+using Fusion.Summary.Domain;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,11 @@ public class ResourceOwnerReportsController : BaseController
     {
         #region Authorization
 
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
+        if (department is null)
+            return DepartmentNotFound(sapDepartmentId);
+        var departmentPath = new DepartmentPath(department.FullDepartmentName);
+
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
@@ -38,7 +44,9 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });
             });
 
@@ -46,9 +54,6 @@ public class ResourceOwnerReportsController : BaseController
             return authResult.CreateForbiddenResponse();
 
         #endregion
-
-        if (await DispatchAsync(new GetDepartment(sapDepartmentId)) is null)
-            return DepartmentNotFound(sapDepartmentId);
 
         var queryReports = await DispatchAsync(new GetWeeklySummaryReportsMetaData(sapDepartmentId, query));
 
@@ -72,6 +77,8 @@ public class ResourceOwnerReportsController : BaseController
         var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
         if (department is null)
             return DepartmentNotFound(sapDepartmentId);
+        var departmentPath = new DepartmentPath(department.FullDepartmentName);
+
 
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
@@ -80,9 +87,9 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.BeResourceOwnerForDepartment(department.FullDepartmentName, includeParents: true,
-                            includeSiblings: true, includeDescendants: true, includeDelegatedResourceOwners: true);
-                    // or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });
             });
 
@@ -107,6 +114,11 @@ public class ResourceOwnerReportsController : BaseController
     {
         #region Authorization
 
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
+        if (department is null)
+            return DepartmentNotFound(sapDepartmentId);
+        var departmentPath = new DepartmentPath(department.FullDepartmentName);
+
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
@@ -114,7 +126,9 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });
             });
 
@@ -148,6 +162,11 @@ public class ResourceOwnerReportsController : BaseController
     {
         #region Authorization
 
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
+        if (department is null)
+            return DepartmentNotFound(sapDepartmentId);
+        var departmentPath = new DepartmentPath(department.FullDepartmentName);
+
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
@@ -155,7 +174,9 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });
             });
 
@@ -181,6 +202,11 @@ public class ResourceOwnerReportsController : BaseController
     [EmulatedUserSupport]
     public async Task<IActionResult> OptionsWeeklySummary([FromRoute] string sapDepartmentId, [FromQuery] string? emulatedUserId)
     {
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
+        if (department is null)
+            return DepartmentNotFound(sapDepartmentId);
+        var departmentPath = new DepartmentPath(department.FullDepartmentName);
+
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
@@ -189,7 +215,12 @@ public class ResourceOwnerReportsController : BaseController
                     or.BeTrustedApplication();
                     or.ResourcesFullControl();
                 });
-                r.LimitedAccessWhen(or => { or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles); });
+                r.LimitedAccessWhen(or =>
+                {
+                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
+                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
+                });
             });
 
         var headers = new HashSet<HttpMethod>();
