@@ -1,8 +1,10 @@
 using System.Reflection;
 using FluentValidation;
 using Fusion.AspNetCore.Versioning;
+using Fusion.Integration.Authentication;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Summary.Api;
+using Fusion.Summary.Api.Authentication;
 using Fusion.Summary.Api.Database;
 using Fusion.Summary.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -72,6 +74,8 @@ builder.Services.AddFusionIntegration(f =>
         opts.CertificateThumbprint = certThumbprint;
     });
 });
+
+builder.Services.AddScoped<ILocalClaimsTransformation, SummaryLocalClaimsTransformation>();
 
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString)

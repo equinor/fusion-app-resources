@@ -36,7 +36,6 @@ public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAutho
 
     public Task HandleAsync(AuthorizationHandlerContext context)
     {
-        var claims = context.User.FindAll(x => x is not null);
         var departments = context.User.FindAll(ResourcesClaimTypes.ResourceOwnerForDepartment)
             .Select(c => c.Value)
             .ToList();
