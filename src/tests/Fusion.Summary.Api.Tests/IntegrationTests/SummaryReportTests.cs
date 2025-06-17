@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Fusion.Summary.Api.Authorization;
 using Fusion.Summary.Api.Controllers.ApiModels;
 using Fusion.Summary.Api.Tests.Fixture;
 using Fusion.Summary.Api.Tests.Helpers;
@@ -106,6 +107,39 @@ public class SummaryReportTests : TestBase
 
         var response = await _client.GetWeeklySummaryReportsAsync(department.DepartmentSapId);
         response.Should().BeSuccessfull();
+    }
+
+    [Theory]
+    [InlineData("AAA", true)]           // parent
+    [InlineData("AAA CCC", true)]       // sibling
+    [InlineData("BBB", false)]          // sibling of parent
+    [InlineData("BBB CCC", false)]      // descendant of parent sibling
+    [InlineData("AAA BBB CCC", false)]  // descendant
+    public async Task GetWeeklySummaryReports_AsRelatedResourceOwners(string relatedDepartmentName, bool shouldSucceed)
+    {
+        var departmentName = "AAA BBB";
+
+        using var adminScope = _fixture.AdminScope();
+
+        var resourceOwner = _fixture.Fusion.CreateUser().AsEmployee().AzureUniqueId!.Value;
+        var department = await _client.PutDepartmentAsync(resourceOwner, d => d.FullDepartmentName = departmentName);
+
+        var relatedResourceOwner = _fixture.Fusion.CreateUser().AsEmployee();
+        var relatedDepartment = await _client.PutDepartmentAsync(relatedResourceOwner.AzureUniqueId!.Value, d => d.FullDepartmentName = relatedDepartmentName);
+        relatedResourceOwner.AsResourceOwner()
+            .WithRole(
+                "Fusion.Resources.ResourceOwner",
+                userRole => { userRole.WithScope("OrgUnit", relatedDepartment.DepartmentSapId); })
+            // add claims for claims transformation
+            .WithClaim(ResourcesClaimTypes.ResourceOwnerForDepartment, relatedDepartment.FullDepartmentName);
+
+        using var relatedResourceOwnerScope = _fixture.UserScope(relatedResourceOwner);
+
+        var response = await _client.GetWeeklySummaryReportsAsync(department.DepartmentSapId);
+        if (shouldSucceed)
+            response.Should().BeSuccessfull();
+        else
+            response.Should().BeUnauthorized();
     }
 
 
