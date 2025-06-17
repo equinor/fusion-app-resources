@@ -81,7 +81,7 @@ public class ResourceOwnerReportsController : BaseController
                 {
                     or.BeTrustedApplication();
                     or.BeResourceOwnerForDepartment(department.FullDepartmentName, includeParents: true,
-                            includeDescendants: true, includeDelegatedResourceOwners: true);
+                            includeSiblings: true, includeDescendants: true, includeDelegatedResourceOwners: true);
                     // or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                 });
             });

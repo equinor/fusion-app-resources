@@ -11,12 +11,13 @@ namespace Fusion.Summary.Api.Authorization.Requirements;
 public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAuthorizationHandler
 {
     public BeResourceOwnerRequirement(string departmentPath,
-            bool includeParents = false, bool includeDescendants = false,
+            bool includeParents = false, bool includeSiblings = false, bool includeDescendants = false,
             bool includeDelegatedResourceOwners = false)
     {
-        DepartmentPath = departmentPath;
+        DepartmentPath = departmentPath.Trim();
         IncludeDelegatedResourceOwners = includeDelegatedResourceOwners;
         IncludeParents = includeParents;
+        IncludeSiblings = includeSiblings;
         IncludeDescendants = includeDescendants;
     }
 
@@ -30,6 +31,7 @@ public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAutho
 
     public string? DepartmentPath { get; }
     public bool IncludeParents { get; }
+    public bool IncludeSiblings { get; }
     public bool IncludeDescendants { get; }
 
     public bool IncludeDelegatedResourceOwners { get; }
@@ -59,19 +61,24 @@ public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAutho
             return Task.CompletedTask;
         }
 
-        // responsibility descendant Descendants
         var directResponsibility = departments.Any(d => d.Equals(DepartmentPath, StringComparison.OrdinalIgnoreCase));
         var descendantResponsibility = departments.Any(d => d.StartsWith(DepartmentPath, StringComparison.OrdinalIgnoreCase));
         var parentResponsibility = departments.Any(d => DepartmentPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
+        var path = DepartmentPath.Split(" ");
+        var parentPath = string.Join(" ", path.SkipLast(1));
+        var siblingResponsibility = departments.Any(d =>
+            d.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase) &&
+            d.Split(" ").Length == path.Length);
 
         var hasAccess = directResponsibility
             || IncludeParents && parentResponsibility
+            || IncludeSiblings && siblingResponsibility
             || IncludeDescendants && descendantResponsibility;
 
         if (hasAccess)
         {
-            SetEvaluation($"User has access though responsibility in {string.Join(", ", departments)}. " +
-                $"[owner in department={directResponsibility}, parents={parentResponsibility}, descendants={descendantResponsibility}]");
+            SetEvaluation($"User has access through responsibility in {string.Join(", ", departments)}. " +
+                $"[owner in department={directResponsibility}, parents={parentResponsibility}, siblings={siblingResponsibility}, descendants={descendantResponsibility}]");
 
             context.Succeed(this);
         }
