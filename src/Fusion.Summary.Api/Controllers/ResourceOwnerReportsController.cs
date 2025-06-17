@@ -44,7 +44,7 @@ public class ResourceOwnerReportsController : BaseController
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
                     or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
                     or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
                 });

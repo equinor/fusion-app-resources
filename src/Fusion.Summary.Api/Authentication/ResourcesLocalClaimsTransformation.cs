@@ -15,14 +15,14 @@ using Fusion.Summary.Api.Authorization;
 
 namespace Fusion.Summary.Api.Authentication
 {
-    public class SummaryLocalClaimsTransformation : ILocalClaimsTransformation
+    public class ResourcesLocalClaimsTransformation : ILocalClaimsTransformation
     {
         private static Task<IEnumerable<Claim>> noClaims = Task.FromResult<IEnumerable<Claim>>(Array.Empty<Claim>());
-        private readonly ILogger<SummaryLocalClaimsTransformation> logger;
+        private readonly ILogger<ResourcesLocalClaimsTransformation> logger;
         private readonly IMediator mediator;
         private readonly ILineOrgResolver lineOrgResolver;
 
-        public SummaryLocalClaimsTransformation(ILogger<SummaryLocalClaimsTransformation> logger, IMediator mediator,
+        public ResourcesLocalClaimsTransformation(ILogger<ResourcesLocalClaimsTransformation> logger, IMediator mediator,
             ILineOrgResolver lineOrgResolver)
         {
             this.logger = logger;

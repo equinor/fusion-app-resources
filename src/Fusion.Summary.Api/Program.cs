@@ -75,7 +75,7 @@ builder.Services.AddFusionIntegration(f =>
     });
 });
 
-builder.Services.AddScoped<ILocalClaimsTransformation, SummaryLocalClaimsTransformation>();
+builder.Services.AddScoped<ILocalClaimsTransformation, ResourcesLocalClaimsTransformation>();
 
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddSqlDbContext<SummaryDbContext>(databaseConnectionString)
