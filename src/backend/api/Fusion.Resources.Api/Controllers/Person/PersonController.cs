@@ -65,7 +65,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <summary>
         ///     1.0 only returns the departments that the user has access to.
         ///     While 1.1 returns all departments independent of the user's access. For the departments the user does not have access to, the reasons list will be empty.
-        ///     See <see cref="ApiRelevantOrgUnitReasons"/> for reason types. SiblingManager and DelegatedSiblingManager are only returned for 1.1.
+        ///     Reason types 'SiblingManager' and 'DelegatedSiblingManager' are only returned for 1.1.
         /// </summary>
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
