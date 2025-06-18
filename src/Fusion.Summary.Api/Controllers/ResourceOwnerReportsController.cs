@@ -69,6 +69,12 @@ public class ResourceOwnerReportsController : BaseController
     {
         #region Authorization
 
+        var department = await DispatchAsync(new GetDepartment(sapDepartmentId));
+        if (department is null)
+        {
+            return DepartmentNotFound(sapDepartmentId);
+        }
+
         var authResult =
             await Request.RequireAuthorizationAsync(r =>
             {
@@ -77,6 +83,9 @@ public class ResourceOwnerReportsController : BaseController
                 {
                     or.BeTrustedApplication();
                     or.HaveOrgUnitScopedRole(DepartmentId.FromSapId(sapDepartmentId), AccessRoles.ResourceOwnerRoles);
+                    or.BeSiblingResourceOwner(department, includeDelegatedResourceOwners: true);
+                    or.BeParentResourceOwner(department, includeDelegatedResourceOwners: true);
+                    or.BeDirectDescendantResourceOwner(department, includeDelegatedResourceOwners: true);
                 });
             });
 
