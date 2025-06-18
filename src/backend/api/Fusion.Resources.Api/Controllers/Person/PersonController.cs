@@ -63,8 +63,9 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         /// <summary>
-        ///     Api version 1.0 and 1.1 are almost identical. 1.0 only returns the departments that the user has access to. While
-        ///     1.1 returns all departments independent of the user's access. For the departments the user does not have access to, the reasons list will be empty.
+        ///     1.0 only returns the departments that the user has access to.
+        ///     While 1.1 returns all departments independent of the user's access. For the departments the user does not have access to, the reasons list will be empty.
+        ///     Reason types 'SiblingManager' and 'DelegatedSiblingManager' are only returned for 1.1.
         /// </summary>
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
@@ -95,7 +96,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var query = new GetRelevantOrgUnits(personId, odataQuery);
             if (HttpContext.GetRequestedApiVersion()?.ToString() is "1.1")
+            {
                 query.IncludeDepartmentsWithNoAccess();
+                query.SetSiblingDepartmentsAsRelevant();
+            }
 
             var relevantOrgUnits = await DispatchAsync(query);
 
