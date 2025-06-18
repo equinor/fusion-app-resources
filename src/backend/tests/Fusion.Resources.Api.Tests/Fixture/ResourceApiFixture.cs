@@ -102,16 +102,15 @@ namespace Fusion.Resources.Api.Tests.Fixture
             if (person.Roles is null)
                 person.Roles = new List<ApiPersonRoleV3>();
 
-            person.Roles = new List<ApiPersonRoleV3>
+            person.Roles.Add(
+                new ApiPersonRoleV3
                 {
-                    new ApiPersonRoleV3
-                    {
-                        Name = "Fusion.LineOrg.Manager",
-                        Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = orgUnit.SapId },
-                        IsActive = true,
-                        OnDemandSupport = false
-                    }
-                };
+                    Name = "Fusion.LineOrg.Manager",
+                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = orgUnit.SapId },
+                    IsActive = true,
+                    OnDemandSupport = false
+                }
+            );
 
             RolesClientMock.AddPersonRole(person.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
             {
