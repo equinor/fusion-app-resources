@@ -35,6 +35,18 @@ namespace Fusion.Testing.Mocks.ProfileService
 
         public static FusionTestUserBuilder AddTestProfile() => new();
         public static void AddCompany(Guid id, string name) => companies.Add(new ApiCompanyInfo { Id = id, Name = name });
+
+        public static void AddRole(Guid personId, ApiPersonRoleV3 role)
+        {
+            var person = profiles.FirstOrDefault(x => x.AzureUniqueId == personId);
+            if (person is null)
+                throw new Exception($"Person with id {personId} not found");
+
+            if (person.Roles is null)
+                person.Roles = [];
+
+            person.Roles.Add(role);
+        }
     }
 
     public class FusionTestUserBuilder
