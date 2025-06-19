@@ -60,6 +60,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             fixture.DisableMemoryCache();
 
             fixture.EnsureDepartment(TestDepartment);
+            fixture.EnsureDepartment(ParentDepartment);
+            fixture.EnsureDepartment(SiblingDepartment);
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
