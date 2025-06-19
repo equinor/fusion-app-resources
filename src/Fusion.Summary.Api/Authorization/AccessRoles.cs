@@ -2,6 +2,8 @@
 
 public static class AccessRoles
 {
-    public static readonly string[] ResourceOwnerRoles = ["Fusion.LineOrg.Manager", "Fusion.Resources.ResourceOwner"];
+    public const string ResourceOwner = "Fusion.Resources.ResourceOwner";
+    public const string LineOrgManager = "Fusion.LineOrg.Manager";
+    public static readonly string[] ResourceOwnerRoles = [LineOrgManager, ResourceOwner];
     public const string ResourcesFullControl = "Fusion.Resources.FullControl";
 }
