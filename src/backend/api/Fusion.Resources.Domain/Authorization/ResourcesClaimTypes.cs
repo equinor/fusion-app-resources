@@ -9,5 +9,4 @@ namespace Fusion.Resources
         public const string Prefix = "Fusion.Resources.Request.";
         public static string BasicRead = $"{Prefix}{SharedRequestScopes.BasicRead}";
     }
-    // test comment
 }
