@@ -23,8 +23,9 @@ namespace Fusion.Resources.Authorization.Requirements
             IncludeDescendants = includeDescendants;
         }
 
-        public BeResourceOwnerRequirement()
+        public BeResourceOwnerRequirement(bool includeDelegatedResourceOwners = true)
         {
+            IncludeDelegatedResourceOwners = includeDelegatedResourceOwners;
         }
 
 
