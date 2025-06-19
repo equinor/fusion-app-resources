@@ -108,6 +108,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
+                {
                     or.BeResourceOwnerForDepartment(departmentPath);
                     or.BeResourceOwnerForDepartment(departmentPath.Parent());
                     or.BeSiblingResourceOwner(departmentPath);
