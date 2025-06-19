@@ -35,6 +35,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         const string ExactScope = "TPD PRD TST ASD";
         const string WildcardScope = "TPD PRD TST *";
         const string UnrelatedScope = "EPN SUB AXS";
+        const string ParentScope = "TPD PRD TST";
+        const string SiblingScope = "TPD PRD TST FGH";
 
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
@@ -115,6 +117,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, false)]
         public async Task CanDeleteRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -141,6 +145,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, false)]
         [InlineData(ManagerRoleType.None, TestDepartment, false)]
         public async Task CanDeleteInvalidRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed, bool removeInstanceInstead = false)
         {
@@ -174,6 +180,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanReadRequestsAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -198,6 +206,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanEditGeneralOnRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -231,6 +241,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, false)]
         public async Task CanEditAdditionalCommentOnRequestAssignedToDepartment(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -260,6 +272,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanReassignDepartmentOnRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
@@ -300,6 +314,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.ResourceOwner, "PDP PRD FE ANE ANE5", true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanAssignDepartmentOnUnassignedRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TDI UPD QWE RTY1";
@@ -336,6 +352,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanCreateResourceOwnerRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var actor = fixture.AddProfile(FusionAccountType.Employee);
@@ -383,6 +401,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, false)]
         public async Task CanStartNormalRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateRequest();
@@ -408,6 +428,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         //[InlineData("creator", "TPD RND WQE FQE", false)]
         public async Task CanProposePersonNormalRequest(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
@@ -438,6 +460,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanProposeNormalRequest(ActorType actorType, ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -478,6 +502,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, false)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, false)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ParentScope, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, SiblingScope, false)]
         public async Task CanAcceptNormalRequest(ActorType actorType, ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -535,6 +561,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ActorType.Manager, ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanStartChangeRequest(ActorType actorType, ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var request = await CreateChangeRequest(TestDepartment);
@@ -573,6 +601,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanAddPersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var client = fixture.ApiFactory.CreateClient();
@@ -612,6 +642,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanEditPersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var client = fixture.ApiFactory.CreateClient();
@@ -648,6 +680,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanDeletePersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
@@ -675,6 +709,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanGetPersonAbsence(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
@@ -705,6 +741,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, AbsenceAccessLevel.OtherTasksOnly)]
         [InlineData(FusionAccountType.Employee, ManagerRoleType.None, UnrelatedScope, AbsenceAccessLevel.OtherTasksOnly)]
         [InlineData(FusionAccountType.Consultant, ManagerRoleType.None, UnrelatedScope, AbsenceAccessLevel.None)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, ParentScope, AbsenceAccessLevel.All)]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, SiblingScope, AbsenceAccessLevel.All)]
         public async Task CanGetAllAbsenceForPerson(FusionAccountType accountType, ManagerRoleType role, string department, AbsenceAccessLevel accessLevel)
         {
             var absence = await CreateAbsence();
@@ -758,6 +796,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, WildcardScope, "GET,POST")]
         [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, "GET,!POST")]
         [InlineData(FusionAccountType.Consultant, ManagerRoleType.None, UnrelatedScope, "!GET,!POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, ParentScope, "GET,POST")]
+        [InlineData(FusionAccountType.Employee, ManagerRoleType.DelegatedResourceOwner, SiblingScope, "GET,POST")]
         public async Task CanGetAbsenceOptionsForPerson(FusionAccountType accountType, ManagerRoleType role, string department, string allowed)
         {
             var actor = fixture.AddProfile(accountType);
@@ -779,6 +819,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, "GET,!PUT,!DELETE")]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, "GET,PUT,DELETE")]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, "GET,PUT,DELETE")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, "GET,PUT,DELETE")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, "GET,PUT,DELETE")]
         public async Task CanGetAbsenceOptions(ManagerRoleType role, string department, string allowed)
         {
             var absence = await CreateAbsence();
@@ -802,6 +844,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanGetDepartmentUnassignedRequests(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             fixture.EnsureDepartment(TestDepartment);
@@ -825,6 +869,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.ResourceOwner, SameL2Department, "GET,PATCH")]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, "GET,PATCH")]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, "GET,PATCH")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, "GET,PATCH")]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, "GET,PATCH")]
         public async Task CanGetOptionsDepartmentUnassignedRequests(ManagerRoleType role, string department, string allowedVerbs)
         {
             fixture.EnsureDepartment(TestDepartment);
@@ -866,6 +912,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData(ManagerRoleType.DelegatedResourceOwner, ExactScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, WildcardScope, true)]
         [InlineData(ManagerRoleType.DelegatedResourceOwner, UnrelatedScope, false)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, ParentScope, true)]
+        [InlineData(ManagerRoleType.DelegatedResourceOwner, SiblingScope, true)]
         public async Task CanGetInternalRequests(ManagerRoleType role, string department, bool shouldBeAllowed)
         {
             fixture.EnsureDepartment(TestDepartment);
