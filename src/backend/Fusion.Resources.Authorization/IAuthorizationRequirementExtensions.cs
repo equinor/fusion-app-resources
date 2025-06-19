@@ -18,8 +18,8 @@ namespace Fusion.Resources
         }
 
         /// <summary>
-        /// Require that the user is a resource owner. 
-        /// The check uses the resource owner claims in the user profile. 
+        /// Require that the user is a resource owner.
+        /// The check uses the resource owner claims in the user profile.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -35,7 +35,7 @@ namespace Fusion.Resources
         /// <param name="includeDescendants">Should anyone that is a resource owner in any of the sub departments have access</param>
         /// <param name="includeDelegatedResourceOwners">Should delegate resources owners be included/valid</param>
         public static IAuthorizationRequirementRule BeResourceOwnerForDepartment(this IAuthorizationRequirementRule builder,
-            string department, bool includeParents = false, bool includeDescendants = false, bool includeDelegatedResourceOwners = false)
+            string department, bool includeParents = false, bool includeDescendants = false, bool includeDelegatedResourceOwners = true)
         {
             builder.AddRule(new BeResourceOwnerRequirement(department, includeParents, includeDescendants, includeDelegatedResourceOwners));
             return builder;
@@ -54,7 +54,7 @@ namespace Fusion.Resources
         /// <param name="department">The department to check against</param>
         /// <param name="includeDelegatedResourceOwners">Should delegate resources owners be included</param>
         public static IAuthorizationRequirementRule BeSiblingResourceOwner(this IAuthorizationRequirementRule builder,
-            DepartmentPath department, bool includeDelegatedResourceOwners = false)
+            DepartmentPath department, bool includeDelegatedResourceOwners = true)
         {
             builder.AddRule(new BeSiblingResourceOwnerRequirement(department, includeDelegatedResourceOwners));
 
