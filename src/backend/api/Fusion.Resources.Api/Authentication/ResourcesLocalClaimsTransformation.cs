@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Authentication
 {
     public class ResourcesLocalClaimsTransformation : ILocalClaimsTransformation
     {
-        private static Task<IEnumerable<Claim>> noClaims = Task.FromResult<IEnumerable<Claim>>(Array.Empty<Claim>());
+        private static readonly Task<IEnumerable<Claim>> noClaims = Task.FromResult<IEnumerable<Claim>>([]);
         private readonly ILogger<ResourcesLocalClaimsTransformation> logger;
         private readonly ResourcesDbContext db;
         private readonly IMediator mediator;
@@ -52,20 +52,22 @@ namespace Fusion.Resources.Api.Authentication
 
             var delegatedRoles = profile.Roles
                 .Where(x => string.Equals(x.Name, AccessRoles.ResourceOwner, StringComparison.OrdinalIgnoreCase))
-                .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
-                .Select(x => x.Scope?.Value!)
-                .ToList();
+                .Where(x => !string.IsNullOrWhiteSpace(x.Scope?.Value))
+                .Select(x => x.Scope!.Value)
+                .ToArray();
 
             foreach (var delegatedRole in delegatedRoles)
             {
+                var value = delegatedRole.Replace("*", string.Empty).TrimEnd();
+                
                 ApiOrgUnit? orgUnit;
                 try
                 {
-                    orgUnit = await mediator.Send(new ResolveLineOrgUnit(delegatedRole));
+                    orgUnit = await mediator.Send(new ResolveLineOrgUnit(value));
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Failed to resolve org unit {DelegatedRoleValue} for delegated resource owner", delegatedRole);
+                    logger.LogError(e, "Failed to resolve org unit {DelegatedRoleValue} for delegated resource owner", value);
                     continue;
                 }
 
@@ -92,12 +94,12 @@ namespace Fusion.Resources.Api.Authentication
 
             var managerRoles = profile.Roles
                 .Where(x => string.Equals(x.Name, "Fusion.LineOrg.Manager", StringComparison.OrdinalIgnoreCase))
-                .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Scope?.Value))
                 .Select(x => x.Scope?.Value!)
-                .ToList();
+                .ToArray();
 
             // Got a list of sap id's, need to resolve them to the full department to keep consistent.
-            logger.LogDebug("Found user responsible for [{ManagerRolesCount}] org units [{Roles}]", managerRoles.Count, string.Join(",", managerRoles));
+            logger.LogDebug("Found user responsible for [{ManagerRolesCount}] org units [{Roles}]", managerRoles.Length, string.Join(",", managerRoles));
 
             foreach (var orgUnitId in managerRoles)
             {

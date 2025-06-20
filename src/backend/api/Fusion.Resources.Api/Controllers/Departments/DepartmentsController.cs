@@ -79,6 +79,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeResourceOwnerForDepartment(departmentPath);
                     or.BeResourceOwnerForDepartment(departmentPath.Parent());
                     or.BeSiblingResourceOwner(departmentPath);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
 
@@ -112,6 +113,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeResourceOwnerForDepartment(departmentPath);
                     or.BeResourceOwnerForDepartment(departmentPath.Parent());
                     or.BeSiblingResourceOwner(departmentPath);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
 
