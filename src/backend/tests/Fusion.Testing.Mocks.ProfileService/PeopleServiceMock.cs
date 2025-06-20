@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Profile;
+﻿using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Testing.Mocks.ProfileService.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using static System.Net.Mime.MediaTypeNames;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 using HashLib;
 using HashLib.Checksum;
 

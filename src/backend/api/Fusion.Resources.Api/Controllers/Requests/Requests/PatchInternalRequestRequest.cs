@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using MediatR;
 using System.Diagnostics;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {

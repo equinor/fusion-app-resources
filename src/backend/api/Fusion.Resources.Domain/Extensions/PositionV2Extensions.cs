@@ -1,6 +1,6 @@
-﻿using Fusion.ApiClients.Org;
-using System;
+﻿using System;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain
 {

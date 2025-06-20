@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration;
+﻿using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -15,6 +14,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Roles;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Test.Core
 {
@@ -76,14 +78,14 @@ namespace Fusion.Resources.Test.Core
             {
                 Id = Guid.NewGuid(),
                 BasePosition = new ApiPositionBasePositionV2 { Id = Guid.NewGuid(), Department = "TPD PRD", Discipline = "IT" },
-                Project = new ApiProjectReferenceV2 { ProjectId = project.OrgProjectId, DomainId = project.DomainId },
-                Instances = new List<ApiPositionInstanceV2> { new ApiPositionInstanceV2 { Location = new ApiPositionLocationV2 { Id = locationId } } }
+                Project = new ApiProjectReference() { ProjectId = project.OrgProjectId, DomainId = project.DomainId },
+                Instances = new List<ApiPositionInstanceV2> { new ApiPositionInstanceV2 { Location = new ApiPositionLocation() { Id = locationId } } }
             };
 
             positionSetup?.Invoke(requestPosition);
             var instance = requestPosition.Instances.FirstOrDefault() ?? new ApiPositionInstanceV2
             {
-                Location = new ApiPositionLocationV2 { Id = locationId },
+                Location = new ApiPositionLocation { Id = locationId },
                 AppliesFrom = new DateTime(2021, 01, 01),
                 AppliesTo = new DateTime(2021, 12, 31),
                 Workload = 50

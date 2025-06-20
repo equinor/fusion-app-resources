@@ -1,6 +1,6 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Profile;
+﻿using Fusion.Integration.Profile;
 using System;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain
 {

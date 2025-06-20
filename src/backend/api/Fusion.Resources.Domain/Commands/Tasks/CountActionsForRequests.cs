@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration;
+﻿using Fusion.Integration;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;

@@ -1,8 +1,8 @@
 ﻿using Bogus;
-using Fusion.ApiClients.Org;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -30,7 +30,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 deserialized.ForEach(p =>
                 {
                     p.ProjectId = project.ProjectId;
-                    p.Project = new ApiProjectReferenceV2()
+                    p.Project = new ApiProjectReference()
                     {
                         ProjectId = project.ProjectId,
                         DomainId = project.DomainId,
@@ -62,7 +62,7 @@ namespace Fusion.Testing.Mocks.OrgService
         public FusionTestProjectBuilder WithProperty(string key, object value)
         {
             if (project.Properties is null)
-                project.Properties = new ApiPropertiesCollectionV2();
+                project.Properties = new Dictionary<string, object>();
 
             project.Properties[key] = value;
             return this;
@@ -110,7 +110,7 @@ namespace Fusion.Testing.Mocks.OrgService
             var position = PositionBuilder.NewPosition();
 
             position.ProjectId = project.ProjectId;
-            position.Project = new ApiProjectReferenceV2
+            position.Project = new ApiProjectReference
             {
                 DomainId = project.DomainId,
                 Name = project.Name,
@@ -127,7 +127,7 @@ namespace Fusion.Testing.Mocks.OrgService
         public ApiPositionV2 AddPosition(ApiPositionV2 position)
         {
             position.ProjectId = project.ProjectId;
-            position.Project = new ApiProjectReferenceV2
+            position.Project = new ApiProjectReference
             {
                 DomainId = project.DomainId,
                 Name = project.Name,
