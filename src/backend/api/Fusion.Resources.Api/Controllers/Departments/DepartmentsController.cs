@@ -76,9 +76,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
-                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
-                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent());
+                    or.BeSiblingResourceOwner(departmentPath);
                 });
             });
 
@@ -109,9 +109,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwnerForDepartment(departmentPath, includeDelegatedResourceOwners: true);
-                    or.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: true);
-                    or.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: true);
+                    or.BeResourceOwnerForDepartment(departmentPath);
+                    or.BeResourceOwnerForDepartment(departmentPath.Parent());
+                    or.BeSiblingResourceOwner(departmentPath);
                 });
             });
 

@@ -68,10 +68,11 @@ namespace Fusion.Resources.Api.Controllers
         /// Requires the user to be resource owner for any department
         /// </summary>
         /// <param name="builder"></param>
+        /// <param name="includeDelegatedResourceOwners">Should delegate resources owners be included/valid</param>
         /// <returns></returns>
-        public static IAuthorizationRequirementRule BeResourceOwnerForAnyDepartment(this IAuthorizationRequirementRule builder)
+        public static IAuthorizationRequirementRule BeResourceOwnerForAnyDepartment(this IAuthorizationRequirementRule builder, bool includeDelegatedResourceOwners = true)
         {
-            builder.AddRule(new BeResourceOwnerRequirement());
+            builder.AddRule(new BeResourceOwnerRequirement(includeDelegatedResourceOwners));
             return builder;
         }
 
