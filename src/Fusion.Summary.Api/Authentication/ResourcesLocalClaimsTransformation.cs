@@ -53,20 +53,22 @@ namespace Fusion.Summary.Api.Authentication
 
             var delegatedRoles = profile.Roles
                 .Where(x => string.Equals(x.Name, AccessRoles.ResourceOwner, StringComparison.OrdinalIgnoreCase))
-                .Where(x => !string.IsNullOrEmpty(x.Scope?.Value))
-                .Select(x => x.Scope?.Value!)
-                .ToList();
+                .Where(x => !string.IsNullOrWhiteSpace(x.Scope?.Value))
+                .Select(x => x.Scope!.Value)
+                .ToArray();
 
             foreach (var delegatedRole in delegatedRoles)
             {
+                var value = delegatedRole.Replace("*", string.Empty).TrimEnd();
+                
                 ApiOrgUnit? orgUnit;
                 try
                 {
-                    orgUnit = await ResolveLineOrgUnit(delegatedRole);
+                    orgUnit = await ResolveLineOrgUnit(value);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Failed to resolve org unit {DelegatedRoleValue} for delegated resource owner", delegatedRole);
+                    logger.LogError(e, "Failed to resolve org unit {DelegatedRoleValue} for delegated resource owner", value);
                     continue;
                 }
 
