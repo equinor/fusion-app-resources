@@ -72,7 +72,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <returns></returns>
         public static IAuthorizationRequirementRule BeResourceOwnerForAnyDepartment(this IAuthorizationRequirementRule builder, bool includeDelegatedResourceOwners = true)
         {
-            builder.AddRule(new BeResourceOwnerRequirement(includeDelegatedResourceOwners));
+            builder.AddRule(BeResourceOwnerRequirement.ForAnyDepartment(includeDelegatedResourceOwners));
             return builder;
         }
 
@@ -162,7 +162,7 @@ namespace Fusion.Resources.Api.Controllers
         }
         public static IAuthorizationRequirementRule CanDelegateAccessToDepartment(this IAuthorizationRequirementRule builder, string department)
         {
-            builder.AddRule(new CanDelegateAccessToDepartmentRequirement(department));
+            builder.BeResourceOwnerForDepartment(department, includeParents: true, includeDelegatedResourceOwners: false);
             return builder;
         }
 

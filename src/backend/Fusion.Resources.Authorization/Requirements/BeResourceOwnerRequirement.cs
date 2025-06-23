@@ -13,6 +13,11 @@ namespace Fusion.Resources.Authorization.Requirements
     /// </summary>
     public class BeResourceOwnerRequirement : FusionAuthorizationRequirement, IAuthorizationHandler
     {
+        public static BeResourceOwnerRequirement ForAnyDepartment(bool includeDelegatedResourceOwners = false)
+        {
+            return new BeResourceOwnerRequirement(includeDelegatedResourceOwners);
+        }
+
         public BeResourceOwnerRequirement(string departmentPath,
             bool includeParents = false, bool includeDescendants = false,
             bool includeDelegatedResourceOwners = false)
@@ -23,9 +28,10 @@ namespace Fusion.Resources.Authorization.Requirements
             IncludeDescendants = includeDescendants;
         }
 
-        public BeResourceOwnerRequirement(bool includeDelegatedResourceOwners = false)
+        private BeResourceOwnerRequirement(bool includeDelegatedResourceOwners)
         {
             IncludeDelegatedResourceOwners = includeDelegatedResourceOwners;
+            BeResourceOwnerForAnyDepartment = true;
         }
 
 
@@ -33,6 +39,7 @@ namespace Fusion.Resources.Authorization.Requirements
 
         public override string Code => "ResourceOwner";
 
+        public bool BeResourceOwnerForAnyDepartment { get; }
         public string? DepartmentPath { get; }
         public bool IncludeParents { get; }
         public bool IncludeDescendants { get; }
@@ -58,9 +65,16 @@ namespace Fusion.Resources.Authorization.Requirements
                 SetEvaluation("User is not resource owner in any departments");
                 return Task.CompletedTask;
             }
-            if (string.IsNullOrEmpty(DepartmentPath))
+
+            if (string.IsNullOrWhiteSpace(DepartmentPath))
             {
-                context.Succeed(this);
+                if (BeResourceOwnerForAnyDepartment)
+                {
+                    SetEvaluation("User is resource owner in any department");
+                    context.Succeed(this);
+                    return Task.CompletedTask;
+                }
+                
                 return Task.CompletedTask;
             }
 

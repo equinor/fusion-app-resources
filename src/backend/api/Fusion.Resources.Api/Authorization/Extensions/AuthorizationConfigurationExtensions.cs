@@ -8,7 +8,6 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddResourcesAuthorizationHandlers(this IServiceCollection services)
         {
-            services.AddScoped<IAuthorizationHandler, CanDelegateAccessToDepartmentHandler>();
             services.AddScoped<IAuthorizationHandler, OrgPositionAccessHandler>();
             services.AddScoped<IAuthorizationHandler, OrgProjectAccessHandler>();
             services.AddScoped<IAuthorizationHandler, RequestCreatorHandler>();
