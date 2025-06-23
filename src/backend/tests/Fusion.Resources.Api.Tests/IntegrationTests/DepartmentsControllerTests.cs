@@ -175,6 +175,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetDepartmentV11_Should_Forbid_Level2_To_Level1_Department()
+        {
+            var assignedOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "752832112",
+                name: "bla",
+                department: "CAI PDD",
+                fullDepartment: "CAI PDD",
+                shortname: "PDD"
+            );
+
+            var siblingOrgUnit = LineOrgServiceMock.AddOrgUnit(
+                sapId: "752832221",
+                name: "bli",
+                department: "LKA",
+                fullDepartment: "LKA",
+                shortname: "LKA"
+            );
+
+            var responsiblePerson = fixture.AddProfile(s =>
+            {
+                s.WithAccountType(FusionAccountType.Employee);
+                s.WithFullDepartment("CORP"); // Is in the new workday CORP department
+            });
+
+            LineOrgServiceMock.AddOrgUnitManager(assignedOrgUnit.FullDepartment, responsiblePerson);
+
+            using var userScope = fixture.UserScope(responsiblePerson);
+            var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{siblingOrgUnit.SapId}?api-version=1.1");
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
+        [Fact]
         public async Task GetDepartment_Should_GetFromLineOrg_WhenNotInDb()
         {
             var department = "NOT IN DB";
