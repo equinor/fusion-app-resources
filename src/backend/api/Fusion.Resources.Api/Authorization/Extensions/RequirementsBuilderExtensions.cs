@@ -162,7 +162,10 @@ namespace Fusion.Resources.Api.Controllers
         }
         public static IAuthorizationRequirementRule CanDelegateAccessToDepartment(this IAuthorizationRequirementRule builder, string department)
         {
-            builder.BeResourceOwnerForDepartment(department, includeParents: true, includeDelegatedResourceOwners: false);
+            var departmentPath = new DepartmentPath(department);
+            builder.BeResourceOwnerForDepartment(department, includeDelegatedResourceOwners: false);
+            builder.BeResourceOwnerForDepartment(departmentPath.Parent(), includeDelegatedResourceOwners: false);
+            builder.BeSiblingResourceOwner(departmentPath, includeDelegatedResourceOwners: false);
             return builder;
         }
 
