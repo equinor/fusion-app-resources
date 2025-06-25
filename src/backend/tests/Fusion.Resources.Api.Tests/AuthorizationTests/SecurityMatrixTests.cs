@@ -1,6 +1,5 @@
 ﻿using Azure.Core;
 using FluentAssertions;
-using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
@@ -19,6 +18,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 using Xunit;
 using Xunit.Abstractions;
 

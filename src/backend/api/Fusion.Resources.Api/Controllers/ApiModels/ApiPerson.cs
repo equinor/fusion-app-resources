@@ -1,8 +1,8 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Profile;
+﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
 using System;
 using System.Text.Json.Serialization;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
