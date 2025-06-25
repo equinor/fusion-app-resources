@@ -433,12 +433,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("AAA BBB", false)]
         [InlineData("AAA BBB CCC", false)]
+        [InlineData("AAA BBB CCC YYY", true)]
         [InlineData("AAA BBB CCC XXX", true)] //<- ResourceOwner for this department
         [InlineData("AAA BBB CCC XXX EEE", true)]
-        [InlineData("AAA BBB CCC XXX EEE FFF", true)]
-        public async Task OptionsDepartmentResponsible_CanDelegateAccessToCurrentAndDownwards_WhenResourceOwner(string fullDepartment, bool expectingAccess)
+        [InlineData("AAA BBB CCC XXX EEE FFF", false)]
+        public async Task OptionsDepartmentResponsible_CanDelegateAccessToCurrentAndSiblingsAndDirectChildren_WhenResourceOwner(string fullDepartment, bool expectingAccess)
         {
-            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC XXX", "AAA BBB CCC XXX EEE", "AAA BBB CCC XXX EEE FFF" };
+            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC XXX", "AAA BBB CCC XXX EEE", "AAA BBB CCC XXX EEE FFF", "AAA BBB CCC YYY" };
             foreach (var dep in departmentsToTest)
                 fixture.EnsureDepartment(dep);
 
@@ -475,12 +476,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("AAA BBB", false)]
         [InlineData("AAA BBB CCC", false)]
+        [InlineData("AAA BBB CCC YYY", true)]
         [InlineData("AAA BBB CCC XXX", true)] //<- ResourceOwner for this department
         [InlineData("AAA BBB CCC XXX EEE", true)]
-        [InlineData("AAA BBB CCC XXX EEE FFF", true)]
-        public async Task PostDepartmentResponsible_CanDelegateAccessToCurrentAndDownwards_WhenResourceOwner(string fullDepartment, bool expectingAccess)
+        [InlineData("AAA BBB CCC XXX EEE FFF", false)]
+        public async Task PostDepartmentResponsible_CanDelegateAccessToCurrentAndSiblingsAndDirectChildren_WhenResourceOwner(string fullDepartment, bool expectingAccess)
         {
-            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC XXX", "AAA BBB CCC XXX EEE", "AAA BBB CCC XXX EEE FFF" };
+            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC XXX", "AAA BBB CCC XXX EEE", "AAA BBB CCC XXX EEE FFF", "AAA BBB CCC YYY" };
             foreach (var dep in departmentsToTest)
                 fixture.EnsureDepartment(dep);
 
