@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion.Resources.Functions.Common.ApiClients;
+using Grpc.Core;
 
 namespace Fusion.Summary.Functions.ReportCreator;
 
@@ -64,6 +65,33 @@ public abstract class ResourceOwnerReportDataCreator
             !req.HasProposedPerson &&
             !req.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase));
 
+    public static int GetCombinedOpenRequestsWorkload(IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests,
+    List<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
+    {
+        if (requests == null || listOfInternalPersonnel == null || !listOfInternalPersonnel.Any())
+            return 0;
+
+        var totalOpenRequestsWorkload = requests.Where(r => r.OrgPositionInstance != null)
+        .Sum(r => r.OrgPositionInstance?.Workload ?? 0);
+
+        var totalLeave = listOfInternalPersonnel
+        .SelectMany(p => p.EmploymentStatuses)
+        .Where(status =>
+        (status.Type == IResourcesApiClient.ApiAbsenceType.Absence ||
+        status.Type == IResourcesApiClient.ApiAbsenceType.Vacation) &&
+        status.IsActive)
+        .Sum(status => status.AbsencePercentage ?? 0);
+
+        var maxPotential = listOfInternalPersonnel.Count * 100;
+        var potentialAvailable = maxPotential - totalLeave;
+
+        if (potentialAvailable <= 0)
+            return 0;
+
+        var percentageOfCapacity = totalOpenRequestsWorkload / potentialAvailable * 100;
+
+        return (int)Math.Round(percentageOfCapacity);
+    }
 
     public static int GetNumberOfRequestsStartingInMoreThanThreeMonths(
         IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)

@@ -53,6 +53,7 @@ public class PutWeeklySummaryReport : IRequest<bool>
                 Period = request.WeeklySummaryReport.Period.Date,
                 NumberOfPersonnel = request.WeeklySummaryReport.NumberOfPersonnel,
                 CapacityInUse = request.WeeklySummaryReport.CapacityInUse,
+                OpenRequestsWorkload = request.WeeklySummaryReport.OpenRequestsWorkload,
                 NumberOfRequestsLastPeriod = request.WeeklySummaryReport.NumberOfRequestsLastPeriod,
                 NumberOfOpenRequests = request.WeeklySummaryReport.NumberOfOpenRequests,
                 NumberOfRequestsStartingInLessThanThreeMonths =
