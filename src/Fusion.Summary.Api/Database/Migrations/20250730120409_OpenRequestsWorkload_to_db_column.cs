@@ -15,7 +15,7 @@ namespace Fusion.Summary.Api.Database.Migrations
                 table: "WeeklySummaryReports",
                 type: "nvarchar(max)",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "N/A");
         }
 
         /// <inheritdoc />
