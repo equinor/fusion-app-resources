@@ -35,6 +35,7 @@ public static class SummaryReportHelpers
             Period = CreateDayOfWeek(DayOfWeek.Monday),
             NumberOfPersonnel = "1",
             CapacityInUse = "2",
+            OpenRequestsWorkload = "2",
             NumberOfRequestsLastPeriod = "3",
             NumberOfOpenRequests = "4",
             NumberOfRequestsStartingInLessThanThreeMonths = "5",
