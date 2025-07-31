@@ -76,6 +76,7 @@ public record ApiWeeklySummaryReport
     public DateTime Period { get; set; }
     public string NumberOfPersonnel { get; set; } = MissingValue;
     public string CapacityInUse { get; set; } = MissingValue;
+    public string OpenRequestsWorkload { get; set; } = MissingValue;
     public string NumberOfRequestsLastPeriod { get; set; } = MissingValue;
     public string NumberOfOpenRequests { get; set; } = MissingValue;
     public string NumberOfRequestsStartingInLessThanThreeMonths { get; set; } = MissingValue;

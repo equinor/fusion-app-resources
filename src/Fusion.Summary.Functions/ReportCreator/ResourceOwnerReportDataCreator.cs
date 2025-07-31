@@ -66,23 +66,23 @@ public abstract class ResourceOwnerReportDataCreator
             !req.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase));
 
     public static int GetCombinedOpenRequestsWorkload(IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests,
-    List<IResourcesApiClient.InternalPersonnelPerson> listOfInternalPersonnel)
+    List<IResourcesApiClient.InternalPersonnelPerson> internalPersonnel)
     {
-        if (requests == null || listOfInternalPersonnel == null || !listOfInternalPersonnel.Any())
+        if (requests == null || internalPersonnel == null || internalPersonnel.Count == 0)
             return 0;
 
         var totalOpenRequestsWorkload = requests.Where(r => r.OrgPositionInstance != null)
         .Sum(r => r.OrgPositionInstance?.Workload ?? 0);
 
-        var totalLeave = listOfInternalPersonnel
+        var totalLeave = internalPersonnel
         .SelectMany(p => p.EmploymentStatuses)
         .Where(status =>
-        (status.Type == IResourcesApiClient.ApiAbsenceType.Absence ||
-        status.Type == IResourcesApiClient.ApiAbsenceType.Vacation) &&
-        status.IsActive)
+            (status.Type == IResourcesApiClient.ApiAbsenceType.Absence ||
+            status.Type == IResourcesApiClient.ApiAbsenceType.Vacation) &&
+            status.IsActive)
         .Sum(status => status.AbsencePercentage ?? 0);
 
-        var maxPotential = listOfInternalPersonnel.Count * 100;
+        var maxPotential = internalPersonnel.Count * 100;
         var potentialAvailable = maxPotential - totalLeave;
 
         if (potentialAvailable <= 0)
