@@ -101,6 +101,7 @@ public class WeeklyDepartmentSummaryWorker
                 .ToArray(),
             NumberOfPersonnel = ResourceOwnerReportDataCreator.GetTotalNumberOfPersonnel(personnel).ToString(),
             CapacityInUse = ResourceOwnerReportDataCreator.GetCapacityInUse(personnel).ToString(),
+            OpenRequestsWorkload = ResourceOwnerReportDataCreator.GetCombinedOpenRequestsWorkload(requests, personnel).ToString(),
             NumberOfRequestsLastPeriod = ResourceOwnerReportDataCreator.GetNumberOfRequestsLastWeek(requests).ToString(),
             NumberOfOpenRequests = ResourceOwnerReportDataCreator.GetNumberOfOpenRequests(requests).ToString(),
             NumberOfRequestsStartingInLessThanThreeMonths = ResourceOwnerReportDataCreator.GetNumberOfRequestsStartingInLessThanThreeMonths(requests).ToString(),
