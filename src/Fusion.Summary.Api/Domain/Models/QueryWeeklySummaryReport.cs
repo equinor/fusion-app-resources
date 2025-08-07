@@ -10,6 +10,7 @@ public class QueryWeeklySummaryReport
     public required DateTime PeriodEnd { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
+    public required string OpenRequestsWorkload { get; set; }
     public required string NumberOfRequestsLastPeriod { get; set; }
     public required string NumberOfOpenRequests { get; set; }
     public required string NumberOfRequestsStartingInLessThanThreeMonths { get; set; }
@@ -32,6 +33,7 @@ public class QueryWeeklySummaryReport
             PeriodEnd = dbWeeklySummaryReport.Period.AddDays(7),
             NumberOfPersonnel = dbWeeklySummaryReport.NumberOfPersonnel,
             CapacityInUse = dbWeeklySummaryReport.CapacityInUse,
+            OpenRequestsWorkload = dbWeeklySummaryReport.OpenRequestsWorkload,
             NumberOfRequestsLastPeriod = dbWeeklySummaryReport.NumberOfRequestsLastPeriod,
             NumberOfOpenRequests = dbWeeklySummaryReport.NumberOfOpenRequests,
             NumberOfRequestsStartingInLessThanThreeMonths =
@@ -67,6 +69,7 @@ public class QueryWeeklySummaryReport
             Period = Period,
             NumberOfPersonnel = NumberOfPersonnel,
             CapacityInUse = CapacityInUse,
+            OpenRequestsWorkload = OpenRequestsWorkload,
             NumberOfRequestsLastPeriod = NumberOfRequestsLastPeriod,
             NumberOfOpenRequests = NumberOfOpenRequests,
             NumberOfRequestsStartingInLessThanThreeMonths =

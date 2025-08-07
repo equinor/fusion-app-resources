@@ -11,6 +11,7 @@ public class DbWeeklySummaryReport
     public required DateTime Period { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
+    public required string OpenRequestsWorkload { get; set; }
     public required string NumberOfRequestsLastPeriod { get; set; }
     public required string NumberOfOpenRequests { get; set; }
     public required string NumberOfRequestsStartingInLessThanThreeMonths { get; set; }

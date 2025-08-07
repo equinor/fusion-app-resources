@@ -243,4 +243,44 @@ public class ScheduledReportNotificationBuilderTests
         // Assert
         numberOfRequests.Should().Be(1);
     }
+
+    [Fact]
+    public void GetOpenRequestsWorkload_ShouldReturnCorrectCapacityRequested()
+    {
+        //Arrange
+        var requests = new List<IResourcesApiClient.ResourceAllocationRequest>
+        {
+            new()
+            {
+                OrgPositionInstance = new ApiPositionInstanceV2 {Workload =  20}
+            }
+        };
+
+        const int personnelCount = 4;
+        const int workload = 80;
+        const int otherTasks = 4;
+        const int vacationLeave = 2;
+        const int absenceLeave = 3;
+        var personnel = NotificationReportApiResponseMock.GetMockedInternalPersonnel(
+            personnelCount,
+            workload,
+            otherTasks,
+            vacationLeave,
+            absenceLeave);
+
+        // Act
+        var result = ResourceOwnerReportDataCreator.GetCombinedOpenRequestsWorkload(requests, personnel);
+
+        var totalOpenRequestsWorkload = 20; // Total workload from requests
+        var totalLeave = vacationLeave + absenceLeave; // Total leave percentage
+        var maxPotential = personnelCount * 100; // Max potential capacity
+        var potentialAvailable = maxPotential - totalLeave;
+
+        double expectedPercentage = potentialAvailable > 0
+           ? totalOpenRequestsWorkload / (double)potentialAvailable * 100
+           : 0;
+
+        // Assert
+        result.Should().Be((int)Math.Round(expectedPercentage));
+    }
 }

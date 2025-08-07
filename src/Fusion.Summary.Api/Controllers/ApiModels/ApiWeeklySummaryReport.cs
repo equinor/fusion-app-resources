@@ -11,6 +11,7 @@ public class ApiWeeklySummaryReport
     public required DateTime PeriodEnd { get; set; }
     public required string NumberOfPersonnel { get; set; }
     public required string CapacityInUse { get; set; }
+    public required string OpenRequestsWorkload { get; set; }
     public required string NumberOfRequestsLastPeriod { get; set; }
     public required string NumberOfOpenRequests { get; set; }
     public required string NumberOfRequestsStartingInLessThanThreeMonths { get; set; }
@@ -37,6 +38,7 @@ public class ApiWeeklySummaryReport
             PeriodEnd = queryWeeklySummaryReport.PeriodEnd,
             NumberOfPersonnel = queryWeeklySummaryReport.NumberOfPersonnel,
             CapacityInUse = queryWeeklySummaryReport.CapacityInUse,
+            OpenRequestsWorkload = queryWeeklySummaryReport.OpenRequestsWorkload,
             NumberOfRequestsLastPeriod = queryWeeklySummaryReport.NumberOfRequestsLastPeriod,
             NumberOfOpenRequests = queryWeeklySummaryReport.NumberOfOpenRequests,
             NumberOfRequestsStartingInLessThanThreeMonths =

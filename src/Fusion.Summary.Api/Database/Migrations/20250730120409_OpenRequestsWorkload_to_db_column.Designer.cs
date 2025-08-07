@@ -4,6 +4,7 @@ using Fusion.Summary.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Summary.Api.Database.Migrations
 {
     [DbContext(typeof(SummaryDbContext))]
-    partial class SummaryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250730120409_OpenRequestsWorkload_to_db_column")]
+    partial class OpenRequestsWorkload_to_db_column
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
