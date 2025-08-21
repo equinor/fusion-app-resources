@@ -99,7 +99,8 @@ public class ScheduledReportNotificationBuilderTests
             new()
             {
                 Type = RequestType.Allocation.ToString(),
-                State = RequestState.Created.ToString()
+                State = RequestState.Created.ToString(),
+                OrgPositionInstance = new ApiPositionInstanceV2(),
             },
             new()
             {
