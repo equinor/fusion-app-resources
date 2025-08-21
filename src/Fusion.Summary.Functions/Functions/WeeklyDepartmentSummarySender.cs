@@ -210,7 +210,7 @@ public class WeeklyDepartmentSummarySender
                 "Open requests")
             .AddTextRow(
                 report.OpenRequestsWorkload,
-                "Combined open requests workload", "%")
+                "Σ Requested workload", "%")
             .AddTextRow(
                 report.NumberOfRequestsStartingInLessThanThreeMonths,
                 "Requests with start date < 3 months")

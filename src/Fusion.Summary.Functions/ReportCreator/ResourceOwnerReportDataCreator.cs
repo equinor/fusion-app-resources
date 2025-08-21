@@ -342,3 +342,4 @@ public enum ChangeType
     PositionInstancePercentChanged,
     PositionInstanceLocationChanged
 }
+
