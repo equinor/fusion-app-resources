@@ -57,40 +57,39 @@ public abstract class ResourceOwnerReportDataCreator
                                  && req.Created > DateTime.UtcNow.AddDays(-7) && !req.IsDraft);
     }
 
+    private static IEnumerable<IResourcesApiClient.ResourceAllocationRequest> GetOpenRequests(
+        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests
+    ) =>
+        requests.Where(req =>
+            req.OrgPositionInstance != null
+            && req.State != null
+            && req.Type != null
+            && !req.Type.Equals(
+                RequestType.ResourceOwnerChange.ToString(),
+                StringComparison.OrdinalIgnoreCase
+            )
+            && !req.HasProposedPerson
+            && !req.State.Equals(
+                RequestState.Completed.ToString(),
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
+
     public static int GetNumberOfOpenRequests(
-        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests)
-        => requests.Count(req =>
-            req.State != null && req.Type != null && !req.Type.Equals(RequestType.ResourceOwnerChange.ToString(),
-                StringComparison.OrdinalIgnoreCase) &&
-            !req.HasProposedPerson &&
-            !req.State.Equals(RequestState.Completed.ToString(), StringComparison.OrdinalIgnoreCase));
+        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests
+    ) => GetOpenRequests(requests).Count();
 
-    public static int GetCombinedOpenRequestsWorkload(IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests,
-    List<IResourcesApiClient.InternalPersonnelPerson> internalPersonnel)
+    public static double GetCombinedOpenRequestsWorkload(
+        IEnumerable<IResourcesApiClient.ResourceAllocationRequest> requests
+    )
     {
-        if (requests == null || internalPersonnel == null || internalPersonnel.Count == 0)
+        if (requests == null)
             return 0;
 
-        var totalOpenRequestsWorkload = requests.Where(r => r.OrgPositionInstance != null)
-        .Sum(r => r.OrgPositionInstance?.Workload ?? 0);
+        var totalOpenRequestsWorkload = GetOpenRequests(requests)
+            .Sum(r => r.OrgPositionInstance?.Workload ?? 0);
 
-        var totalLeave = internalPersonnel
-        .SelectMany(p => p.EmploymentStatuses)
-        .Where(status =>
-            (status.Type == IResourcesApiClient.ApiAbsenceType.Absence ||
-            status.Type == IResourcesApiClient.ApiAbsenceType.Vacation) &&
-            status.IsActive)
-        .Sum(status => status.AbsencePercentage ?? 0);
-
-        var maxPotential = internalPersonnel.Count * 100;
-        var potentialAvailable = maxPotential - totalLeave;
-
-        if (potentialAvailable <= 0)
-            return 0;
-
-        var percentageOfCapacity = totalOpenRequestsWorkload / potentialAvailable * 100;
-
-        return (int)Math.Round(percentageOfCapacity);
+        return totalOpenRequestsWorkload;
     }
 
     public static int GetNumberOfRequestsStartingInMoreThanThreeMonths(
@@ -343,3 +342,4 @@ public enum ChangeType
     PositionInstancePercentChanged,
     PositionInstanceLocationChanged
 }
+
