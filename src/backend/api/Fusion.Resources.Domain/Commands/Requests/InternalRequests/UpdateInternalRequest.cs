@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
-using Fusion.ApiClients.Org;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Newtonsoft.Json;
 using Fusion.Resources.Database.Entities;
+using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json.Linq;
 
 namespace Fusion.Resources.Domain.Commands

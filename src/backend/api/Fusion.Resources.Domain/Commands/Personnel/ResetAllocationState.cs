@@ -1,11 +1,14 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 #nullable enable 
 
@@ -39,7 +42,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task Handle(ResetAllocationState request, CancellationToken cancellationToken)
             {
-                var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                var client = orgApiClientFactory.CreateClient();
 
                 // Mark changes done to org entities to come from resources.
                 using var scope = client.UseRequestHeaders()

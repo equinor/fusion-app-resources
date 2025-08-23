@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Org;
+﻿using Fusion.Integration.Org;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
 using MediatR;
@@ -8,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {

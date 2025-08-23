@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Fusion.ApiClients.Org;
+﻿
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -16,6 +15,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
+using Fusion.Services.Org.ApiModels;
 using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
@@ -36,7 +39,7 @@ namespace Fusion.Resources.Logic.Tests
 
             orgClientMock = new Mock<IOrgApiClient>();
 
-            orgClientMock.Setup(c => c.SendAsync(It.Is<HttpRequestMessage>(m => m.Method == HttpMethod.Put))).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(It.Is<HttpRequestMessage>(m => m.Method == HttpMethod.Put), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK
             });
@@ -285,7 +288,7 @@ namespace Fusion.Resources.Logic.Tests
 
             setup(testPosition);
 
-            orgClientMock.Setup(c => c.SendAsync(It.Is<HttpRequestMessage>(m => m.Method == HttpMethod.Get))).ReturnsAsync(new HttpResponseMessage()
+            orgClientMock.Setup(c => c.SendAsync(It.Is<HttpRequestMessage>(m => m.Method == HttpMethod.Get), CancellationToken.None)).ReturnsAsync(new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 Content = new StringContent(JsonConvert.SerializeObject(testPosition), Encoding.UTF8, "application/json")
@@ -300,14 +303,14 @@ namespace Fusion.Resources.Logic.Tests
         private async Task<(ApiPositionV2, string)> RunProvisioningAsync(DbResourceAllocationRequest request)
         {
             var factoryMock = new Mock<IOrgApiClientFactory>();
-            factoryMock.Setup(c => c.CreateClient(ApiClientMode.Application)).Returns(orgClientMock.Object);
+            factoryMock.Setup(c => c.CreateClient()).Returns(orgClientMock.Object);
 
             var cmd = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest(request.Id);
             var handler = new ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest.Handler(dbContext, factoryMock.Object)
                 as IRequestHandler<ResourceAllocationRequest.ResourceOwner.ProvisionResourceOwnerRequest>;
             await handler.Handle(cmd, CancellationToken.None);
 
-            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.Cast<HttpRequestMessage>())
+            var i = orgClientMock.Invocations.SelectMany(i => i.Arguments.OfType<HttpRequestMessage>())
                 .FirstOrDefault(m => m.Method == HttpMethod.Put);
             var postedPositionJson = await i.Content.ReadAsStringAsync();
             var postedPosition = JsonConvert.DeserializeObject<ApiPositionV2>(postedPositionJson);

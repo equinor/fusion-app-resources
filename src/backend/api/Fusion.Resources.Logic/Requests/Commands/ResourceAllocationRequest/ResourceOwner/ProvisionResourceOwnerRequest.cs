@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +7,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
+using Fusion.Resources.Domain.Services.OrgClient.Models;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -33,7 +37,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     public Handler(ResourcesDbContext resourcesDb, IOrgApiClientFactory orgApiClientFactory)
                     {
-                        this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                        this.client = orgApiClientFactory.CreateClient();
                         this.resourcesDb = resourcesDb;
                     }
 
@@ -243,7 +247,7 @@ namespace Fusion.Resources.Logic.Commands
                                     instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
 
                                 if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocation>()!);
                                 break;
 
                             case SubType.Types.ChangeResource:
@@ -290,7 +294,7 @@ namespace Fusion.Resources.Logic.Commands
                         */
 
                         if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocation>()!);
 
 
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";

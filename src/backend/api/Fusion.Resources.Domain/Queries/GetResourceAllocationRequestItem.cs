@@ -12,6 +12,9 @@ using Fusion.Resources.Domain.Commands.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Fusion.Resources.Domain.Commands.Conversations;
+using Fusion.Resources.Domain.Services;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -118,7 +121,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
                 this.profileResolver = profileResolver;
-                this.orgClient = apiClientFactory.CreateClient(ApiClientMode.Application);
+                this.orgClient = apiClientFactory.CreateClient();
             }
 
             public async Task<QueryResourceAllocationRequest?> Handle(GetResourceAllocationRequestItem request, CancellationToken cancellationToken)

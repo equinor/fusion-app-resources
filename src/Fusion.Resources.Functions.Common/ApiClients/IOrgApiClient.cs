@@ -1,4 +1,5 @@
 ﻿using Fusion.Integration.Core.Http.OData;
+using Fusion.Integration.Http.Models;
 using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json;
 

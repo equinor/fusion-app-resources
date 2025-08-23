@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {
@@ -58,7 +60,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
                 return cachedHeaders;
             }
 
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Delegate);
+            var client = orgApiClientFactory.CreateClient();
 
             var request = new HttpRequestMessage(new HttpMethod("OPTIONS"), $"/projects/{requirement.OrgProjectId}");
             var response = await client.SendAsync(request);

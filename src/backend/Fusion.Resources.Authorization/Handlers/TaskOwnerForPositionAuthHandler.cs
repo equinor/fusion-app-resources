@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Services.OrgClient;
+using Fusion.Resources.Domain.Services.OrgClient.Abstractions;
 
 namespace Fusion.Resources.Authorization.Handlers
 {
@@ -12,7 +14,7 @@ namespace Fusion.Resources.Authorization.Handlers
 
         public TaskOwnerForPositionAuthHandler(IOrgApiClientFactory apiClientFactory)
         {
-            orgClient = apiClientFactory.CreateClient(ApiClientMode.Application);
+            orgClient = apiClientFactory.CreateClient();
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, TaskOwnerForPositionRequirement requirement)

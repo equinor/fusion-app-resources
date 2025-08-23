@@ -7,10 +7,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Services.Org.ApiModels;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api.Notifications
