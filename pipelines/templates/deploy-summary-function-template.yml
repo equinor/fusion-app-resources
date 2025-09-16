@@ -41,7 +41,7 @@ steps:
       if ($environment -eq "fprd") {
           $summary = "https://fra-summary.api.fusion.equinor.com"
           $portal = "https://fusion.equinor.com"
-          $lineorg = "https://lineorg.api.fusion.equinor.com"
+          $lineorg = "https://fra-lineorg.api.fusion.equinor.com"
           $org = "https://org.api.fusion.equinor.com"
           $people = "https://people.api.fusion.equinor.com"
           $resources = "https://fra-resources.api.fusion.equinor.com"
@@ -52,7 +52,7 @@ steps:
       }
       else {
          $summary = "https://fra-summary.$environment.api.fusion-dev.net"
-         $lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
+         $lineorg = "https://fra-lineorg.$fusionEnvironment.api.fusion-dev.net"
          $org = "https://org.$fusionEnvironment.api.fusion-dev.net"
          $people = "https://people.$fusionEnvironment.api.fusion-dev.net"
          $resources = "https://fra-resources.$environment.api.fusion-dev.net"

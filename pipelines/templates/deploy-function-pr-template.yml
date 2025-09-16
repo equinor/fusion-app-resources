@@ -49,7 +49,7 @@ steps:
               serviceBus = "https://$envVaultName.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
           }
           endpoints = @{
-            lineorg = "https://lineorg.$fusionEnvironment.api.fusion-dev.net"
+            lineorg = "https://fra-lineorg.$fusionEnvironment.api.fusion-dev.net"
             org = "https://org.$fusionEnvironment.api.fusion-dev.net"
             people = "https://people.$fusionEnvironment.api.fusion-dev.net"
             resources = "https://fra-resources-$pullRequestNumber.pr.api.fusion-dev.net"
