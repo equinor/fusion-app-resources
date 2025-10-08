@@ -98,8 +98,8 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             {
                 instance.AssignedPerson = new ApiPersonV2
                 {
-                    AzureUniqueId = request.AssignedPerson.Value.AzureUniqueId,
-                    Mail = request.AssignedPerson.Value.Mail
+                    AzureUniqueId = request.AssignedPerson.Value?.AzureUniqueId,
+                    Mail = request.AssignedPerson.Value?.Mail
                 };
             }
 
