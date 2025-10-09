@@ -32,10 +32,6 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("departments/{departmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> OptionsDepartmentPersonnel([FromRoute] OrgUnitIdentifier departmentString)
         {
-
-            if (!departmentString.Exists)
-                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department does not exist");
-
             #region Authorization
 
             var sector = new DepartmentPath(departmentString.FullDepartment).Parent();
@@ -62,6 +58,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
+                if (!departmentString.Exists)
+                    return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department does not exist");
+
                 Response.Headers["Allow"] = authResult.LimitedAuth ? "GET,LIMITED" : "GET";
             }
 
@@ -94,10 +93,6 @@ namespace Fusion.Resources.Api.Controllers
             [FromQuery] bool includeCurrentAllocations = false,
             int? version = 2)
         {
-
-            if (!departmentString.Exists)
-                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department does not exist");
-
             #region Authorization
 
             var sector = new DepartmentPath(departmentString.FullDepartment).Parent();
@@ -124,6 +119,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Department does not exist");
 
             #region Validate input if timeline is expanded
 
@@ -330,7 +327,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-     
+
         [HttpGet("/departments/resources/persons")]
         [HttpGet("/projects/{projectIdentifier}/resources/persons")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> Search([FromRoute] PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
