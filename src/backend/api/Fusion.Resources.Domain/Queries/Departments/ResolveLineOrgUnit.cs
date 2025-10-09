@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain
                 if (string.IsNullOrEmpty(request.DepartmentId))
                     return null;
 
-                var departmentId = Regex.IsMatch(request.DepartmentId, @"\d+") ? Integration.LineOrg.DepartmentId.FromSapId(request.DepartmentId)
+                var departmentId = Regex.IsMatch(request.DepartmentId, @"(SO)?\d+") ? Integration.LineOrg.DepartmentId.FromSapId(request.DepartmentId)
                     : Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId);
 
                 var lineOrgDpt = await lineOrgResolver.ResolveOrgUnitAsync(departmentId);
