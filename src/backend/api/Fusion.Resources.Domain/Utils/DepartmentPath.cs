@@ -67,7 +67,7 @@ namespace Fusion.Resources.Domain
 
         public bool IsDepartment(string? path)
         {
-            if (path is null)
+            if (string.IsNullOrEmpty(path))
                 return false;
 
             return path.Equals(fullDepartmentPath, StringComparison.OrdinalIgnoreCase);

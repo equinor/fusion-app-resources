@@ -74,7 +74,7 @@ namespace Fusion.Resources.Authorization.Requirements
                     context.Succeed(this);
                     return Task.CompletedTask;
                 }
-                
+
                 return Task.CompletedTask;
             }
 
@@ -93,6 +93,7 @@ namespace Fusion.Resources.Authorization.Requirements
                     $"[owner in department={directResponsibility}, parents={parentResponsibility}, descendants={descendantResponsibility}]");
 
                 context.Succeed(this);
+                return Task.CompletedTask;
             }
 
             SetEvaluation($"User have responsibility in departments: {string.Join(", ", departments)}; But not in the requirement '{DepartmentPath}'");
@@ -106,7 +107,7 @@ namespace Fusion.Resources.Authorization.Requirements
 
             if (IncludeDelegatedResourceOwners)
                 prefix = $"{prefix} or delegated resource owner";
-            
+
             if (string.IsNullOrEmpty(DepartmentPath))
                 return $"{prefix} of a department";
 

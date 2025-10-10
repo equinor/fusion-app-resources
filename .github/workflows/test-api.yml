@@ -1,5 +1,8 @@
 name: .NET
 
+permissions:
+  contents: read # Required to check out code and running tests
+
 on:
   push:
     branches: [ master ]
