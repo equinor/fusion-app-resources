@@ -66,8 +66,7 @@ namespace Fusion.Resources.Logic.Commands
                     await dbContext.SaveChangesAsync(cancellationToken);
 
                     INotification notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep?.PreviousStepId, currentStep?.Id);
-                    // TODO: uncomment before merging
-                    // await mediator.Publish(notification, cancellationToken);
+                    await mediator.Publish(notification, cancellationToken);
 
 
                     if (!string.Equals(dbRequest.State.State, WorkflowDefinition.APPROVAL, StringComparison.OrdinalIgnoreCase))
@@ -92,8 +91,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
                     else
                     {
-                        // TODO: uncomment before merging
-                        // await mediator.Publish(new InternalRequestNotifications.ProposedPerson(request.RequestId), CancellationToken.None);
+                        await mediator.Publish(new InternalRequestNotifications.ProposedPerson(request.RequestId), CancellationToken.None);
                     }
                 }
 
