@@ -43,7 +43,7 @@ namespace Fusion.Resources.Logic.Commands
                             .Include(r => r.Project)
                             .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
-                        if (dbRequest != null) 
+                        if (dbRequest != null)
                             await ProvisionAsync(dbRequest);
                     }
 
@@ -58,10 +58,10 @@ namespace Fusion.Resources.Logic.Commands
 
                         var isFuture = positionInstance.AppliesFrom >= DateTime.UtcNow.Date;
 
-                        var effectiveChangeFrom = dbRequest.ProposalParameters.ChangeFrom?.Date ?? positionInstance.AppliesFrom.Date;
-                        var effectiveChangeTo = dbRequest.ProposalParameters.ChangeTo?.Date ?? positionInstance.AppliesTo.Date;
-                        if (effectiveChangeFrom < positionInstance.AppliesFrom) effectiveChangeFrom = positionInstance.AppliesFrom.Date;
-                        if (effectiveChangeTo > positionInstance.AppliesTo) effectiveChangeTo = positionInstance.AppliesTo.Date;
+                        var effectiveChangeFrom = dbRequest.ProposalParameters.ChangeFrom ?? positionInstance.AppliesFrom;
+                        var effectiveChangeTo = dbRequest.ProposalParameters.ChangeTo ?? positionInstance.AppliesTo;
+                        if (effectiveChangeFrom < positionInstance.AppliesFrom) effectiveChangeFrom = positionInstance.AppliesFrom;
+                        if (effectiveChangeTo > positionInstance.AppliesTo) effectiveChangeTo = positionInstance.AppliesTo;
 
                         var isSameDates = effectiveChangeFrom == positionInstance.AppliesFrom && effectiveChangeTo == positionInstance.AppliesTo;
 
@@ -132,7 +132,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     private void UpdateStart(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeTo)
                     {
-                        // Update existing 
+                        // Update existing
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
                         var newInstanceStartDate = changeTo.Date;
@@ -159,7 +159,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     private void UpdateEnd(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeFrom)
                     {
-                        // Update existing 
+                        // Update existing
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
 
@@ -187,15 +187,15 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         /*
                          * Basically we are splitting the current instance in to three parts.
-                         * 
+                         *
                          * <---> <new> <--->
-                         * 
+                         *
                          * So we must update the targeted instance to stop on the new change from (- 1 day)
                          * Create two new splits, 1 with the changeFrom and changeTo date; and 1 with changeTo + 1 day and the original end date.
-                         * 
+                         *
                          * */
 
-                        // Update existing 
+                        // Update existing
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
 
@@ -231,7 +231,7 @@ namespace Fusion.Resources.Logic.Commands
                     private void ApplyProposedChanges(DbResourceAllocationRequest dbRequest, JObject instance)
                     {
                         var subType = new SubType(dbRequest.SubType);
-                        
+
                         var proposedChanges = new JObject();
                         if (!string.IsNullOrEmpty(dbRequest.ProposedChanges) && dbRequest.ProposedChanges != "null")
                             proposedChanges = JObject.Parse(dbRequest.ProposedChanges);
@@ -259,7 +259,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     private async Task UpdateFutureSplitAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
                     {
-                        // Update existing 
+                        // Update existing
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
                         var instancePatchRequest = new JObject();
@@ -271,6 +271,10 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest.ProposedPerson.AzureUniqueId != null)
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
 
+                        // Explicitly set the assigned person to null, otherwise the position won't be cleared when ending the allocation
+                        if (dbRequest.SubType?.Equals("RemoveResource", StringComparison.OrdinalIgnoreCase) == true)
+                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, null!);
+
                         if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
 
@@ -278,7 +282,7 @@ namespace Fusion.Resources.Logic.Commands
                         //
                         // For now we disable letting the resource owner change these properties
                         //
-                        
+
                         if (proposedChanges.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Obs, obs);
 

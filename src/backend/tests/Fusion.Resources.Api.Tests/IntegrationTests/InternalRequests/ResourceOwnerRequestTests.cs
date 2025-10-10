@@ -14,7 +14,7 @@ using Fusion.Testing.Mocks.ProfileService;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-#nullable enable 
+#nullable enable
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -260,6 +260,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task EndAllocation_ShouldClearAssignedPerson()
+        {
+            var startDate = DateTime.UtcNow.AddDays(100);
+            var endDate = DateTime.UtcNow.AddDays(200);
+            using var adminScope = fixture.AdminScope();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
+            var position = testProject.AddPosition();
+            position.WithAssignedPerson(assignedPerson);
+            position.WithInstances(s => s.AddInstance(startDate, endDate - startDate).SetAssignedPerson(assignedPerson));
+
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject,
+                r => r.AsTypeResourceOwner(SUBTYPE_REMOVE),
+                p => p.WithInstances(s => s.AddInstance(startDate, endDate - startDate).SetAssignedPerson(assignedPerson))
+            );
+
+            var startResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}/start", null);
+            startResponse.Should().BeSuccessfull();
+            var approveResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve", null);
+            approveResponse.Should().BeSuccessfull();
+            var provisionResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{request.Id}/provision", null);
+            provisionResponse.Should().BeSuccessfull();
+
+            var instance = JsonConvert.DeserializeObject<TestApiInternalRequestModel>(provisionResponse.Content)?.OrgPositionInstance;
+            instance.Should().NotBeNull();
+            instance?.AssignedPerson.AzureUniqueId.Should().BeNull();
+        }
+
+        [Fact]
         public async Task ChangeResourceRequest_Start_ShouldBeBadRequest_WhenMissingProposedPerson()
         {
             using var adminScope = fixture.AdminScope();
@@ -327,14 +355,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             newRequestResponse.Should().BeBadRequest();
         }
 
-        // Is this still relevant? i.e could a position instance become unassigned between change 
+        // Is this still relevant? i.e could a position instance become unassigned between change
         // request is created and when it is started?
         //[Fact]
         //public async Task RemoveResourceRequest_Start_ShouldBeBadRequest_WhenNoCurrentlyAssignedPersons()
         //{
         //    using var adminScope = fixture.AdminScope();
 
-        //    var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, 
+        //    var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject,
         //        r => r.AsTypeResourceOwner(SUBTYPE_REMOVE), p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
         //    );
 
