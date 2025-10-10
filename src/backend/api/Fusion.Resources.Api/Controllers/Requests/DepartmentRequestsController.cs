@@ -27,9 +27,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
             [FromRoute] OrgUnitIdentifier departmentString,
             [FromQuery] ODataQueryParams query)
         {
-            if (!departmentString.Exists)
-                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
-
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -41,10 +38,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString.FullDepartment), AccessRoles.ResourceOwner);
                 });
             });
+
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
+            if (!departmentString.Exists)
+                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
 
             var requestCommand = new GetResourceAllocationRequests(query)
                 .ForResourceOwners()
@@ -60,9 +61,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpOptions("/departments/{departmentString}/resources/requests")]
         public async Task<ActionResult> OptionsDepartmentRequests([FromRoute] OrgUnitIdentifier departmentString)
         {
-            if (!departmentString.Exists)
-                return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
-
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -83,6 +81,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             if (authResult.Success)
             {
+                if (!departmentString.Exists)
+                    return FusionApiError.NotFound(departmentString.OriginalIdentifier, "Could not locate department");
+
                 allowed.Add("GET, POST");
             }
 
@@ -217,7 +218,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("departments/{departmentString}/resources/requests/unassigned")]
-        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentUnassignedRequests([FromRoute] OrgUnitIdentifier departmentString) 
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentUnassignedRequests([FromRoute] OrgUnitIdentifier departmentString)
         {
             #region Authorization
 
