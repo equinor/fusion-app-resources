@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Controllers
             var policy = new AuthorizationPolicyBuilder()
                 .RequireRole(role)
                 .Build();
-            return builder.AddRule((auth, user) => auth.AuthorizeAsync(user,policy));
+            return builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
         }
 
         /// <summary>
@@ -169,5 +169,10 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
+        public static IAuthorizationRequirementRule FRASupport(this IAuthorizationRequirementRule builder)
+        {
+            builder.AddRule(new GlobalRoleRequirement("Fusion.FRA.Support"));
+            return builder;
+        }
     }
 }
