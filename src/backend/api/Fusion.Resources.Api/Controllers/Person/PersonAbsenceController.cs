@@ -86,8 +86,9 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            var personAbsence = await DispatchAsync(new GetPersonAbsence(id) {  
-                LimitToPublicAllocations = limitedAuthMode, 
+            var personAbsence = await DispatchAsync(new GetPersonAbsence(id)
+            {
+                LimitToPublicAllocations = limitedAuthMode,
                 FilterPastAllocations = limitedAuthMode
             });
 
@@ -150,6 +151,7 @@ namespace Fusion.Resources.Api.Controllers
                     }
 
                     or.BeEmployee();
+                    or.FRASupport();
                 });
             });
 
