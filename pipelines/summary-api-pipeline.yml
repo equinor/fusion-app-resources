@@ -30,7 +30,7 @@ variables:
     deploymentManifestFolder: '$(Pipeline.Workspace)/k8s-deployment'
     fullImageName: $(fusionAcr)/$(imageName)
     dbTagPrefix: summary
-    containerRegistryName: 'fusion-aks-cr'
+    containerRegistryName: crfsharedhostingall
     dockerFilePath: src/Fusion.Summary.Api/Dockerfile
   
 stages:

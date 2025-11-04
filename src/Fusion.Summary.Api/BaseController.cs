@@ -8,7 +8,7 @@ namespace Fusion.Summary.Api;
 public class BaseController : ControllerBase
 {
     protected ActionResult DepartmentNotFound(string sapDepartmentId) =>
-        FusionApiError.NotFound(sapDepartmentId, $"Department with sap id '{sapDepartmentId}' was not found");
+        FusionApiError.NotFound(sapDepartmentId, $"Department with sap id '{sapDepartmentId}' was not found"); 
 
     protected ActionResult ProjectNotFound(Guid projectId) =>
         FusionApiError.NotFound(projectId, $"Project with id or externalId '{projectId}' was not found");
