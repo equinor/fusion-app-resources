@@ -38,7 +38,7 @@ stages:
       - task: AzureCLI@2
         displayName: 'Build docker image'
         inputs:
-          azureSubscription: $(subscriptionServiceNonProd)
+          azureSubscription: $(subscriptionService)
           scriptType: "bash"
           scriptLocation: "inlineScript"
           inlineScript: |
@@ -61,7 +61,7 @@ stages:
         displayName: Docker export migration
         condition: eq(variables['hasMigrations'], 'true')
         inputs:
-          azureSubscription: $(subscriptionServiceNonProd)
+          azureSubscription: $(subscriptionService)
           scriptType: "bash"
           scriptLocation: "inlineScript"
           inlineScript: |
