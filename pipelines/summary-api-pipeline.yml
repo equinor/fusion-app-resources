@@ -46,11 +46,7 @@ stages:
           scriptType: "bash"
           scriptLocation: "inlineScript"
           inlineScript: |
-            if [ "$(Build.Reason)" = "PullRequest" ]; then
-              az acr build --registry $(containerRegistryName) --image $(imageRepo):pr-$(System.PullRequest.PullRequestNumber) --image $(imageRepo):$(Build.BuildId) --image $(imageRepo):$(Build.SourceVersion) --file $(dockerFilePath) src/
-            else
-              az acr build --registry $(containerRegistryName) --image $(imageRepo):latest --image $(imageRepo):$(Build.BuildId) --image $(imageRepo):$(Build.SourceVersion) --file $(dockerFilePath) src/
-            fi
+            az acr build --registry $(containerRegistryName) --image $(imageRepo):latest --image $(imageRepo):$(Build.BuildId) --image $(imageRepo):$(Build.SourceVersion) --file $(dockerFilePath) src/
 
       - task: Bash@3
         displayName: "Check if the dockerfile has an export stage"
