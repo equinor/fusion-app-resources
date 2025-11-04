@@ -19,7 +19,7 @@ public class BaseController : ControllerBase
 
     protected Task DispatchAsync(IRequest command)
     {
-        var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
+        var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>(); 
 
         return mediator.Send(command, HttpContext.RequestAborted);
     }
