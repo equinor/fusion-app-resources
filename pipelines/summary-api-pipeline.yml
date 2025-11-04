@@ -30,6 +30,8 @@ variables:
     deploymentManifestFolder: '$(Pipeline.Workspace)/k8s-deployment'
     fullImageName: $(fusionAcr)/$(imageName)
     dbTagPrefix: summary
+    containerRegistryName: 'fusion-aks-cr'
+    dockerFilePath: src/Fusion.Summary.Api/Dockerfile
   
 stages:
   - stage: BuildDockerImage
@@ -37,37 +39,47 @@ stages:
     jobs:
     - job: BuildImage
       steps:
-      - task: Docker@2
+      - task: AzureCLI@2
         displayName: 'Build docker image'
         inputs:
-          containerRegistry: 'fusion-aks-cr'
-          repository: $(imageRepo)
-          command: 'buildAndPush'
-          buildContext: ./src
-          dockerfile: src/Fusion.Summary.Api/Dockerfile
-          tags: $(imageTag)    
+          azureSubscription: $(subscriptionServiceNonProd)
+          scriptType: "bash"
+          scriptLocation: "inlineScript"
+          inlineScript: |
+            if [ "$(Build.Reason)" = "PullRequest" ]; then
+              az acr build --registry $(containerRegistryName) --image $(imageRepo):pr-$(System.PullRequest.PullRequestNumber) --image $(imageRepo):$(Build.BuildId) --image $(imageRepo):$(Build.SourceVersion) --file $(dockerFilePath) src/
+            else
+              az acr build --registry $(containerRegistryName) --image $(imageRepo):latest --image $(imageRepo):$(Build.BuildId) --image $(imageRepo):$(Build.SourceVersion) --file $(dockerFilePath) src/
+            fi
 
-      - template: templates/docker-buildx.yml@infra
-        parameters:
-          initBuilderInstance: false
-          repository: ''
-          buildContext: ./src
-          dockerfile: src/Fusion.Summary.Api/Dockerfile
-          arguments: |
-            --target=export
-            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
-            --cache-from=type=registry,ref=crfsharedhostingall.azurecr.io/$(imageRepo):$(imageTag)
-
-      - task: CopyFiles@2
-        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+      - task: Bash@3
+        displayName: "Check if the dockerfile has an export stage"
         inputs:
-          SourceFolder: 'src/Fusion.Summary.Api/Deployment/k8s'
-          Contents: |
-            deployment-*.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+          targetType: "inline"
+          script: |
+            if grep -qi "AS export"  $(dockerFilePath); then
+              echo "EXPORT stage found. Exporting artifacts"
+              echo "##vso[task.setvariable variable=hasMigrations;]true"
+            else
+              echo "EXPORT stage was not found. Skipping export"
+              echo "##vso[task.setvariable variable=hasMigrations;]false"
+            fi
 
-      - publish: $(Build.ArtifactStagingDirectory)
-        artifact: 'k8s-deployment'
+      - task: AzureCLI@2
+        displayName: Docker export migration
+        condition: eq(variables['hasMigrations'], 'true')
+        inputs:
+          azureSubscription: $(subscriptionServiceNonProd)
+          scriptType: "bash"
+          scriptLocation: "inlineScript"
+          inlineScript: |
+            # Build and export the migration artifacts
+            docker build --target=export --output=type=local,dest=$(Build.ArtifactStagingDirectory) --file $(dockerFilePath) src/
+
+      - publish: $(Build.ArtifactStagingDirectory)/migrations
+        condition: eq(variables['hasMigrations'], 'true')
+        displayName: Publish migration artifact
+        artifact: migrations
   
   - stage: DeployCI
     displayName: 'Deploy to CI'
