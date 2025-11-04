@@ -28,7 +28,7 @@ RUN dotnet publish "./Fusion.Summary.Api.csproj" -c $BUILD_CONFIGURATION -o /app
 RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql" --configuration Release --no-build
 
 FROM scratch as export
-COPY --from=publish /migrations/migration.sql db-migration.sql
+COPY --from=build /migrations/ /migrations/
 
 FROM base AS final
 WORKDIR /app
