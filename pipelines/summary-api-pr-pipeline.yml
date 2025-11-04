@@ -26,7 +26,7 @@ variables:
     subscriptionServiceCore: PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/pr-deployment-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
-    containerRegistryName: 'fusion-aks-cr'
+    containerRegistryName: fusion-aks-cr
     dockerFilePath: src/Fusion.Summary.Api/Dockerfile
   
 stages:

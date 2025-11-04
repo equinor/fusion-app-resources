@@ -14,7 +14,7 @@ public class BaseController : ControllerBase
         FusionApiError.NotFound(projectId, $"Project with id or externalId '{projectId}' was not found");
 
     protected ActionResult SapDepartmentIdRequired() =>
-        FusionApiError.InvalidOperation("SapDepartmentIdRequired", "SapDepartmentId route parameter is required");
+        FusionApiError.InvalidOperation("SapDepartmentIdRequired", "SapDepartmentId route parameter is required"); 
 
 
     protected Task DispatchAsync(IRequest command)
