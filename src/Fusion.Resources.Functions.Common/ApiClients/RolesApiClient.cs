@@ -14,7 +14,7 @@ public class RolesApiClient : IRolesApiClient
         rolesClient = clientFactory.CreateClient(HttpClientNames.Application.Roles);
     }
 
-    private static string GetActiveOrgAdminsOdataQuery() => "scope.type eq 'OrgChart' and roleName eq 'Fusion.OrgChart.Admin' and source eq 'Fusion.Roles' and " +
+    private static string GetActiveOrgAdminsOdataQuery() => "scope.type eq 'OrgChart' and roleName eq 'Fusion.OrgChart.Admin' and (source eq 'Fusion.Roles' or source eq 'fcore-admin/fra-role') and " +
                                                             $"validTo gt '{DateTime.UtcNow:O}'";
 
     public async Task<Dictionary<Guid, ICollection<ApiSinglePersonRole>>> GetAdminRolesForOrgProjects(ICollection<Guid> projectIds, CancellationToken cancellationToken = default)
