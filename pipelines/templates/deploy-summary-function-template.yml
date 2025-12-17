@@ -21,7 +21,7 @@ steps:
       $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
       $functionAppName = "func-fap-summary-$environment"
       $envVaultName = "kv-fap-resources-$environment"
-      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
+      $envResourceGroup = Get-AzResourceGroup -Name "fusion-apps-resources-$environment"
 
       if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
 
@@ -66,7 +66,7 @@ steps:
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           departmentFilter = ""
-          projectTypeFilter = "PRD"
+          projectTypeFilter = ""
           secretIds = @{
               clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
