@@ -46,7 +46,7 @@ steps:
         $context =  "https://context.api.fusion.equinor.com"
         $portal = "https://fusion.equinor.com"  
       }
-      else if ($fusionEnvironment -eq "tr") {
+      elseif ($fusionEnvironment -eq "tr") {
         $lineorg = "https://api-fra-services-lineorg-tr.radix.equinor.com"
         $org = "https://api-fra-services-org-tr.radix.equinor.com"
         $people = "https://people.$fusionEnvironment.api.fusion-dev.net"
