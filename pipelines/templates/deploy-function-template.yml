@@ -46,6 +46,15 @@ steps:
         $context =  "https://context.api.fusion.equinor.com"
         $portal = "https://fusion.equinor.com"  
       }
+      else if ($fusionEnvironment -eq "tr") {
+        $lineorg = "https://api-fra-services-lineorg-tr.radix.equinor.com"
+        $org = "https://api-fra-services-org-tr.radix.equinor.com"
+        $people = "https://people.$fusionEnvironment.api.fusion-dev.net"
+        $resources = "https://api-fra-services-resources-tr.radix.equinor.com"
+        $notifications = "https://notification.$fusionEnvironment.api.fusion-dev.net"
+        $context =  "https://context.$fusionEnvironment.api.fusion-dev.net"
+        $portal = "https://fusion.$fusionEnvironment.fusion-dev.net"
+      }
       else {
         $lineorg = "https://fra-lineorg.$fusionEnvironment.api.fusion-dev.net"
         $org = "https://org.$fusionEnvironment.api.fusion-dev.net"
