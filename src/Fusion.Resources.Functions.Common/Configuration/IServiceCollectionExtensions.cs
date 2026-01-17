@@ -38,7 +38,7 @@ namespace Fusion.Resources.Functions.Common.Configuration
 
             var builder = new HttpClientFactoryBuilder(services);
             builder.AddOrgClient();
-            services.AddOrgApiClient(HttpClientNames.Application.Org);
+            services.AddScoped<IOrgClient, OrgClient>();
 
             builder.AddSummaryClient();
             services.AddScoped<ISummaryApiClient, SummaryApiClient>();

@@ -1,5 +1,5 @@
 ﻿using System;
-using Fusion.ApiClients.Org;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api
 {

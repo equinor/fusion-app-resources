@@ -1,8 +1,8 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database.Entities;
+﻿using Fusion.Resources.Database.Entities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain
 {

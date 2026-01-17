@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fusion.ApiClients.Org;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.Converters;
+using Fusion.Integration.Profile;
+using Fusion.Services.Org.ApiModels;
 using Newtonsoft.Json;
 
 namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
@@ -37,7 +38,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         /// Using custom converter to allow type property to be null when parsing the model.
         /// </summary>
         [JsonConverter(typeof(EnumStringValidationDefaultConverter))]
-        public PatchProperty<ApiInstanceType?> Type { get; set; }
+        public PatchProperty<ApiPositionInstanceV2.ApiInstanceType?> Type { get; set; }
 
         public PatchProperty<LocationRef> Location { get; set; }
 

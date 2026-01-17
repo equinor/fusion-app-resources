@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Functions.Common.Integration.Http;
+﻿using Fusion.Integration.Http.Models;
+using Fusion.Resources.Functions.Common.Integration.Http;
 using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Functions.Common.ApiClients;

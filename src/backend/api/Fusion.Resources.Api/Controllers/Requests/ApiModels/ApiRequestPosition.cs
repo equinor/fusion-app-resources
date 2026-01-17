@@ -1,7 +1,7 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Domain;
 using System;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {

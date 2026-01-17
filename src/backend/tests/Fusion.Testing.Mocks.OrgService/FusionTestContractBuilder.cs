@@ -1,8 +1,8 @@
 ﻿using Bogus;
-using Fusion.ApiClients.Org;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -36,7 +36,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 deserialized.ForEach(p =>
                 {
                     p.ContractId = contract.Id;
-                    p.Contract = new ApiContractReferenceV2
+                    p.Contract = new ApiPositionContract()
                     {
                         Company = contract.Company,
                         Id = contract.Id,
@@ -44,7 +44,7 @@ namespace Fusion.Testing.Mocks.OrgService
                         Name = contract.Name
                     };
                     p.ProjectId = project.ProjectId;
-                    p.Project = new ApiProjectReferenceV2()
+                    p.Project = new ApiProjectReference()
                     {
                         ProjectId = project.ProjectId,
                         DomainId = project.DomainId,
@@ -76,7 +76,7 @@ namespace Fusion.Testing.Mocks.OrgService
 
         public FusionTestContractBuilder WithCompany(Guid id, string name)
         {
-            contract.Company = new ApiCompanyV2 { Id = id, Name = name };
+            contract.Company = new ApiCompany() { Id = id, Name = name };
             return this;
         }
         public FusionTestContractBuilder WithId(Guid id)

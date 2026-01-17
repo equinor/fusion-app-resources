@@ -1,11 +1,11 @@
-﻿using Fusion.ApiClients.Org;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain.Services
 {
@@ -14,7 +14,7 @@ namespace Fusion.Resources.Domain.Services
         private readonly HttpClient client;
 
 
-        private List<ApiCompanyV2>? companies = null;
+        private List<ApiCompany>? companies = null;
         private readonly Timer? cacheRestTimer = null;
 
         public PeopleCompanyResolver(IHttpClientFactory httpClientFactory)
@@ -29,14 +29,14 @@ namespace Fusion.Resources.Domain.Services
             cacheRestTimer?.Dispose();
         }
 
-        public async Task<ApiCompanyV2?> FindCompanyAsync(Guid companyId)
+        public async Task<ApiCompany?> FindCompanyAsync(Guid companyId)
         {
             if (companies == null)
             {
                 var response = await client.GetAsync("/companies");
                 var content = await response.Content.ReadAsStringAsync();
 
-                companies = JsonConvert.DeserializeObject<List<ApiCompanyV2>>(content)!;
+                companies = JsonConvert.DeserializeObject<List<ApiCompany>>(content)!;
             }
 
             return companies.FirstOrDefault(c => c.Id == companyId);

@@ -1,7 +1,7 @@
-﻿using Fusion.ApiClients.Org;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -66,7 +66,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 .RuleFor(i => i.ExternalId, f => f.Random.AlphaNumeric(3))
                 .RuleFor(i => i.Calendar, f => "Normal")
                 .RuleFor(i => i.Workload, f => f.Random.Double(0, 100))
-                .RuleFor(i => i.Location, f => new ApiPositionLocationV2()
+                .RuleFor(i => i.Location, f => new ApiPositionLocation()
                 {
                     Id = Guid.NewGuid(),
                     Name = f.Address.City(),
@@ -100,7 +100,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 .RuleFor(i => i.ExternalId, f => f.Random.AlphaNumeric(3))
                 .RuleFor(i => i.Calendar, f => "Normal")
                 .RuleFor(i => i.Workload, f => f.Random.Double(0, 100))
-                .RuleFor(i => i.Location, f => new ApiPositionLocationV2()
+                .RuleFor(i => i.Location, f => new ApiPositionLocation()
                 {
                     Id = Guid.NewGuid(),
                     Name = f.Address.City(),

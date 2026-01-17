@@ -1,6 +1,6 @@
 ﻿#nullable enable
 using System.Text.Json.Serialization;
-using Fusion.ApiClients.Org;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Functions.Common.ApiClients
 {

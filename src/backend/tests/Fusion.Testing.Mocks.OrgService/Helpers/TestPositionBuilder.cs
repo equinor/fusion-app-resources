@@ -1,10 +1,10 @@
-﻿using Fusion.ApiClients.Org;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -21,7 +21,7 @@ namespace Fusion.Testing.Mocks.OrgService
         {
             return new Bogus.Faker<ApiPositionV2>()
                 .RuleFor(p => p.Id, f => Guid.NewGuid())
-                .RuleFor(p => p.Properties, f => new ApiPositionPropertiesV2())
+                .RuleFor(p => p.Properties, f => new Dictionary<string, object>())
                 .RuleFor(p => p.ExternalId, f => f.Random.AlphaNumeric(5))
                 .RuleFor(p => p.BasePosition, f => f.PickRandom(AllBasePositions.Except(new[] { DirectorBasePosition })))
                 .RuleFor(p => p.Instances, f => PositionInstanceBuilder.CreateInstanceStack(f, 4))

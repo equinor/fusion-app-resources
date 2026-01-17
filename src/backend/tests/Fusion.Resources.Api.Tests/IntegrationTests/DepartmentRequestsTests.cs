@@ -15,7 +15,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Fusion.Services.LineOrg.ApiModels;
 using Newtonsoft.Json.Linq;
-using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {

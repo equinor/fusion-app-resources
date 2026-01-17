@@ -1,6 +1,6 @@
 using FluentAssertions;
-using Fusion.ApiClients.Org;
 using Fusion.Resources.Functions.Common.ApiClients;
+using Fusion.Services.Org.ApiModels;
 using Fusion.Summary.Functions.ReportCreator;
 using Fusion.Summary.Functions.Tests.Notifications.Mock;
 

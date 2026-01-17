@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fusion.ApiClients.Org;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 {
@@ -89,7 +89,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
                 instance.ExternalId = request.ExternalId.Value;
 
             if (request.Location.HasValue)
-                instance.Location = new ApiPositionLocationV2()
+                instance.Location = new ApiPositionLocation()
                 {
                     Id = request.Location.Value.Id
                 };
@@ -111,7 +111,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
                 }
                 else
                 {
-                    instance.Properties ??= new ApiPropertiesCollectionV2();
+                    instance.Properties ??= new Dictionary<string, object>();
                     foreach (var (key, value) in request.Properties.Value)
                     {
                         var existingProp = instance.Properties.FirstOrDefault(x => x.Key == key);

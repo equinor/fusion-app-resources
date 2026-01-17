@@ -1,5 +1,8 @@
 ﻿using System;
 using Fusion.Integration.Profile;
+using Fusion.Resources.Domain.Services;
+using Fusion.Resources.Domain.Services.OrgClient.Models;
+using Fusion.Services.Org.ApiModels;
 
 namespace Fusion.Resources.Domain
 {
@@ -7,14 +10,14 @@ namespace Fusion.Resources.Domain
     {
         public QueryOrgPositionInstance(FusionContract contract, FusionContractPosition positionInstance)
         {
-            Project = new ApiClients.Org.ApiProjectReferenceV2
+            Project = new ApiProjectReference
             {
                 DomainId = contract.Project.DomainId,
                 Name = contract.Project.Name,
                 ProjectType = contract.Project.Type,
                 ProjectId = contract.Project.Id
             };
-            Contract = new ApiClients.Org.ApiContractReferenceV2
+            Contract = new ApiContractReferenceV2
             {
                 Name = contract.Name,
                 Id = contract.Id,
@@ -47,7 +50,7 @@ namespace Fusion.Resources.Domain
         public double? Workload { get; set; }
         public QueryBasePosition BasePosition { get; set; }
 
-        public Fusion.ApiClients.Org.ApiProjectReferenceV2 Project { get; set; }
-        public Fusion.ApiClients.Org.ApiContractReferenceV2 Contract { get; set; }
+        public ApiProjectReference Project { get; set; }
+        public ApiContractReferenceV2 Contract { get; set; }
     }
 }
