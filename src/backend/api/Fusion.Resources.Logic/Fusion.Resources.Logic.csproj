@@ -6,6 +6,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.3" />
     <ProjectReference Include="..\..\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj" />
     <ProjectReference Include="..\..\integration\Fusion.Resources.Integration.Models\Fusion.Resources.Integration.Models.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />

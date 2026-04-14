@@ -9,6 +9,7 @@
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="8.2.1"/>
     <PackageReference Include="Fusion.ApiClients.People" Version="8.0.1" />
     <PackageReference Include="Fusion.Infrastructure.Authentication" Version="8.1.0"/>
+  <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.3" />
 
   </ItemGroup>
 
