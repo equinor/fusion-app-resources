@@ -14,6 +14,7 @@
         <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="7.3.1"/>
         <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="7.3.1"/>
         <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="7.3.1"/>
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.3" />
     </ItemGroup>
     
 
